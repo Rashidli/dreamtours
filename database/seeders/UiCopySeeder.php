@@ -1,0 +1,3 @@
+<?php
+namespace Database\Seeders;use App\Models\Word;use Illuminate\Database\Seeder;use Illuminate\Support\Facades\File;
+class UiCopySeeder extends Seeder{public function run():void{$texts=[];foreach(File::glob(resource_path('views/front/pages/*.blade.php')) as $file){$html=File::get($file);$html=preg_replace('/<(script|style)\b[^>]*>.*?<\/\1>/is','',$html);preg_match_all('/>([^<>{}@]+)</u',$html,$matches);foreach($matches[1] as $raw){$text=preg_replace('/\s+/u',' ',trim(html_entity_decode($raw,ENT_QUOTES|ENT_HTML5,'UTF-8')));if($text!==''&&mb_strlen($text)<=500&&preg_match('/[\pL\pN]/u',$text))$texts[$text]=true;}}foreach(array_keys($texts) as $source){$key='ui.'.sha1($source);Word::updateOrCreate(['key'=>$key],['source'=>$source,'en'=>['title'=>$source]]);}}}

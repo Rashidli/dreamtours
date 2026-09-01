@@ -1,0 +1,174 @@
+/* ============================================================================
+   DreamTour — global stylesheet (Tailwind CSS v4, CSS-first)
+   ----------------------------------------------------------------------------
+   Design tokens live in the @theme block below and are consumed as normal
+   Tailwind utilities (bg-brand-600, text-ink-900, rounded-4xl, font-display …).
+   Keep hand-written CSS to the minimum in @layer base / @layer components.
+   ========================================================================== */
+
+@import "tailwindcss";
+
+/* Tell Tailwind where to scan for class names (v4 content detection). */
+@source "../../*.html";
+@source "../../pages/**/*.html";
+@source "../js/**/*.js";
+
+@theme {
+  /* ---- Typography ------------------------------------------------------- */
+  --font-display: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+
+  /* ---- Brand (crimson / rose) — primary CTA + accent colour ----------- */
+  --color-brand-50: #fff1f3;
+  --color-brand-100: #ffe4e8;
+  --color-brand-200: #fecdd6;
+  --color-brand-300: #fda4b4;
+  --color-brand-400: #fb7189;
+  --color-brand-500: #f43f5e;
+  --color-brand-600: #e11d48; /* main brand colour */
+  --color-brand-700: #be123c;
+  --color-brand-800: #9f1239;
+  --color-brand-900: #881337;
+  --color-brand-950: #4c0519;
+
+  /* ---- Ink (deep navy) — headers, footers, dark feature bands --------- */
+  --color-ink-50: #f4f6fb;
+  --color-ink-100: #e6eaf3;
+  --color-ink-200: #c8d0e3;
+  --color-ink-300: #9aa6c6;
+  --color-ink-400: #6b7aa3;
+  --color-ink-500: #4a5680;
+  --color-ink-600: #363f60;
+  --color-ink-700: #262d47;
+  --color-ink-800: #171d31;
+  --color-ink-900: #0b1120; /* primary dark surface */
+  --color-ink-950: #060a15;
+
+  /* ---- Sand — warm off-white for alternating light sections ---------- */
+  --color-sand-50: #fbf9f7;
+  --color-sand-100: #f5f1ec;
+  --color-sand-200: #ebe4da;
+
+  /* ---- Radius — generously rounded cards / pills --------------------- */
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.5rem;
+
+  /* ---- Shadows — soft, diffuse ------------------------------------- */
+  --shadow-card: 0 1px 2px rgb(11 17 32 / 0.04), 0 12px 32px -12px rgb(11 17 32 / 0.14);
+  --shadow-card-hover: 0 1px 2px rgb(11 17 32 / 0.05), 0 24px 48px -16px rgb(11 17 32 / 0.22);
+
+  /* ---- Layout ---------------------------------------------------- */
+  --container-8xl: 88rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-white);
+    color: var(--color-ink-800);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-ink-900);
+    text-wrap: balance;
+  }
+
+  /* Consistent, visible keyboard focus across the whole site. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Respect users who prefer reduced motion. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Hide content until Alpine has initialised (pairs with x-cloak). */
+  [x-cloak] { display: none !important; }
+}
+
+@layer components {
+  /* ---- Buttons ------------------------------------------------------- */
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-full
+      px-5 py-2.5 text-sm font-semibold leading-none transition-colors
+      disabled:cursor-not-allowed disabled:opacity-60;
+    font-family: var(--font-display);
+  }
+  .btn-sm { @apply px-4 py-2 text-[13px]; }
+  .btn-lg { @apply px-7 py-3.5 text-base; }
+
+  /* Combine with the base: class="btn btn-primary" (+ optional btn-sm / btn-lg). */
+  .btn-primary { @apply bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800; }
+  .btn-white   { @apply bg-white text-ink-900 hover:bg-ink-100; }
+  .btn-outline { @apply border border-ink-200 bg-transparent text-ink-900 hover:bg-ink-50; }
+  /* Ghost variant for use on dark (ink) surfaces. */
+  .btn-ghost   { @apply border border-white/25 bg-transparent text-white hover:bg-white/10; }
+
+  /* ---- Header navigation ------------------------------------------- */
+  .nav-link {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium
+      text-ink-100 transition-colors hover:bg-white/10 hover:text-white;
+    font-family: var(--font-display);
+  }
+  .nav-link-active { @apply bg-white/10 text-white; }
+
+  .menu-item {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+      text-ink-700 transition-colors hover:bg-ink-50 hover:text-brand-600;
+  }
+
+  /* ---- Utilities --------------------------------------------------- */
+  /* Skip link — visually hidden until focused. */
+  .skip-link {
+    @apply sr-only;
+  }
+  .skip-link:focus {
+    @apply not-sr-only fixed left-4 top-4 z-[100] rounded-lg bg-white px-4 py-2
+      text-sm font-semibold text-ink-900 shadow-lg;
+  }
+
+  /* Page-width wrapper used by every section. */
+  .container-page {
+    width: 100%;
+    max-width: var(--container-8xl);
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-page { padding-inline: 1.5rem; }
+  }
+  @media (min-width: 1024px) {
+    .container-page { padding-inline: 2rem; }
+  }
+
+  /* Small uppercase rose label that sits above section titles. */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-brand-600);
+  }
+}

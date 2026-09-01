@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Astrotomic\Translatable\Contracts\Translatable as Contract;use Astrotomic\Translatable\Translatable;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\SoftDeletes;
+class VisaService extends Model implements Contract{use Translatable,SoftDeletes;public array $translatedAttributes=['name','description','required_documents','disclaimer'];protected $fillable=['destination_id','price','currency','processing_time','is_active','sort_order'];protected $casts=['price'=>'decimal:2','is_active'=>'boolean'];public function destination(){return $this->belongsTo(Destination::class);}}

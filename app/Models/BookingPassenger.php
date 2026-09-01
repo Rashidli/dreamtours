@@ -1,0 +1,2 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;class BookingPassenger extends Model{protected $fillable=['booking_id','pickup_point_id','first_name','last_name','category','age','date_of_birth','phone','email','meal_selection','notes'];protected $casts=['date_of_birth'=>'date'];public function booking(){return $this->belongsTo(Booking::class);}public function pickupPoint(){return $this->belongsTo(PickupPoint::class);}}

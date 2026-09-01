@@ -1,0 +1,12 @@
+<?php
+namespace App\Http\Controllers\Admin;use App\Http\Controllers\Controller;use App\Models\User;use Illuminate\Http\{RedirectResponse,Request};use Illuminate\Support\Facades\Hash;use Illuminate\Validation\Rule;use Illuminate\View\View;use Spatie\Permission\Models\Role;
+class UserController extends Controller{
+ public function __construct(){$this->middleware('permission:list-users')->only(['index','show']);$this->middleware('permission:create-users')->only(['create','store']);$this->middleware('permission:edit-users')->only(['edit','update']);$this->middleware('permission:delete-users')->only('destroy');}
+ public function index(Request $r):View{$users=User::with('roles')->when($r->filled('q'),fn($q)=>$q->where(fn($x)=>$x->where('name','like','%'.$r->q.'%')->orWhere('email','like','%'.$r->q.'%')))->when($r->filled('role'),fn($q)=>$q->role($r->role))->latest()->paginate(20)->withQueryString();return view('admin.users.index',compact('users'));}
+ public function create():View{return view('admin.users.create',['roles'=>Role::orderBy('name')->get()]);}
+ public function store(Request $r):RedirectResponse{$d=$r->validate(['name'=>['required','string','max:255'],'email'=>['required','email','unique:users,email'],'password'=>['required','string','min:8'],'role'=>['required','exists:roles,name']]);$user=User::create(['name'=>$d['name'],'email'=>$d['email'],'password'=>Hash::make($d['password'])]);$user->syncRoles([$d['role']]);return redirect()->route('users.index')->with('message','User created.');}
+ public function show(User $user):RedirectResponse{return redirect()->route('users.edit',$user);}
+ public function edit(User $user):View{return view('admin.users.edit',['user'=>$user,'roles'=>Role::orderBy('name')->get()]);}
+ public function update(Request $r,User $user):RedirectResponse{$d=$r->validate(['name'=>['required','string','max:255'],'email'=>['required','email',Rule::unique('users')->ignore($user)],'password'=>['nullable','string','min:8'],'role'=>['required','exists:roles,name']]);$user->fill(['name'=>$d['name'],'email'=>$d['email']]);if(!empty($d['password']))$user->password=Hash::make($d['password']);$user->save();$user->syncRoles([$d['role']]);return back()->with('message','User updated.');}
+ public function destroy(Request $r,User $user):RedirectResponse{abort_if($user->id===$r->user()->id,422,'You cannot delete your own account.');abort_if($user->hasRole('superadmin'),422,'The superadmin account cannot be deleted.');$user->delete();return redirect()->route('users.index')->with('message','User deleted.');}
+}

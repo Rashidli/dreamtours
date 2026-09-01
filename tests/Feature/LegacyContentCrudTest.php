@@ -1,0 +1,10 @@
+<?php
+namespace Tests\Feature;
+use App\Models\{Faq,Review,User};use Database\Seeders\CmsPermissionSeeder;use Illuminate\Foundation\Testing\RefreshDatabase;use Spatie\Permission\Models\Role;use Tests\TestCase;
+class LegacyContentCrudTest extends TestCase{
+ use RefreshDatabase;
+ private function login():void{$this->seed(CmsPermissionSeeder::class);Role::firstOrCreate(['name'=>'superadmin','guard_name'=>'web']);$u=User::factory()->create();$u->assignRole('superadmin');$this->actingAs($u);}
+ public function test_faq_has_english_crud_filter_and_soft_delete():void{$this->login();$this->post(route('faqs.store'),['en'=>['question'=>'Do I need a passport?','answer'=>'Yes.'],'is_active'=>1,'order'=>2])->assertRedirect();$faq=Faq::firstOrFail();$this->get(route('faqs.index',['q'=>'passport','status'=>'1']))->assertOk()->assertSee('Do I need a passport?');$this->put(route('faqs.update',$faq),['en'=>['question'=>'Updated question','answer'=>'Updated answer'],'order'=>3])->assertRedirect();$this->assertDatabaseHas('faq_translations',['faq_id'=>$faq->id,'question'=>'Updated question']);$this->delete(route('faqs.destroy',$faq))->assertRedirect();$this->assertSoftDeleted($faq);}
+ public function test_review_has_english_crud_filters_permissions_and_soft_delete():void{$this->login();$this->post(route('reviews.store'),['en'=>['name'=>'Jane Traveller','position'=>'Toronto','content'=>'Excellent trip'],'rating'=>5,'is_active'=>1,'order'=>1,'image_path'=>'review.jpg'])->assertRedirect();$review=Review::firstOrFail();$this->get(route('reviews.index',['q'=>'Jane','rating'=>5,'status'=>'1']))->assertOk()->assertSee('Jane Traveller');$this->put(route('reviews.update',$review),['en'=>['name'=>'Jane Updated','position'=>'Montreal','content'=>'Still excellent'],'rating'=>4,'order'=>2])->assertRedirect();$this->assertDatabaseHas('review_translations',['review_id'=>$review->id,'name'=>'Jane Updated']);$this->delete(route('reviews.destroy',$review))->assertRedirect();$this->assertSoftDeleted($review);}
+ public function test_review_list_is_forbidden_without_permission():void{$this->actingAs(User::factory()->create())->get(route('reviews.index'))->assertForbidden();}
+}
