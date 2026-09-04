@@ -1,3 +1,14 @@
+@php
+  $companyName = $siteSettings->get('site_name', 'DreamTour');
+  $address     = $siteSettings->get('address');
+  $hours       = $siteSettings->get('working_hours');
+  $mapRaw      = trim((string) $siteSettings->get('map_embed'));
+  preg_match('/src=["\']([^"\']+)["\']/i', $mapRaw, $m);
+  $mapSrc      = $m[1] ?? (str_starts_with($mapRaw, 'http') ? $mapRaw : null);
+  $mapLink     = $address
+      ? 'https://www.google.com/maps/search/'.rawurlencode($address)
+      : 'https://www.google.com/maps/search/pick-up+points+Greater+Toronto+Area';
+@endphp
 <!doctype html>
 <html lang="en" class="scroll-smooth">
   <head>
@@ -190,7 +201,7 @@
                   <dt class="sr-only">Phone</dt>
                   <dd>
                     <a href="tel:{{ $siteSettings->get('phone_link') }}" class="font-display text-lg font-bold text-ink-900 hover:text-brand-600">{{ $siteSettings->get('phone') }}</a>
-                    <p class="text-sm text-ink-500">Mon–Sun: 8:00 AM – 8:00 PM</p>
+                    <p class="text-sm text-ink-500">{{ $hours }}</p>
                   </dd>
                 </div>
               </div>
@@ -230,30 +241,41 @@
                   </svg>
                 </span>
                 <div>
-                  <dt class="sr-only">Service area</dt>
+                  <dt class="sr-only">Address</dt>
                   <dd>
-                    <p class="font-display text-lg font-bold text-ink-900">Serving Ontario &amp; Québec</p>
-                    <p class="text-sm text-ink-500">GTA pick-up points and beyond</p>
+                    <p class="font-display text-lg font-bold text-ink-900">{{ $companyName }}</p>
+                    @if($address)
+                      <a href="{{ $mapLink }}" target="_blank" rel="noopener" class="text-sm text-ink-500 hover:text-brand-600">{{ $address }}</a>
+                    @else
+                      <p class="text-sm text-ink-500">GTA pick-up points and beyond</p>
+                    @endif
                   </dd>
                 </div>
               </div>
+              @if($hours)
+              <div class="flex gap-4">
+                <span class="grid size-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
+                  <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </span>
+                <div>
+                  <dt class="sr-only">Business hours</dt>
+                  <dd>
+                    <p class="font-display text-lg font-bold text-ink-900">{{ $hours }}</p>
+                    <p class="text-sm text-ink-500">Office and phone line</p>
+                  </dd>
+                </div>
+              </div>
+              @endif
             </dl>
 
             <div class="mt-8">
               <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">Follow us</p>
               <div class="mt-3 flex gap-3">
-                <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="DreamTour on Facebook" class="grid size-10 place-items-center rounded-full bg-ink-900 text-white transition hover:bg-brand-600">
-                  <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.99 3.657 9.128 8.438 9.878v-6.987H7.898V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.891h-2.33v6.987C18.343 21.128 22 16.99 22 12Z" /></svg>
-                </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="DreamTour on Instagram" class="grid size-10 place-items-center rounded-full bg-ink-900 text-white transition hover:bg-brand-600">
-                  <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2Zm0 3.87A5.93 5.93 0 1 0 12 17.93 5.93 5.93 0 0 0 12 6.07Zm0 1.8a4.13 4.13 0 1 1 0 8.26 4.13 4.13 0 0 1 0-8.26Zm6.03-3.04a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z" /></svg>
-                </a>
-                <a href="https://tiktok.com" target="_blank" rel="noopener" aria-label="DreamTour on TikTok" class="grid size-10 place-items-center rounded-full bg-ink-900 text-white transition hover:bg-brand-600">
-                  <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 3c.3 2.1 1.5 3.6 3.5 3.9v2.5c-1.3.1-2.5-.2-3.6-.8v6.1c0 3.1-2.5 5.6-5.6 5.6S5.2 17.8 5.2 14.7 7.7 9.1 10.8 9.1c.3 0 .6.02.9.07v2.6a3 3 0 0 0-.9-.14 2.9 2.9 0 1 0 2.9 2.9V3h2.8Z" /></svg>
-                </a>
-                <a href="https://youtube.com" target="_blank" rel="noopener" aria-label="DreamTour on YouTube" class="grid size-10 place-items-center rounded-full bg-ink-900 text-white transition hover:bg-brand-600">
-                  <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" /></svg>
-                </a>
+                @foreach($socials as $social)
+                  <a href="{{ $social->link }}" target="_blank" rel="noopener" aria-label="{{ $siteSettings->get('site_name','DreamTour') }} on {{ $social->title }}" class="grid size-10 place-items-center rounded-full bg-ink-900 text-sm font-bold text-white transition hover:bg-brand-600">{{ str($social->title)->substr(0,1) }}</a>
+                @endforeach
               </div>
             </div>
           </div>
@@ -265,42 +287,48 @@
            ================================================================== -->
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-          <!-- Stylised map -->
-          <div class="relative overflow-hidden rounded-4xl bg-ink-50 ring-1 ring-ink-900/5" style="aspect-ratio: 4 / 3">
-            <div class="absolute inset-0" style="background-image: repeating-linear-gradient(0deg,#0b112012 0 1px,transparent 1px 44px), repeating-linear-gradient(90deg,#0b112012 0 1px,transparent 1px 44px)"></div>
-            <div class="absolute -right-16 -bottom-16 size-64 rounded-full bg-sky-200/60"></div>
-            <div class="absolute left-0 top-1/2 h-1.5 w-full -translate-y-1/2 -rotate-6 bg-white/70"></div>
-            <div class="absolute left-1/2 top-0 h-full w-1.5 -translate-x-1/2 rotate-12 bg-white/70"></div>
+          <!-- Map: a real embed once one is configured, otherwise the stylised fallback -->
+          @if($mapSrc)
+            <div class="overflow-hidden rounded-4xl ring-1 ring-ink-900/5" style="aspect-ratio: 4 / 3">
+              <iframe src="{{ $mapSrc }}" title="{{ $companyName }} on the map" class="size-full border-0" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+          @else
+            <div class="relative overflow-hidden rounded-4xl bg-ink-50 ring-1 ring-ink-900/5" style="aspect-ratio: 4 / 3">
+              <div class="absolute inset-0" style="background-image: repeating-linear-gradient(0deg,#0b112012 0 1px,transparent 1px 44px), repeating-linear-gradient(90deg,#0b112012 0 1px,transparent 1px 44px)"></div>
+              <div class="absolute -right-16 -bottom-16 size-64 rounded-full bg-sky-200/60"></div>
+              <div class="absolute left-0 top-1/2 h-1.5 w-full -translate-y-1/2 -rotate-6 bg-white/70"></div>
+              <div class="absolute left-1/2 top-0 h-full w-1.5 -translate-x-1/2 rotate-12 bg-white/70"></div>
 
-            <span class="absolute left-[18%] top-[30%] flex flex-col items-center">
-              <svg class="size-7 text-brand-600 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
-              <span class="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-ink-800">Brampton</span>
-            </span>
-            <span class="absolute left-[36%] top-[20%] flex flex-col items-center">
-              <svg class="size-7 text-brand-600 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
-              <span class="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-ink-800">Vaughan</span>
-            </span>
-            <span class="absolute left-[70%] top-[34%] flex flex-col items-center">
-              <svg class="size-7 text-brand-600 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
-              <span class="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-ink-800">Scarborough</span>
-            </span>
-            <span class="absolute left-[46%] top-[58%] flex flex-col items-center">
-              <svg class="size-9 text-ink-900 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
-              <span class="mt-0.5 rounded bg-ink-900 px-1.5 py-0.5 text-[11px] font-bold text-white">Toronto</span>
-            </span>
+              <span class="absolute left-[18%] top-[30%] flex flex-col items-center">
+                <svg class="size-7 text-brand-600 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+                <span class="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-ink-800">Brampton</span>
+              </span>
+              <span class="absolute left-[36%] top-[20%] flex flex-col items-center">
+                <svg class="size-7 text-brand-600 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+                <span class="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-ink-800">Vaughan</span>
+              </span>
+              <span class="absolute left-[70%] top-[34%] flex flex-col items-center">
+                <svg class="size-7 text-brand-600 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+                <span class="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-ink-800">Scarborough</span>
+              </span>
+              <span class="absolute left-[46%] top-[58%] flex flex-col items-center">
+                <svg class="size-9 text-ink-900 drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+                <span class="mt-0.5 rounded bg-ink-900 px-1.5 py-0.5 text-[11px] font-bold text-white">Toronto</span>
+              </span>
 
-            <a
-              href="https://www.google.com/maps/search/pick-up+points+Greater+Toronto+Area"
-              target="_blank"
-              rel="noopener"
-              class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink-900 shadow-md hover:text-brand-600"
-            >
-              Open in Maps
-              <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-              </svg>
-            </a>
-          </div>
+              <a
+                href="{{ $mapLink }}"
+                target="_blank"
+                rel="noopener"
+                class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink-900 shadow-md hover:text-brand-600"
+              >
+                Open in Maps
+                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </a>
+            </div>
+          @endif
 
           <!-- Pick-up points -->
           <div>
