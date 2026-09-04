@@ -71,11 +71,16 @@
           <svg class="mt-0.5 size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
           </svg>
-          <p>
-            DreamTour provides document preparation and guidance only. The
-            decision to grant or refuse a visa rests entirely with the relevant
-            consulate or embassy — <span class="font-semibold text-ink-900">approval is never guaranteed</span>.
-          </p>
+          @php($visaDisclaimer = data_get($frontendData, 'visa.disclaimer'))
+          @if($visaDisclaimer)
+            <p>{{ $visaDisclaimer }}</p>
+          @else
+            <p>
+              DreamTour provides document preparation and guidance only. The
+              decision to grant or refuse a visa rests entirely with the relevant
+              consulate or embassy — <span class="font-semibold text-ink-900">approval is never guaranteed</span>.
+            </p>
+          @endif
         </div>
       </div>
 
@@ -211,6 +216,16 @@
                     <dd class="mt-0.5 font-display font-extrabold text-ink-900" x-text="'$' + s.fee"></dd>
                   </div>
                 </dl>
+                <template x-if="s.documents && s.documents.length">
+                  <details class="mt-4 rounded-2xl bg-sand-50 p-3">
+                    <summary class="cursor-pointer text-sm font-semibold text-ink-800">Required documents (<span x-text="s.documents.length"></span>)</summary>
+                    <ul class="mt-2 space-y-1 text-sm text-ink-600">
+                      <template x-for="(doc, di) in s.documents" :key="di">
+                        <li class="flex gap-2"><span class="text-brand-600" aria-hidden="true">&bull;</span><span x-text="doc"></span></li>
+                      </template>
+                    </ul>
+                  </details>
+                </template>
                 <button
                   type="button"
                   @click="form.destination = s.country; document.getElementById('request').scrollIntoView({ behavior: 'smooth' })"

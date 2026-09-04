@@ -329,6 +329,17 @@
                       </div>
                     </dl>
 
+                    <template x-if="c.documents && c.documents.length">
+                      <details class="mt-4 rounded-2xl bg-sand-50 p-3">
+                        <summary class="cursor-pointer text-sm font-semibold text-ink-800">Documents you'll need (<span x-text="c.documents.length"></span>)</summary>
+                        <ul class="mt-2 space-y-1 text-sm text-ink-600">
+                          <template x-for="(doc, di) in c.documents" :key="di">
+                            <li class="flex gap-2"><span class="text-brand-600" aria-hidden="true">&bull;</span><span x-text="doc"></span></li>
+                          </template>
+                        </ul>
+                      </details>
+                    </template>
+
                     <div class="mt-auto pt-5">
                       <div class="flex items-baseline gap-1.5 border-t border-ink-100 pt-4">
                         <template x-if="c.previousPrice">

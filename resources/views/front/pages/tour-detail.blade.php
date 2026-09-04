@@ -38,7 +38,7 @@
             <div><dt class="text-xs uppercase text-ink-400">Departure</dt><dd class="font-semibold">{{ $nextDeparture?->departs_at?->format('M j, Y g:i A') ?? 'To be announced' }}</dd></div>
             <div><dt class="text-xs uppercase text-ink-400">Return</dt><dd class="font-semibold">{{ $nextDeparture?->returns_at?->format('M j, Y g:i A') ?? 'To be announced' }}</dd></div>
             <div><dt class="text-xs uppercase text-ink-400">Available / capacity</dt><dd class="font-semibold">{{ $nextDeparture?->available_seats ?? 0 }} / {{ $nextDeparture?->capacity ?? 0 }}</dd></div>
-            <div><dt class="text-xs uppercase text-ink-400">Departure location</dt><dd class="font-semibold">{{ $pickupPoints->first()?->name ?? 'See pickup points' }}</dd></div>
+            <div><dt class="text-xs uppercase text-ink-400">Departure location</dt><dd class="font-semibold">{{ $pickupPoints->first()?->name ?? 'To be announced' }}@if($pickupPoints->count() > 1) <a href="#pickup-points" class="text-sm font-normal text-brand-600 underline">+{{ $pickupPoints->count() - 1 }} more</a>@endif</dd></div>
             <div><dt class="text-xs uppercase text-ink-400">Status</dt><dd class="font-semibold">{{ str($nextDeparture?->status ?? $tour->status)->replace('_', ' ')->title() }}</dd></div>
             @if($tour->age_restriction)<div><dt class="text-xs uppercase text-ink-400">Age restriction</dt><dd class="font-semibold">{{ $tour->age_restriction }}</dd></div>@endif
             @if($tour->activity_level)<div><dt class="text-xs uppercase text-ink-400">Activity level</dt><dd class="font-semibold">{{ $tour->activity_level }}</dd></div>@endif
@@ -90,6 +90,19 @@
               <ul class="mt-4 space-y-2">@foreach($items as $item)<li class="rounded-xl bg-sand-50 p-4"><b>{{ $item->title }}</b>@if($item->description)<p class="mt-1 text-sm text-ink-500">{{ $item->description }}</p>@endif</li>@endforeach</ul>
             @endif
           @endforeach
+          @if($pickupPoints->isNotEmpty())
+            <h2 id="pickup-points" class="mt-12 scroll-mt-28 font-display text-2xl font-bold">Pick-up points</h2>
+            <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+              @foreach($pickupPoints as $point)
+                <li class="rounded-2xl bg-sand-50 p-4">
+                  <b>{{ $point->name }}</b>
+                  @if($point->address)<p class="mt-1 text-sm text-ink-500">{{ $point->address }}</p>@endif
+                  @if($point->instructions)<p class="mt-1 text-sm text-ink-500">{{ $point->instructions }}</p>@endif
+                  @if($point->map_url)<a href="{{ $point->map_url }}" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-brand-600 underline">Open in Maps</a>@endif
+                </li>
+              @endforeach
+            </ul>
+          @endif
           @foreach(['cancellation_policy'=>'Cancellation policy','refund_policy'=>'Refund policy','boarding_rules'=>'Boarding rules','baggage_rules'=>'Baggage rules','important_notes'=>'Important notes'] as $field => $heading)
             @if($tour->{$field})<h2 class="mt-10 font-display text-2xl font-bold">{{ $heading }}</h2><p class="mt-3">{{ $tour->{$field} }}</p>@endif
           @endforeach
