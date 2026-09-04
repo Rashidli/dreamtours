@@ -66,3 +66,17 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 # dreamtours
+
+## Frontend stylesheet
+
+`public/dreamtour/dist/main.css` is built by Tailwind v4 from
+`public/dreamtour/src/css/main.css`, which scans the Blade views under
+`resources/views/front` and the JS in `public/dreamtour/src/js`.
+
+Rebuild it after adding or changing utility classes in a frontend view —
+otherwise the new classes have no CSS and the markup silently renders unstyled:
+
+```
+npm run css          # one-off, minified
+npm run css:watch    # rebuild while editing
+```

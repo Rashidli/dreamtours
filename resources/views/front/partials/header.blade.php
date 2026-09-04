@@ -44,16 +44,19 @@
       @endforeach
     </nav>
     <div class="flex items-center gap-2">
-      <a href="/favorites" class="relative grid size-10 place-items-center rounded-lg text-white hover:bg-white/10" aria-label="My favourites">
-        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" :fill="$store.wishlist?.count ? 'currentColor' : 'none'">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-        </svg>
-        <span
-          x-cloak
-          x-show="$store.wishlist?.count"
-          x-text="$store.wishlist?.count"
-          class="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-brand-600 px-1 text-[11px] font-bold leading-5 text-white"
-        ></span>
+      <a href="/favorites" class="grid size-10 place-items-center rounded-lg text-white hover:bg-white/10" aria-label="My favourites">
+        {{-- The badge is anchored to the icon, not to the 40px hit area, so it sits on the heart's own corner. --}}
+        <span class="relative block size-5">
+          <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" :fill="$store.wishlist?.count ? 'currentColor' : 'none'">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+          </svg>
+          <span
+            x-cloak
+            x-show="$store.wishlist?.count"
+            x-text="$store.wishlist?.count > 9 ? '9+' : $store.wishlist?.count"
+            class="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-ink-900"
+          ></span>
+        </span>
       </a>
       <a href="{{ $toursUrl }}" class="btn btn-ghost btn-sm hidden lg:inline-flex">View Tours</a>
       <a href="{{ $bookUrl }}" class="btn btn-primary btn-sm hidden sm:inline-flex">Book Now</a>

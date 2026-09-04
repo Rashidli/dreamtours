@@ -8,9 +8,11 @@
 
 @import "tailwindcss";
 
-/* Tell Tailwind where to scan for class names (v4 content detection). */
-@source "../../*.html";
-@source "../../pages/**/*.html";
+/* Tell Tailwind where to scan for class names (v4 content detection).
+   The static HTML prototype these paths used to point at was replaced by the
+   Blade views, which is why the stylesheet stopped picking up new utilities.
+   Only the frontend views are scanned — the admin panel is Bootstrap. */
+@source "../../../../resources/views/front/**/*.blade.php";
 @source "../js/**/*.js";
 
 @theme {
