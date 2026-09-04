@@ -7,6 +7,7 @@
   <title>{{ $tour->name }} | DreamTour</title>
   <meta name="description" content="{{ $tour->short_description }}">
   <link rel="stylesheet" href="/dreamtour/dist/main.css">
+  <script defer src="/dreamtour/src/js/app.js"></script>
   <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
 </head>
 <body class="bg-white text-ink-800 antialiased">

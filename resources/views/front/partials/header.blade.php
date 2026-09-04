@@ -44,6 +44,17 @@
       @endforeach
     </nav>
     <div class="flex items-center gap-2">
+      <a href="/favorites" class="relative grid size-10 place-items-center rounded-lg text-white hover:bg-white/10" aria-label="My favourites">
+        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" :fill="$store.wishlist?.count ? 'currentColor' : 'none'">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+        </svg>
+        <span
+          x-cloak
+          x-show="$store.wishlist?.count"
+          x-text="$store.wishlist?.count"
+          class="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-brand-600 px-1 text-[11px] font-bold leading-5 text-white"
+        ></span>
+      </a>
       <a href="{{ $toursUrl }}" class="btn btn-ghost btn-sm hidden lg:inline-flex">View Tours</a>
       <a href="{{ $bookUrl }}" class="btn btn-primary btn-sm hidden sm:inline-flex">Book Now</a>
       <button type="button" class="grid size-10 place-items-center rounded-lg hover:bg-white/10 xl:hidden" @click="mobile=true" aria-label="Open menu">☰</button>
@@ -52,7 +63,7 @@
   <div x-show="mobile" x-cloak class="fixed inset-0 z-50 xl:hidden"><button class="absolute inset-0 bg-ink-950/70" @click="mobile=false" aria-label="Close menu"></button><div class="absolute right-0 top-0 h-full w-[86%] max-w-sm overflow-y-auto bg-ink-900 p-5 shadow-2xl">
     <div class="mb-5 flex items-center justify-between"><strong class="font-display text-xl">DREAM<span class="text-brand-500">TOUR</span></strong><button @click="mobile=false" class="text-2xl" aria-label="Close menu">×</button></div>
     <nav class="flex flex-col gap-1">@foreach($headerNavigation as $item)<a href="{{ $item->url }}" class="rounded-xl px-4 py-3 font-semibold hover:bg-white/10">{{ $item->title }}</a>@foreach($item->children as $child)<a href="{{ $child->url }}" class="ml-4 rounded-xl px-4 py-2 text-sm text-ink-200 hover:bg-white/10">{{ $child->title }}</a>@endforeach @endforeach</nav>
-    <div class="mt-6 grid gap-2"><a href="{{ $toursUrl }}" class="btn btn-ghost w-full">View Tours</a><a href="{{ $bookUrl }}" class="btn btn-primary w-full">Book Now</a></div>
+    <div class="mt-6 grid gap-2"><a href="{{ $toursUrl }}" class="btn btn-ghost w-full">View Tours</a><a href="{{ $bookUrl }}" class="btn btn-primary w-full">Book Now</a><a href="/favorites" class="btn btn-ghost w-full">My Favourites <span x-cloak x-show="$store.wishlist?.count" x-text="'(' + $store.wishlist?.count + ')'"></span></a></div>
     <div class="mt-6 grid gap-2 border-t border-white/10 pt-5 text-sm text-ink-200">
       @if($phone)<a href="tel:{{ $siteSettings->get('phone_link') ?: $phone }}" class="hover:text-white">{{ $phone }}</a>@endif
       @if($whatsapp)<a href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener" class="hover:text-white">WhatsApp</a>@endif

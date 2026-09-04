@@ -32,6 +32,7 @@ $frontPages = [
     'about' => 'about',
     'contact' => 'contact',
     'cruises' => 'cruises',
+    'favorites' => 'favorites',
     'gallery' => 'gallery',
     'international-tours' => 'international-tours',
     'multi-day-tours' => 'multi-day-tours',

@@ -209,45 +209,112 @@ document.addEventListener("alpine:init", () => {
   }));
 
   /* --------------------------------------------------------------------------
-     Wishlist — in-memory "favourite tours" set (no persistence in Phase 1).
+     Favourites — saved tours and cruises, kept in this browser via
+     localStorage so they survive reloads and page changes. Tours are stored
+     under their plain id, cruises under `cruise-<id>`; everything is coerced
+     to a string so both shapes compare the same way.
      ------------------------------------------------------------------------ */
+  const FAVOURITES_KEY = "dreamtour.favourites";
+
+  // Storage throws in private mode and when a browser blocks site data, so
+  // every read and write degrades to an in-memory list rather than breaking.
+  const readFavourites = () => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(FAVOURITES_KEY) || "[]");
+      return Array.isArray(stored) ? stored.map(String) : [];
+    } catch (error) {
+      return [];
+    }
+  };
+  const writeFavourites = (ids) => {
+    try {
+      window.localStorage.setItem(FAVOURITES_KEY, JSON.stringify(ids));
+    } catch (error) {
+      /* storage unavailable — favourites last for this page only */
+    }
+  };
+
   Alpine.store("wishlist", {
-    ids: [],
+    ids: readFavourites(),
+    get count() {
+      return this.ids.length;
+    },
     has(id) {
-      return this.ids.includes(id);
+      return this.ids.includes(String(id));
     },
     toggle(id, name) {
-      if (this.has(id)) {
-        this.ids = this.ids.filter((x) => x !== id);
+      const key = String(id);
+      if (this.has(key)) {
+        this.ids = this.ids.filter((x) => x !== key);
+        Alpine.store("toast").push({ message: `Removed “${name}” from your favourites` });
       } else {
-        this.ids.push(id);
-        Alpine.store("toast").push({ message: `Saved “${name}” to your wishlist` });
+        this.ids = [...this.ids, key];
+        Alpine.store("toast").push({ message: `Saved “${name}” to your favourites` });
       }
+      writeFavourites(this.ids);
     },
+    clear() {
+      this.ids = [];
+      writeFavourites(this.ids);
+    },
+  });
+
+  // Keep other open tabs in step.
+  window.addEventListener("storage", (event) => {
+    if (event.key === FAVOURITES_KEY) Alpine.store("wishlist").ids = readFavourites();
   });
 
   /* --------------------------------------------------------------------------
      Tour card list — shared rendering helpers for tour-card grids.
      ------------------------------------------------------------------------ */
+  const badgeClass = (label) =>
+    ({
+      "New Tour": "bg-emerald-500 text-white",
+      Popular: "bg-brand-600 text-white",
+      "Limited Seats": "bg-amber-400 text-ink-900",
+      "Last Seats": "bg-orange-500 text-white",
+      "Sold Out": "bg-ink-700 text-white",
+      "Coming Soon": "bg-sky-500 text-white",
+      "Special Price": "bg-violet-500 text-white",
+    }[label] || "bg-ink-700 text-white");
+
+  const seatsLabel = (t) => {
+    if (t.seatsLeft === 0) return "Sold out";
+    if (t.seatsLeft <= 5) return `Only ${t.seatsLeft} seats left`;
+    return `${t.seatsLeft} seats available`;
+  };
+
   Alpine.data("tourList", (source = "tours") => ({
     tours: window.DreamTourData[source] || [],
-    badgeClass(label) {
-      return (
-        {
-          "New Tour": "bg-emerald-500 text-white",
-          Popular: "bg-brand-600 text-white",
-          "Limited Seats": "bg-amber-400 text-ink-900",
-          "Last Seats": "bg-orange-500 text-white",
-          "Sold Out": "bg-ink-700 text-white",
-          "Coming Soon": "bg-sky-500 text-white",
-          "Special Price": "bg-violet-500 text-white",
-        }[label] || "bg-ink-700 text-white"
-      );
+    badgeClass,
+    seatsLabel,
+  }));
+
+  /* --------------------------------------------------------------------------
+     Favourites page — resolves the saved ids against the catalogue this page
+     was served with. Anything saved that is no longer published simply drops
+     out of the list, and is reported so the count still adds up.
+     ------------------------------------------------------------------------ */
+  Alpine.data("favouritesPage", () => ({
+    badgeClass,
+    seatsLabel,
+    get saved() {
+      return Alpine.store("wishlist").ids;
     },
-    seatsLabel(t) {
-      if (t.seatsLeft === 0) return "Sold out";
-      if (t.seatsLeft <= 5) return `Only ${t.seatsLeft} seats left`;
-      return `${t.seatsLeft} seats available`;
+    get tours() {
+      return (window.DreamTourData?.tours || []).filter((t) => this.saved.includes(String(t.id)));
+    },
+    get cruises() {
+      return (window.DreamTourData?.cruises || []).filter((c) => this.saved.includes(`cruise-${c.id}`));
+    },
+    get total() {
+      return this.tours.length + this.cruises.length;
+    },
+    get unavailable() {
+      return Math.max(0, this.saved.length - this.total);
+    },
+    clear() {
+      Alpine.store("wishlist").clear();
     },
   }));
 
