@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesMediaUrls;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Review extends Model
 {
-    use HasFactory, Translatable, SoftDeletes;
+    use HasFactory, Translatable, SoftDeletes, ResolvesMediaUrls;
 
     public $translatedAttributes = ['name', 'position', 'content'];
     protected $fillable = ['image', 'rating', 'is_active', 'order'];
@@ -26,5 +27,10 @@ class Review extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('order');
+    }
+
+    public function getImageAttribute(?string $value): ?string
+    {
+        return $this->mediaUrl($value);
     }
 }

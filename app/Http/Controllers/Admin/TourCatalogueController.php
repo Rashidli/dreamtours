@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HandlesMediaUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use App\Models\TourCategory;
@@ -14,6 +15,8 @@ use Illuminate\View\View;
 
 class TourCatalogueController extends Controller
 {
+    use HandlesMediaUploads;
+
     private const MAP = [
         'categories' => [TourCategory::class, 'tour-categories', ['type']],
         'destinations' => [Destination::class, 'destinations', ['type', 'parent_id']],
@@ -74,11 +77,13 @@ class TourCatalogueController extends Controller
 
     private function validated(Request $request, string $resource, ?Model $item=null): array
     {
-        $rules=['en.name'=>['required','string','max:255'],'en.description'=>['nullable','string'],'type'=>['required','string','max:80'],'sort_order'=>['nullable','integer','min:0'],'is_active'=>['nullable','boolean']];
+        $rules=['en.name'=>['required','string','max:255'],'en.description'=>['nullable','string'],'type'=>['required','string','max:80'],'sort_order'=>['nullable','integer','min:0'],'is_active'=>['nullable','boolean']]+$this->mediaRules('image');
         if(!in_array($resource,['transportations','pickup-points'])) $rules['en.slug']=['required','alpha_dash','max:255'];
         if($resource==='destinations') $rules['parent_id']=['nullable','exists:destinations,id'];
         if($resource==='transportations') $rules['seat_count']=['nullable','integer','min:1'];
-        if($resource==='pickup-points') { unset($rules['type'], $rules['en.description']); $rules['address']=['required','string','max:255']; $rules['map_url']=['nullable','url','max:500']; $rules['en.instructions']=['nullable','string']; }
-        $data=$request->validate($rules); $data['is_active']=$request->boolean('is_active'); $data['sort_order']??=0; return $data;
+        if($resource==='pickup-points') { unset($rules['type'], $rules['en.description'], $rules['image'], $rules['image_path']); $rules['address']=['required','string','max:255']; $rules['map_url']=['nullable','url','max:500']; $rules['en.instructions']=['nullable','string']; }
+        $data=$request->validate($rules);
+        if($resource!=='pickup-points') $this->resolveMedia($request, $data, 'image', $item?->getRawOriginal('image'));
+        $data['is_active']=$request->boolean('is_active'); $data['sort_order']??=0; return $data;
     }
 }

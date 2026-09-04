@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HandlesMediaUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\PageSection;
@@ -11,6 +12,8 @@ use Illuminate\View\View;
 
 class PageSectionController extends Controller
 {
+    use HandlesMediaUploads;
+
     public function __construct()
     {
         $this->middleware('permission:list-page-sections')->only('index');
@@ -66,12 +69,10 @@ class PageSectionController extends Controller
 
     private function validated(Request $request, ?PageSection $section = null): array
     {
-        $data = $request->validate([
+        $data = $request->validate($this->mediaRules('image') + $this->mediaRules('background_image') + [
             'page_id' => ['required', 'exists:pages,id'],
             'key' => ['required', 'alpha_dash', 'max:100', 'unique:page_sections,key,'.($section?->id ?? 'NULL').',id,page_id,'.$request->integer('page_id')],
             'type' => ['required', 'string', 'max:80'],
-            'image' => ['nullable', 'string', 'max:500'],
-            'background_image' => ['nullable', 'string', 'max:500'],
             'button_url' => ['nullable', 'string', 'max:500'],
             'options_json' => ['nullable', 'json'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
@@ -82,6 +83,8 @@ class PageSectionController extends Controller
             'en.body' => ['nullable', 'string'],
             'en.button_text' => ['nullable', 'string', 'max:255'],
         ]);
+        $this->resolveMedia($request, $data, 'image', $section?->getRawOriginal('image'));
+        $this->resolveMedia($request, $data, 'background_image', $section?->getRawOriginal('background_image'));
         $data['is_active'] = $request->boolean('is_active');
         $data['sort_order'] ??= 0;
         $data['options'] = $request->filled('options_json') ? json_decode($request->string('options_json')->toString(), true) : null;

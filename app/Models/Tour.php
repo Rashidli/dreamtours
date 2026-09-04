@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Models\Concerns\ResolvesMediaUrls;
 
 use Astrotomic\Translatable\Contracts\Translatable as Contract;
 use Astrotomic\Translatable\Translatable;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tour extends Model implements Contract
 {
-    use Translatable, SoftDeletes;
+    use Translatable, SoftDeletes, ResolvesMediaUrls;
 
     public array $translatedAttributes = ['name', 'slug', 'short_description', 'description', 'cancellation_policy', 'refund_policy', 'boarding_rules', 'baggage_rules', 'important_notes'];
     protected $fillable = ['destination_id', 'main_image', 'duration_days', 'duration_nights', 'age_restriction', 'activity_level', 'is_private', 'is_cruise', 'show_on_home', 'badge', 'status', 'sort_order'];
@@ -25,4 +26,6 @@ class Tour extends Model implements Contract
     public function bookings() { return $this->hasMany(Booking::class); }
     public function cruiseDetail() { return $this->hasOne(CruiseDetail::class); }
     public function galleryAlbums() { return $this->hasMany(GalleryAlbum::class); }
+
+    public function getMainImageAttribute(?string $value): ?string { return $this->mediaUrl($value); }
 }
