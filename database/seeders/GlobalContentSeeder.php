@@ -41,7 +41,11 @@ class GlobalContentSeeder extends Seeder
             'footer_support' => [['Private Tours','/private-tours'],['Visa Support','/visa-support'],['Cruises','/cruises']],
             'footer_legal' => [['Privacy Policy','#'],['Terms & Conditions','#']],
         ] as $location => $links) foreach ($links as $order => [$title,$url]) {
-            NavigationItem::updateOrCreate(['location'=>$location,'url'=>$url], ['sort_order'=>$order,'is_active'=>true,'target'=>'_self','en'=>['title'=>$title]]);
+            // Keyed on the title, not the URL: the legal links share '#', so
+            // matching on the URL made the second overwrite the first.
+            $item = NavigationItem::whereTranslation('title', $title)->where('location', $location)->first()
+                ?? new NavigationItem(['location' => $location]);
+            $item->fill(['location'=>$location,'url'=>$url,'sort_order'=>$order,'is_active'=>true,'target'=>'_self','en'=>['title'=>$title]])->save();
         }
 
         foreach ([
