@@ -12,7 +12,13 @@
 
       {{-- Brand + description + socials --}}
       <div class="lg:col-span-4">
-        <a href="/" class="font-display text-2xl font-extrabold"><span class="text-white">DREAM</span><span class="text-brand-500">TOUR</span></a>
+        <a href="/" class="inline-block font-display text-2xl font-extrabold">
+          @if($footerLogo = setting_image('logo'))
+            <img src="{{ $footerLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-11 w-auto max-w-[220px] object-contain">
+          @else
+            <span class="text-white">DREAM</span><span class="text-brand-500">TOUR</span>
+          @endif
+        </a>
         <p class="mt-4 max-w-sm text-sm leading-6">{{ $siteSettings->get('footer_description') }}</p>
         @if($socials->isNotEmpty())
           <div class="mt-5 flex gap-3">
@@ -52,7 +58,7 @@
           <h2 class="font-display font-bold text-white">Destinations</h2>
           <ul class="mt-4 space-y-2.5 text-sm">
             @foreach($footerDestinations as $destination)
-              <li><a href="/one-day-tours?destination={{ $destination->id }}" class="hover:text-white">{{ $destination->name }}</a></li>
+              <li><a href="{{ $destination->listing_url ?? '/one-day-tours' }}?destination={{ $destination->id }}" class="hover:text-white">{{ $destination->name }}</a></li>
             @endforeach
           </ul>
         </div>
@@ -107,3 +113,4 @@
     </div>
   </div>
 </footer>
+@include('front.partials.whatsapp_float')

@@ -174,3 +174,9 @@
     color: var(--color-brand-600);
   }
 }
+
+/* Pages with the fixed mobile booking bar: keep the footer and WhatsApp button clear of it. */
+@media (max-width: 1023px) {
+  body.has-bottom-bar { padding-bottom: 5rem; }
+  body.has-bottom-bar .wa-float { bottom: 5.75rem; }
+}

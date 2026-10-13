@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\BookingController as FrontBookingController;
 use App\Http\Controllers\TourPageController;
+use App\Http\Controllers\BookingPageController;
+use App\Http\Controllers\ReviewController as FrontReviewController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\DomainContentController;
 use App\Http\Controllers\Admin\CompanyContentController;
@@ -49,6 +51,10 @@ foreach ($frontPages as $uri => $view) {
 }
 Route::post('booking-requests', [FrontBookingController::class,'store'])->name('front.bookings.store');
 Route::get('tours/{slug}', [TourPageController::class,'show'])->middleware('frontend.copy')->name('front.tours.show');
+Route::get('tours/{slug}/book', [BookingPageController::class, 'create'])->middleware('frontend.copy')->name('front.tours.book');
+Route::post('tours/{slug}/book', [BookingPageController::class, 'store'])->middleware('throttle:10,1')->name('front.tours.book.store');
+Route::get('booking/{booking}', [BookingPageController::class, 'thankYou'])->middleware(['signed', 'frontend.copy'])->name('front.bookings.thank-you');
+Route::post('tours/{slug}/reviews', [FrontReviewController::class, 'store'])->middleware('throttle:5,1')->name('front.reviews.store');
 
 Route::prefix('admin')->group(function () {
     Route::get('/', [PageController::class, 'login'])->name('login');
@@ -70,13 +76,21 @@ Route::prefix('admin')->group(function () {
             'contact_items' => ContactItemController::class,
             'socials' => SocialController::class,
         ]);
-        Route::resource('words', WordController::class)->except('show');
+        // Copy rows are generated from the templates by UiCopySeeder; only the wording is editable.
+        Route::resource('words', WordController::class)->only(['index', 'edit', 'update']);
 
-        Route::resource('cms-pages', CmsPageController::class)->except('show');
-        Route::resource('page-sections', PageSectionController::class)->except('show');
+        // Pages are bound to the front-end routes and blade templates, so only their content is editable.
+        Route::resource('cms-pages', CmsPageController::class)->only(['index', 'edit', 'update']);
+        Route::resource('page-sections', PageSectionController::class)->only(['index', 'edit', 'update']);
         Route::resource('navigation-items', NavigationItemController::class)->except('show');
         Route::resource('tours', TourController::class)->except('show');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
+        Route::put('bookings/{booking}/seats', [AdminBookingController::class, 'updateSeats'])->name('bookings.seats');
+        Route::post('bookings/{booking}/seat-notice', [AdminBookingController::class, 'sendSeatNotice'])->name('bookings.seat-notice');
+        Route::get('bookings/{booking}/payment-proof', [AdminBookingController::class, 'paymentProof'])->name('bookings.payment-proof');
+        Route::put('reviews/{review}/moderate', [ReviewController::class, 'moderate'])->name('reviews.moderate');
+        Route::post('departures/{departure}/prices', [TourStructureController::class, 'storePrice'])->name('tour-departure-prices.store');
+        Route::delete('departures/{departure}/prices/{price}', [TourStructureController::class, 'destroyPrice'])->name('tour-departure-prices.destroy');
         Route::resource('company-content', CompanyContentController::class)->except('show');
         Route::prefix('content/{resource}')->group(function(){Route::get('/',[DomainContentController::class,'index'])->name('domain-content.index');Route::get('create',[DomainContentController::class,'create'])->name('domain-content.create');Route::post('/',[DomainContentController::class,'store'])->name('domain-content.store');Route::get('{item}/edit',[DomainContentController::class,'edit'])->name('domain-content.edit');Route::put('{item}',[DomainContentController::class,'update'])->name('domain-content.update');Route::delete('{item}',[DomainContentController::class,'destroy'])->name('domain-content.destroy');});
         Route::post('gallery-albums/{album}/media',[DomainContentController::class,'storeMedia'])->name('gallery-media.store');

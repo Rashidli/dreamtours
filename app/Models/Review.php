@@ -13,15 +13,28 @@ class Review extends Model
     use HasFactory, Translatable, SoftDeletes, ResolvesMediaUrls;
 
     public $translatedAttributes = ['name', 'position', 'content'];
-    protected $fillable = ['image', 'rating', 'is_active', 'order'];
+    protected $fillable = ['tour_id', 'image', 'email', 'travel_date', 'rating', 'status', 'is_active', 'order'];
+
+    public const STATUSES = ['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'travel_date' => 'date',
     ];
 
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    public function tour()
+    {
+        return $this->belongsTo(Tour::class);
     }
 
     public function scopeOrdered($query)

@@ -4,8 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Gallery — DreamTour</title>
-    <meta name="description" content="Photo albums from past DreamTour departures — filter by trip, country, year, month and category, and open any album in the lightbox." />
+    <title>{{ $cmsPage->meta_title ?: ($cmsPage->title ?: 'Gallery — DreamTour') }}</title>
+    <meta name="description" content="{{ $cmsPage->meta_description ?: 'Photo albums from past DreamTour departures — filter by trip, country, year, month and category, and open any album in the lightbox.' }}" />
+    @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
+
+    @include('front.partials.favicon')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,11 +19,11 @@
     />
 
     <!-- Compiled Tailwind stylesheet -->
-    <link rel="stylesheet" href="/dreamtour/dist/main.css" />
+    <link rel="stylesheet" href="/dreamtour/dist/main.css?v={{ @filemtime(public_path('dreamtour/dist/main.css')) }}" />
 
     <!-- Scripts: database-backed page data + Alpine components load before Alpine core -->
     @include('front.partials.data')
-    <script defer src="/dreamtour/src/js/app.js"></script>
+    <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
   </head>
 
@@ -46,7 +49,7 @@
 
         <div class="container-page py-10 sm:py-12 lg:py-16">
           <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-ink-200">
-            <a href="//" class="hover:text-white">Home</a>
+            <a href="/" class="hover:text-white">Home</a>
             <svg class="size-4 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
@@ -55,7 +58,7 @@
 
           <div class="mt-6 max-w-2xl">
             <p class="eyebrow text-brand-400">{{ $sections->get('hero')?->eyebrow }}</p>
-            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
+            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl text-white">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
             <p class="mt-4 max-w-lg text-base text-ink-100 sm:text-lg">{{ $sections->get('hero')?->subtitle }}</p>
             <p class="mt-5 text-sm text-ink-300">
               <span class="font-semibold text-white" x-text="albums.length"></span> albums ·
@@ -129,29 +132,30 @@
           </div>
 
           <div x-show="filtered.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <template x-for="a in results" :key="a.id">
+            @foreach($frontendData['galleryAlbums'] as $a)
+                <div x-show="visibleIds.includes('{{ $a['id'] }}')" :style="{ order: orderOf('{{ $a['id'] }}') }" class="flex">
               <article class="group flex flex-col overflow-hidden rounded-4xl bg-white shadow-card ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
                 <button
                   type="button"
-                  @click="open(a)"
+                  @click="openById('{{ $a['id'] }}')"
                   class="relative block aspect-[4/3] w-full overflow-hidden"
-                  :aria-label="'Open ' + a.tour + ' photo album'"
+                  aria-label="{{ 'Open ' . $a['tour'] . ' photo album' }}"
                 >
-                  <img :src="a.cover" :alt="a.tour" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                  <img src="{{ $a['cover'] }}" alt="{{ $a['tour'] }}" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
                   <span class="absolute inset-0 bg-linear-to-t from-ink-950/75 via-ink-950/10 to-transparent"></span>
-                  <span class="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-ink-800" x-text="a.category"></span>
-                  <template x-if="a.videoUrl">
+                  <span class="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-ink-800">{{ $a['category'] }}</span>
+                  @if(data_get($a, 'videoUrl'))
                     <span class="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-ink-950/70 px-2 py-1 text-xs font-medium text-white backdrop-blur">
                       <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
                       Video
                     </span>
-                  </template>
+                  @endif
                   <span class="absolute bottom-3 left-3 right-3 text-white">
-                    <span class="block font-display text-lg font-bold leading-tight" x-text="a.tour"></span>
+                    <span class="block font-display text-lg font-bold leading-tight">{{ $a['tour'] }}</span>
                     <span class="mt-0.5 block text-xs text-white/85">
-                      <span x-text="a.month + ' ' + a.year"></span> ·
-                      <span x-text="a.country"></span> ·
-                      <span x-text="a.photos.length + ' photos'"></span>
+                      <span>{{ $a['month'] . ' ' . $a['year'] }}</span> ·
+                      <span>{{ $a['country'] }}</span> ·
+                      <span>{{ count($a['photos']).' photos' }}</span>
                     </span>
                   </span>
                   <span class="absolute inset-0 grid place-items-center opacity-0 transition-opacity group-hover:opacity-100">
@@ -163,10 +167,10 @@
                   </span>
                 </button>
                 <div class="flex items-center justify-between gap-3 px-5 py-3.5 text-sm">
-                  <button type="button" @click="open(a)" class="font-semibold text-brand-600 hover:text-brand-700">View album</button>
+                  <button type="button" @click="openById('{{ $a['id'] }}')" class="font-semibold text-brand-600 hover:text-brand-700">View album</button>
+                  @if(data_get($a, 'videoUrl'))
                   <a
-                    x-show="a.videoUrl"
-                    :href="a.videoUrl"
+                    href="{{ data_get($a, 'videoUrl') }}"
                     target="_blank"
                     rel="noopener"
                     class="inline-flex items-center gap-1 text-ink-500 hover:text-ink-900"
@@ -176,9 +180,11 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                     </svg>
                   </a>
+                  @endif
                 </div>
               </article>
-            </template>
+                </div>
+              @endforeach
           </div>
 
           <div x-show="hasMore" class="mt-10 flex justify-center">
@@ -278,13 +284,13 @@
               </svg>
             </span>
             <div>
-              <p class="font-display text-xl font-extrabold sm:text-2xl">Travelled with us? We'd love your photos.</p>
+              <p class="font-display text-xl font-extrabold sm:text-2xl">{{ $sections->get('cta')?->title ?: 'Travelled with us? We\'d love your photos.' }}</p>
               <p class="mt-1 text-sm text-white/85">Tag <span class="font-semibold">@dreamtour</span> or send them in — the best ones make the gallery.</p>
             </div>
           </div>
           <div class="flex flex-col items-center gap-3 sm:flex-row">
             <a href="mailto:{{ $siteSettings->get('photos_email') }}" class="btn btn-white">Send your photos</a>
-            <a href="//one-day-tours" class="btn btn-ghost">Browse tours</a>
+            <a href="/one-day-tours" class="btn btn-ghost">Browse tours</a>
           </div>
         </div>
       </section>

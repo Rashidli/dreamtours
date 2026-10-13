@@ -31,13 +31,17 @@
   </div></div>
   <div class="container-page flex h-16 items-center justify-between gap-4 lg:h-20">
     <a href="/" class="flex shrink-0 items-center gap-2.5" aria-label="{{ $siteSettings->get('site_name','DreamTour') }} home">
-      <span class="grid size-10 place-items-center rounded-lg bg-white font-display text-xl font-extrabold text-brand-600">D</span>
-      <span class="font-display text-xl font-extrabold tracking-tight lg:text-2xl"><span class="text-white">DREAM</span><span class="text-brand-500">TOUR</span></span>
+      @if($siteLogo = setting_image('logo'))
+        <img src="{{ $siteLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-9 w-auto max-w-[160px] object-contain lg:h-11 lg:max-w-[210px]">
+      @else
+        <span class="grid size-10 place-items-center rounded-lg bg-white font-display text-xl font-extrabold text-brand-600">D</span>
+        <span class="font-display text-xl font-extrabold tracking-tight lg:text-2xl"><span class="text-white">DREAM</span><span class="text-brand-500">TOUR</span></span>
+      @endif
     </a>
     <nav aria-label="Primary" class="hidden items-center gap-0.5 xl:flex">
       @foreach($headerNavigation as $item)
         @if($item->children->isNotEmpty())
-          <div class="relative" x-data="{open:false}" @mouseenter="open=true" @mouseleave="open=false" @click.outside="open=false"><button type="button" class="nav-link" @click="open=!open">{{ $item->title }} <span aria-hidden="true">⌄</span></button><div x-show="open" x-cloak x-transition class="absolute left-0 top-full z-50 w-64 rounded-2xl bg-white p-2 text-ink-800 shadow-2xl ring-1 ring-ink-900/10">@foreach($item->children as $child)<a href="{{ $child->url }}" target="{{ $child->target }}" class="menu-item">{{ $child->title }}</a>@endforeach</div></div>
+          <div class="relative" x-data="{open:false}" @mouseenter="open=true" @mouseleave="open=false" @click.outside="open=false"><button type="button" class="nav-link" @click="open=!open">{{ $item->title }}<svg class="size-4 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg></button><div x-show="open" x-cloak x-transition class="absolute left-0 top-full z-50 w-64 rounded-2xl bg-white p-2 text-ink-800 shadow-2xl ring-1 ring-ink-900/10">@foreach($item->children as $child)<a href="{{ $child->url }}" target="{{ $child->target }}" class="menu-item">{{ $child->title }}</a>@endforeach</div></div>
         @else
           <a href="{{ $item->url }}" target="{{ $item->target }}" class="nav-link {{ request()->is(ltrim($item->url,'/')) ? 'nav-link-active' : '' }}">{{ $item->title }}</a>
         @endif
@@ -64,8 +68,8 @@
     </div>
   </div>
   <div x-show="mobile" x-cloak class="fixed inset-0 z-50 xl:hidden"><button class="absolute inset-0 bg-ink-950/70" @click="mobile=false" aria-label="Close menu"></button><div class="absolute right-0 top-0 h-full w-[86%] max-w-sm overflow-y-auto bg-ink-900 p-5 shadow-2xl">
-    <div class="mb-5 flex items-center justify-between"><strong class="font-display text-xl">DREAM<span class="text-brand-500">TOUR</span></strong><button @click="mobile=false" class="text-2xl" aria-label="Close menu">×</button></div>
-    <nav class="flex flex-col gap-1">@foreach($headerNavigation as $item)<a href="{{ $item->url }}" class="rounded-xl px-4 py-3 font-semibold hover:bg-white/10">{{ $item->title }}</a>@foreach($item->children as $child)<a href="{{ $child->url }}" class="ml-4 rounded-xl px-4 py-2 text-sm text-ink-200 hover:bg-white/10">{{ $child->title }}</a>@endforeach @endforeach</nav>
+    <div class="mb-5 flex items-center justify-between">@if($mobileLogo = setting_image('logo'))<img src="{{ $mobileLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-8 w-auto">@else<strong class="font-display text-xl">DREAM<span class="text-brand-500">TOUR</span></strong>@endif<button @click="mobile=false" class="text-2xl" aria-label="Close menu">×</button></div>
+    <nav class="flex flex-col gap-1">@foreach($headerNavigation as $item)@if($item->url && $item->url !== '#')<a href="{{ $item->url }}" class="rounded-xl px-4 py-3 font-semibold hover:bg-white/10">{{ $item->title }}</a>@else<span class="rounded-xl px-4 py-3 font-semibold text-ink-300">{{ $item->title }}</span>@endif @foreach($item->children as $child)<a href="{{ $child->url }}" class="ml-4 rounded-xl px-4 py-2 text-sm text-ink-200 hover:bg-white/10">{{ $child->title }}</a>@endforeach @endforeach</nav>
     <div class="mt-6 grid gap-2"><a href="{{ $toursUrl }}" class="btn btn-ghost w-full">View Tours</a><a href="{{ $bookUrl }}" class="btn btn-primary w-full">Book Now</a><a href="/favorites" class="btn btn-ghost w-full">My Favourites <span x-cloak x-show="$store.wishlist?.count" x-text="'(' + $store.wishlist?.count + ')'"></span></a></div>
     <div class="mt-6 grid gap-2 border-t border-white/10 pt-5 text-sm text-ink-200">
       @if($phone)<a href="tel:{{ $siteSettings->get('phone_link') ?: $phone }}" class="hover:text-white">{{ $phone }}</a>@endif

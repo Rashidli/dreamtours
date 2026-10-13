@@ -13,14 +13,12 @@ class CmsPageController extends Controller
     public function __construct()
     {
         $this->middleware('permission:list-pages')->only('index');
-        $this->middleware('permission:create-pages')->only(['create', 'store']);
         $this->middleware('permission:edit-pages')->only(['edit', 'update']);
-        $this->middleware('permission:delete-pages')->only('destroy');
     }
 
     public function index(Request $request): View
     {
-        $pages = Page::query()->withTranslation()
+        $pages = Page::query()->withTranslation()->withCount('sections')
             ->when($request->filled('q'), fn ($query) => $query->where(function ($query) use ($request) {
                 $query->where('key', 'like', '%'.$request->string('q').'%')
                     ->orWhereTranslationLike('title', '%'.$request->string('q').'%');
@@ -31,17 +29,6 @@ class CmsPageController extends Controller
         return view('admin.cms_pages.index', compact('pages'));
     }
 
-    public function create(): View
-    {
-        return view('admin.cms_pages.form', ['page' => new Page]);
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        $page = Page::create($this->validated($request));
-        return redirect()->route('cms-pages.edit', $page)->with('message', 'Page created successfully.');
-    }
-
     public function edit(Page $cms_page): View
     {
         $cms_page->load('sections.translations');
@@ -50,31 +37,25 @@ class CmsPageController extends Controller
 
     public function update(Request $request, Page $cms_page): RedirectResponse
     {
-        $cms_page->update($this->validated($request, $cms_page));
-        return back()->with('message', 'Page updated successfully.');
+        $cms_page->update($this->validated($request));
+        return back()->with('message', 'Page updated.');
     }
 
-    public function destroy(Page $cms_page): RedirectResponse
+    private function validated(Request $request): array
     {
-        $cms_page->delete();
-        return back()->with('message', 'Page deleted successfully.');
-    }
+        $rules = ['is_active' => ['nullable', 'boolean']];
 
-    private function validated(Request $request, ?Page $page = null): array
-    {
-        $data = $request->validate([
-            'key' => ['required', 'alpha_dash', 'max:100', 'unique:pages,key,'.($page?->id ?? 'NULL')],
-            'template' => ['required', 'string', 'max:100'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['nullable', 'boolean'],
-            'en.title' => ['required', 'string', 'max:255'],
-            'en.slug' => ['nullable', 'string', 'max:255'],
-            'en.meta_title' => ['nullable', 'string', 'max:255'],
-            'en.meta_description' => ['nullable', 'string'],
-            'en.meta_keywords' => ['nullable', 'string', 'max:255'],
-        ]);
+        // One block of rules per configured locale, so adding a language needs no code change here.
+        foreach (config('translatable.locales') as $locale) {
+            $rules["$locale.title"] = ['required', 'string', 'max:255'];
+            $rules["$locale.meta_title"] = ['nullable', 'string', 'max:255'];
+            $rules["$locale.meta_description"] = ['nullable', 'string'];
+            $rules["$locale.meta_keywords"] = ['nullable', 'string', 'max:255'];
+        }
+
+        $data = $request->validate($rules);
         $data['is_active'] = $request->boolean('is_active');
-        $data['sort_order'] ??= 0;
+
         return $data;
     }
 }

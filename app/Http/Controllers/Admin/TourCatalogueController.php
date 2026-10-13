@@ -77,13 +77,15 @@ class TourCatalogueController extends Controller
 
     private function validated(Request $request, string $resource, ?Model $item=null): array
     {
-        $rules=['en.name'=>['required','string','max:255'],'en.description'=>['nullable','string'],'type'=>['required','string','max:80'],'sort_order'=>['nullable','integer','min:0'],'is_active'=>['nullable','boolean']]+$this->mediaRules('image');
-        if(!in_array($resource,['transportations','pickup-points'])) $rules['en.slug']=['required','alpha_dash','max:255'];
+        $rules=['type'=>['required','string','max:80'],'is_active'=>['nullable','boolean'],'sort_order'=>['nullable','integer','min:0']]+$this->mediaRules('image');
+        // One block of rules per configured locale, so adding a language needs no change here.
+        foreach(config('translatable.locales') as $locale){ $rules["$locale.name"]=['required','string','max:255']; $rules["$locale.description"]=['nullable','string']; }
         if($resource==='destinations') $rules['parent_id']=['nullable','exists:destinations,id'];
         if($resource==='transportations') $rules['seat_count']=['nullable','integer','min:1'];
-        if($resource==='pickup-points') { unset($rules['type'], $rules['en.description'], $rules['image'], $rules['image_path']); $rules['address']=['required','string','max:255']; $rules['map_url']=['nullable','url','max:500']; $rules['en.instructions']=['nullable','string']; }
+        if($resource==='pickup-points') { unset($rules['type'], $rules['image'], $rules['image_path']); $rules['address']=['required','string','max:255']; $rules['map_url']=['nullable','url','max:500'];
+            foreach(config('translatable.locales') as $locale){ unset($rules["$locale.description"]); $rules["$locale.instructions"]=['nullable','string']; } }
         $data=$request->validate($rules);
         if($resource!=='pickup-points') $this->resolveMedia($request, $data, 'image', $item?->getRawOriginal('image'));
-        $data['is_active']=$request->boolean('is_active'); $data['sort_order']??=0; return $data;
+        $data['is_active']=$request->boolean('is_active'); $data['sort_order']=$data['sort_order']??0; return $data;
     }
 }

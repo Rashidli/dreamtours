@@ -9,5 +9,5 @@ class SocialController extends Controller{
  public function edit(Social $social):View{return view('admin.socials.form',compact('social'));}
  public function update(Request $r,Social $social):RedirectResponse{$social->update($this->data($r));return back()->with('message','Social link updated.');}
  public function destroy(Social $social):RedirectResponse{$social->delete();return redirect()->route('socials.index')->with('message','Social link deleted.');}
- private function data(Request $r):array{$d=$r->validate(['title'=>['required','string','max:255'],'icon'=>['nullable','string','max:100'],'link'=>['required','string','max:500'],'is_active'=>['nullable','boolean'],'order'=>['nullable','integer','min:0']]);$d['is_active']=$r->boolean('is_active');$d['order']??=0;return $d;}
+ private function data(Request $r):array{$d=$r->validate(['title'=>['required','string','max:255'],'icon'=>['nullable','string','max:100'],'link'=>['required','string','max:500'],'is_active'=>['nullable','boolean']]);$d['is_active']=$r->boolean('is_active');return $d;}
 }

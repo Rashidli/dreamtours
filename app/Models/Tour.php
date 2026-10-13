@@ -12,15 +12,16 @@ class Tour extends Model implements Contract
 {
     use Translatable, SoftDeletes, ResolvesMediaUrls;
 
-    public array $translatedAttributes = ['name', 'slug', 'short_description', 'description', 'cancellation_policy', 'refund_policy', 'boarding_rules', 'baggage_rules', 'important_notes'];
-    protected $fillable = ['destination_id', 'main_image', 'duration_days', 'duration_nights', 'age_restriction', 'activity_level', 'is_private', 'is_cruise', 'show_on_home', 'badge', 'status', 'sort_order'];
-    protected $casts = ['is_private' => 'boolean', 'is_cruise' => 'boolean', 'show_on_home' => 'boolean'];
+    public array $translatedAttributes = ['name', 'slug', 'short_description', 'description', 'cancellation_policy', 'refund_policy', 'deposit_policy', 'boarding_rules', 'baggage_rules', 'important_notes'];
+    protected $fillable = ['destination_id', 'main_image', 'duration_days', 'duration_nights', 'age_restriction', 'activity_level', 'deposit_per_person', 'is_private', 'is_cruise', 'show_on_home', 'badge', 'status', 'sort_order'];
+    protected $casts = ['deposit_per_person' => 'decimal:2', 'is_private' => 'boolean', 'is_cruise' => 'boolean', 'show_on_home' => 'boolean'];
 
     public function destination() { return $this->belongsTo(Destination::class); }
     public function categories() { return $this->belongsToMany(TourCategory::class, 'tour_category'); }
     public function transportations() { return $this->belongsToMany(Transportation::class, 'tour_transportation'); }
     public function pickupPoints() { return $this->belongsToMany(PickupPoint::class, 'tour_pickup_point')->withPivot('sort_order')->orderByPivot('sort_order'); }
     public function departures() { return $this->hasMany(TourDeparture::class); }
+    public function reviews() { return $this->hasMany(Review::class); }
     public function itineraryDays() { return $this->hasMany(TourItineraryDay::class)->orderBy('day_number'); }
     public function contentItems() { return $this->hasMany(TourContentItem::class)->orderBy('sort_order'); }
     public function bookings() { return $this->hasMany(Booking::class); }

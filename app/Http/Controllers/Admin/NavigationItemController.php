@@ -56,17 +56,23 @@ class NavigationItemController extends Controller
         return view('admin.navigation.form', compact('item', 'parents'));
     }
 
+    /** One block of rules per configured locale, so adding a language needs no change here. */
+    private function localeRules(): array
+    {
+        return collect(config('translatable.locales'))
+            ->mapWithKeys(fn (string $locale) => ["$locale.title" => ['required', 'string', 'max:255']])
+            ->all();
+    }
+
     private function validated(Request $request, ?NavigationItem $item = null): array
     {
         $data = $request->validate([
             'parent_id' => ['nullable', 'exists:navigation_items,id', Rule::notIn([$item?->id])],
             'location' => ['required', Rule::in(['header', 'footer_company', 'footer_support', 'footer_legal'])],
             'url' => ['required', 'string', 'max:500'], 'target' => ['required', Rule::in(['_self', '_blank'])],
-            'sort_order' => ['nullable', 'integer', 'min:0'], 'is_active' => ['nullable', 'boolean'],
-            'en.title' => ['required', 'string', 'max:255'],
-        ]);
+            'is_active' => ['nullable', 'boolean'],
+        ] + $this->localeRules());
         $data['is_active'] = $request->boolean('is_active');
-        $data['sort_order'] ??= 0;
         return $data;
     }
 }

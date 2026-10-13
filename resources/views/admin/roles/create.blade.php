@@ -1,40 +1,46 @@
 @include('admin.includes.header')
-    <div class="main-content">
-        <div class="page-content">
-            <div class="container-fluid">
+<div class="main-content">
+    <div class="page-content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-flex align-items-center justify-content-between">
+                        <h4 class="mb-0">Add role</h4>
+                        <a href="{{route('roles.index')}}" class="btn btn-sm btn-light">Back to roles</a>
+                    </div>
+                </div>
+            </div>
+
+            <form action="{{route('roles.store')}}" method="post">
+                @csrf
+
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-lg-6 col-xl-4">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Role əlavə et</h4>
-                                <form action="{{route('roles.store')}}" method="post">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="example-email-input" class="col-form-label">Name</label>
-                                        <input class="form-control" type="text" name="name" id="example-email-input">
-                                        @if($errors->first('name')) <small class="form-text text-danger">{{$errors->first('name')}}</small> @endif
-                                    </div>
-                                    @foreach($permissions as $groupName => $groupPermissions)
-                                        <br>
-                                        <input class="group-checkbox" id="{{ $groupName }}" data-group="{{ $groupName }}" type="checkbox">
-                                        <label style="font-weight: 600" for="{{ $groupName }}">{{ $groupName }}</label> <br><br>
-
-                                        @foreach($groupPermissions as $permission)
-                                            <input id="{{ $permission->id }}" type="checkbox" name="permission[]" data-group="{{ $groupName }}" value="{{ $permission->name }}">
-                                            <label for="{{ $permission->id }}">{{ $permission->name }}</label><br>
-                                        @endforeach
-                                    @endforeach
-
-                                    <div class="mb-3">
-                                        <button class="btn btn-primary">Submit</button>
-                                    </div>
-                                </form>
-
+                                <label for="role-name" class="form-label">Role name</label>
+                                <input class="form-control @error('name') is-invalid @enderror" type="text" name="name"
+                                       id="role-name" value="{{old('name')}}" placeholder="e.g. content-editor">
+                                @error('name') <div class="invalid-feedback">{{$message}}</div> @enderror
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <h5 class="mb-3">Permissions</h5>
+
+                @include('admin.roles._permissions', ['checked' => old('permission', [])])
+
+                <div class="row">
+                    <div class="col-12 py-3">
+                        <button class="btn btn-primary">Save</button>
+                        <a href="{{route('roles.index')}}" class="btn btn-light">Cancel</a>
+                    </div>
+                </div>
+            </form>
+
         </div>
     </div>
+</div>
 @include('admin.includes.footer')

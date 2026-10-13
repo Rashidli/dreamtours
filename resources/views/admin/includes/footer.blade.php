@@ -7,13 +7,21 @@
     <div id="validationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="8000">
         <div class="toast-header bg-danger text-white">
             <i class="ri-error-warning-line me-2"></i>
-            <strong class="me-auto">Xəta</strong>
+            <strong class="me-auto">Error</strong>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body bg-white" id="toastBody">
         </div>
     </div>
 </div>
+
+
+<style>
+    .select2-container--bootstrap-5 .select2-selection--multiple { min-height: calc(1.5em + .75rem + 2px); padding: .25rem .375rem; }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered { display: flex; flex-wrap: wrap; gap: .25rem; }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice { margin: 0; }
+    .select2-container { max-width: 100%; }
+</style>
 
 <!-- JAVASCRIPT -->
 <script src="{{asset('assets/libs/jquery/jquery.min.js')}}"></script>
@@ -44,6 +52,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- Rich text editor: every textarea with class="js-editor" -->
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('textarea.js-editor').forEach(function (el) {
+            ClassicEditor.create(el, {
+                toolbar: ['heading','|','bold','italic','link','bulletedList','numberedList','|','blockQuote','insertTable','|','undo','redo'],
+            }).catch(function (e) { console.error(e); });
+        });
+    });
+</script>
 @livewireScripts
 <script src="https://cdn.jsdelivr.net/gh/livewire/sortable@v1.x.x/dist/livewire-sortable.js"></script>
 <script>
@@ -61,6 +81,17 @@
             placeholder: 'Tag sec...',
             allowClear: true,
             width: '100%'
+        });
+
+        // Multi-selects: show the picks as tags and line up with the other Bootstrap fields.
+        $('.js-select2-multi').each(function () {
+            $(this).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: $(this).data('placeholder') || 'Select…',
+                closeOnSelect: false,
+                allowClear: true
+            });
         });
 
         $('.group-checkbox').on('click', function() {

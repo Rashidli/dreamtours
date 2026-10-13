@@ -17,9 +17,7 @@ class PageSectionController extends Controller
     public function __construct()
     {
         $this->middleware('permission:list-page-sections')->only('index');
-        $this->middleware('permission:create-page-sections')->only(['create', 'store']);
         $this->middleware('permission:edit-page-sections')->only(['edit', 'update']);
-        $this->middleware('permission:delete-page-sections')->only('destroy');
     }
 
     public function index(Request $request): View
@@ -36,19 +34,7 @@ class PageSectionController extends Controller
         return view('admin.page_sections.index', compact('sections', 'pages'));
     }
 
-    public function create(Request $request): View
-    {
-        return view('admin.page_sections.form', [
-            'section' => new PageSection(['page_id' => $request->integer('page_id') ?: null]),
-            'pages' => Page::withTranslation()->orderByTranslation('title')->get(),
-        ]);
-    }
 
-    public function store(Request $request): RedirectResponse
-    {
-        PageSection::create($this->validated($request));
-        return redirect()->route('page-sections.index')->with('message', 'Section created successfully.');
-    }
 
     public function edit(PageSection $page_section): View
     {
@@ -58,35 +44,36 @@ class PageSectionController extends Controller
     public function update(Request $request, PageSection $page_section): RedirectResponse
     {
         $page_section->update($this->validated($request, $page_section));
-        return back()->with('message', 'Section updated successfully.');
+        return back()->with('message', 'Section updated.');
     }
 
-    public function destroy(PageSection $page_section): RedirectResponse
+
+    /** One block of rules per configured locale, so adding a language needs no change here. */
+    private function localeRules(): array
     {
-        $page_section->delete();
-        return back()->with('message', 'Section deleted successfully.');
+        $rules = [];
+
+        foreach (config('translatable.locales') as $locale) {
+            $rules["$locale.eyebrow"] = ['nullable', 'string', 'max:255'];
+            $rules["$locale.title"] = ['nullable', 'string', 'max:255'];
+            $rules["$locale.subtitle"] = ['nullable', 'string'];
+            $rules["$locale.body"] = ['nullable', 'string'];
+            $rules["$locale.button_text"] = ['nullable', 'string', 'max:255'];
+        }
+
+        return $rules;
     }
 
     private function validated(Request $request, ?PageSection $section = null): array
     {
         $data = $request->validate($this->mediaRules('image') + $this->mediaRules('background_image') + [
-            'page_id' => ['required', 'exists:pages,id'],
-            'key' => ['required', 'alpha_dash', 'max:100', 'unique:page_sections,key,'.($section?->id ?? 'NULL').',id,page_id,'.$request->integer('page_id')],
-            'type' => ['required', 'string', 'max:80'],
             'button_url' => ['nullable', 'string', 'max:500'],
             'options_json' => ['nullable', 'json'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
-            'en.eyebrow' => ['nullable', 'string', 'max:255'],
-            'en.title' => ['nullable', 'string', 'max:255'],
-            'en.subtitle' => ['nullable', 'string'],
-            'en.body' => ['nullable', 'string'],
-            'en.button_text' => ['nullable', 'string', 'max:255'],
-        ]);
+        ] + $this->localeRules());
         $this->resolveMedia($request, $data, 'image', $section?->getRawOriginal('image'));
         $this->resolveMedia($request, $data, 'background_image', $section?->getRawOriginal('background_image'));
         $data['is_active'] = $request->boolean('is_active');
-        $data['sort_order'] ??= 0;
         $data['options'] = $request->filled('options_json') ? json_decode($request->string('options_json')->toString(), true) : null;
         unset($data['options_json']);
         return $data;

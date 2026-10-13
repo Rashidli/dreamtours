@@ -10,5 +10,5 @@ class FaqController extends Controller{
  public function edit(Faq $faq):View{return view('admin.faqs.form',compact('faq'));}
  public function update(Request $r,Faq $faq):RedirectResponse{$faq->update($this->data($r));return back()->with('message','FAQ updated.');}
  public function destroy(Faq $faq):RedirectResponse{$faq->delete();return redirect()->route('faqs.index')->with('message','FAQ deleted.');}
- private function data(Request $r):array{$d=$r->validate(['en.question'=>['required','string','max:1000'],'en.answer'=>['required','string'],'is_active'=>['nullable','boolean'],'order'=>['nullable','integer','min:0']]);$d['is_active']=$r->boolean('is_active');$d['order']??=0;return $d;}
+ private function data(Request $r):array{$d=$r->validate(['en.question'=>['required','string','max:1000'],'en.answer'=>['required','string'],'is_active'=>['nullable','boolean']]);$d['is_active']=$r->boolean('is_active');return $d;}
 }

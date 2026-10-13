@@ -4,17 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>My Favourites — DreamTour</title>
-    <meta name="description" content="The tours and cruises you saved on this device." />
+    <title>{{ $cmsPage->meta_title ?: ($cmsPage->title ?: 'My Favourites — DreamTour') }}</title>
+  @include('front.partials.favicon')
+    <meta name="description" content="{{ $cmsPage->meta_description ?: 'The tours and cruises you saved on this device.' }}" />
+    @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
     <meta name="robots" content="noindex" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/dreamtour/dist/main.css" />
+    <link rel="stylesheet" href="/dreamtour/dist/main.css?v={{ @filemtime(public_path('dreamtour/dist/main.css')) }}" />
 
     @include('front.partials.data')
-    <script defer src="/dreamtour/src/js/app.js"></script>
+    <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
   </head>
 
@@ -29,11 +31,8 @@
           <nav aria-label="Breadcrumb" class="text-sm text-ink-300">
             <a href="/" class="hover:text-white">Home</a> <span aria-hidden="true">/</span> <span class="text-white">Favourites</span>
           </nav>
-          <h1 class="mt-3 font-display text-4xl font-extrabold sm:text-5xl">My Favourites</h1>
-          <p class="mt-4 max-w-2xl text-ink-100">
-            The tours and cruises you saved with the heart button. They are kept in this
-            browser on this device — they are not tied to an account.
-          </p>
+          <h1 class="mt-3 font-display text-4xl font-extrabold sm:text-5xl text-white">{{ $sections->get('hero')?->title ?: 'My Favourites' }}</h1>
+          <p class="mt-4 max-w-2xl text-ink-100">{{ $sections->get('hero')?->subtitle ?: 'The tours and cruises you saved with the heart button. They are kept in this browser on this device — they are not tied to an account.' }}</p>
         </div>
       </section>
 
@@ -120,10 +119,10 @@
                           <div class="mt-auto pt-5">
                             <div class="flex items-baseline gap-1.5 border-t border-ink-100 pt-4">
                               <template x-if="t.previousPrice">
-                                <span class="text-sm text-ink-400 line-through" x-text="'$' + t.previousPrice"></span>
+                                <span class="text-sm text-ink-400 line-through" x-text="'CA$' + t.previousPrice"></span>
                               </template>
                               <span class="text-xs text-ink-400">From</span>
-                              <span class="font-display text-xl font-extrabold text-ink-900" x-text="'$' + t.price"></span>
+                              <span class="font-display text-xl font-extrabold text-ink-900" x-text="'CA$' + t.price"></span>
                               <span class="text-xs text-ink-400">/ person</span>
                             </div>
                             <div class="mt-4 grid grid-cols-2 gap-2">
@@ -175,7 +174,7 @@
                           <div class="mt-auto pt-5">
                             <div class="flex items-baseline gap-1.5 border-t border-ink-100 pt-4">
                               <span class="text-xs text-ink-400">From</span>
-                              <span class="font-display text-xl font-extrabold text-ink-900" x-text="'$' + c.price"></span>
+                              <span class="font-display text-xl font-extrabold text-ink-900" x-text="'CA$' + c.price"></span>
                             </div>
                             <div class="mt-4 grid grid-cols-2 gap-2">
                               <a :href="'/tours/' + c.slug" class="btn btn-outline btn-sm w-full">View Details</a>

@@ -15,8 +15,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Contact Us — DreamTour</title>
-    <meta name="description" content="Get in touch with DreamTour — phone, WhatsApp, email, pick-up points across the GTA, a message form and answers to common questions." />
+    <title>{{ $cmsPage->meta_title ?: ($cmsPage->title ?: 'Contact Us — DreamTour') }}</title>
+    <meta name="description" content="{{ $cmsPage->meta_description ?: 'Get in touch with DreamTour — phone, WhatsApp, email, pick-up points across the GTA, a message form and answers to common questions.' }}" />
+    @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
+
+    @include('front.partials.favicon')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,11 +30,11 @@
     />
 
     <!-- Compiled Tailwind stylesheet -->
-    <link rel="stylesheet" href="/dreamtour/dist/main.css" />
+    <link rel="stylesheet" href="/dreamtour/dist/main.css?v={{ @filemtime(public_path('dreamtour/dist/main.css')) }}" />
 
     <!-- Scripts: database-backed page data + Alpine components load before Alpine core -->
     @include('front.partials.data')
-    <script defer src="/dreamtour/src/js/app.js"></script>
+    <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
   </head>
 
@@ -57,7 +60,7 @@
 
         <div class="container-page py-10 sm:py-12 lg:py-16">
           <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-ink-200">
-            <a href="//" class="hover:text-white">Home</a>
+            <a href="/" class="hover:text-white">Home</a>
             <svg class="size-4 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
@@ -66,7 +69,7 @@
 
           <div class="mt-6 max-w-2xl">
             <p class="eyebrow text-brand-400">{{ $sections->get('hero')?->eyebrow }}</p>
-            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
+            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl text-white">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
             <p class="mt-4 max-w-lg text-base text-ink-100 sm:text-lg">{{ $sections->get('hero')?->subtitle }}</p>
           </div>
 
@@ -119,14 +122,9 @@
         <div class="container-page grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <!-- Form -->
           <div>
-            <p class="eyebrow">Send Us a Message</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              We'd Love to Hear From You
-            </h2>
-            <p class="mt-3 text-ink-500">
-              Fill out the form and our team will get back to you shortly. Every
-              message is logged as a request so nothing gets missed.
-            </p>
+            <p class="eyebrow">{{ $sections->get('contact_form')?->eyebrow ?: 'Send Us a Message' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('contact_form')?->title ?: 'We\'d Love to Hear From You' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $sections->get('contact_form')?->subtitle ?: 'Fill out the form and our team will get back to you shortly. Every message is logged as a request so nothing gets missed.' }}</p>
 
             <form
               x-data="contactForm"
@@ -187,8 +185,8 @@
 
           <!-- Contact information -->
           <div>
-            <p class="eyebrow">Contact Information</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">Reach Us Anytime</h2>
+            <p class="eyebrow">{{ $sections->get('contact_details')?->eyebrow ?: 'Contact Information' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('contact_details')?->title ?: 'Reach Us Anytime' }}</h2>
 
             <dl class="mt-8 space-y-5">
               <div class="flex gap-4">
@@ -332,30 +330,25 @@
 
           <!-- Pick-up points -->
           <div>
-            <p class="eyebrow">Popular Pick-up Points</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Convenient Locations Across the GTA
-            </h2>
-            <p class="mt-3 max-w-md text-ink-500">
-              Choose the stop nearest you when you book. Most tours also offer a
-              central downtown departure.
-            </p>
+            <p class="eyebrow">{{ $sections->get('pickup_points')?->eyebrow ?: 'Popular Pick-up Points' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('pickup_points')?->title ?: 'Convenient Locations Across the GTA' }}</h2>
+            <p class="mt-3 max-w-md text-ink-500">{{ $sections->get('pickup_points')?->subtitle ?: 'Choose the stop nearest you when you book. Most tours also offer a central downtown departure.' }}</p>
 
             <ul x-data="{ points: window.DreamTourData.pickupPoints }" class="mt-6 grid gap-3 sm:grid-cols-2">
-              <template x-for="pt in points" :key="pt.id">
+              @foreach($frontendData['pickupPoints'] as $pt)
                 <li class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white px-4 py-3">
                   <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                   </svg>
                   <span class="min-w-0">
-                    <span class="block truncate text-sm font-semibold text-ink-900" x-text="pt.name"></span>
-                    <span class="block text-xs text-ink-500" x-text="pt.area"></span>
+                    <span class="block truncate text-sm font-semibold text-ink-900">{{ $pt['name'] }}</span>
+                    <span class="block text-xs text-ink-500">{{ $pt['area'] }}</span>
                   </span>
                 </li>
-              </template>
+              @endforeach
             </ul>
-            <a href="//one-day-tours" class="btn btn-primary btn-sm mt-6 inline-flex">Browse tours &amp; pick your stop</a>
+            <a href="/one-day-tours" class="btn btn-primary btn-sm mt-6 inline-flex">Browse tours &amp; pick your stop</a>
           </div>
         </div>
       </section>
@@ -366,26 +359,26 @@
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">FAQ</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">Frequently Asked Questions</h2>
+            <p class="eyebrow">{{ $sections->get('faq')?->eyebrow ?: 'FAQ' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('faq')?->title ?: 'Frequently Asked Questions' }}</h2>
           </div>
           <div x-data="{ open: null }" class="mx-auto mt-10 grid max-w-4xl gap-3 md:grid-cols-2">
-            <template x-for="(f, i) in window.DreamTourData.faqs" :key="i">
+            @foreach($frontendData['faqs'] as $i => $f)
               <div class="h-fit rounded-2xl border border-ink-100 bg-white p-5">
                 <button
                   type="button"
-                  @click="open = open === i ? null : i"
-                  :aria-expanded="open === i"
+                  @click="open = open === {{ $i }} ? null : {{ $i }}"
+                  :aria-expanded="open === {{ $i }}"
                   class="flex w-full items-center justify-between gap-4 text-left"
                 >
-                  <span class="font-display text-sm font-bold text-ink-900" x-text="f.q"></span>
-                  <svg class="size-5 shrink-0 text-brand-600 transition-transform" :class="open === i && 'rotate-45'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <span class="font-display text-sm font-bold text-ink-900">{{ $f['q'] }}</span>
+                  <svg class="size-5 shrink-0 text-brand-600 transition-transform" :class="open === {{ $i }} && 'rotate-45'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                 </button>
-                <p x-show="open === i" x-cloak x-transition.opacity class="mt-3 text-sm leading-relaxed text-ink-600" x-text="f.a"></p>
+                <p x-show="open === {{ $i }}" x-cloak x-transition.opacity class="mt-3 text-sm leading-relaxed text-ink-600">{{ $f['a'] }}</p>
               </div>
-            </template>
+            @endforeach
           </div>
         </div>
       </section>
@@ -402,8 +395,8 @@
               </svg>
             </span>
             <div>
-              <p class="font-display text-xl font-extrabold sm:text-2xl">Need help right now?</p>
-              <p class="mt-1 text-sm text-white/85">Call or message us any day — 8:00 AM to 8:00 PM.</p>
+              <p class="font-display text-xl font-extrabold sm:text-2xl">{{ $sections->get('cta')?->title ?: 'Need help right now?' }}</p>
+              <p class="mt-1 text-sm text-white/85">{{ $sections->get('cta')?->subtitle ?: 'Call or message us any day — 8:00 AM to 8:00 PM.' }}</p>
             </div>
           </div>
           <div class="flex flex-col items-center gap-3 sm:flex-row">

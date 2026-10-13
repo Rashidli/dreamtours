@@ -35,7 +35,7 @@ class AuthController extends Controller
             return redirect()->route('home');
         }else{
             $error = \Illuminate\Validation\ValidationException::withMessages([
-                'password' => ['Şifrə yanlışdır'],
+                'password' => ['The password is incorrect'],
             ]);
             throw $error;
         }

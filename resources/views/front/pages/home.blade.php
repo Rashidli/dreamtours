@@ -9,6 +9,9 @@
       name="description"
       content="{{ $cmsPage->meta_description ?: 'DreamTour — day trips, multi-day tours, cruises and private journeys.' }}"
     />
+    @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
+
+    @include('front.partials.favicon')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,11 +22,11 @@
     />
 
     <!-- Compiled Tailwind stylesheet -->
-    <link rel="stylesheet" href="/dreamtour/dist/main.css" />
+    <link rel="stylesheet" href="/dreamtour/dist/main.css?v={{ @filemtime(public_path('dreamtour/dist/main.css')) }}" />
 
     <!-- Scripts: database-backed page data + Alpine components load before Alpine core -->
     @include('front.partials.data')
-    <script defer src="/dreamtour/src/js/app.js"></script>
+    <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
   </head>
 
@@ -64,7 +67,7 @@
             <p class="font-display text-sm font-semibold uppercase tracking-[0.16em] text-white/80 sm:text-base">
               {{ $sections->get('hero')?->eyebrow }}
             </p>
-            <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl text-white">
               @php($heroTitle = $sections->get('hero')?->title ?: 'Find Your Next Adventure')
               <span class="block text-white">{{ str($heroTitle)->beforeLast(' ') }}</span>
               <span class="block text-brand-500">{{ str($heroTitle)->afterLast(' ') }}</span>
@@ -178,31 +181,39 @@
             </ul>
           </div>
 
-          <!-- Photo collage (decorative) -->
-          <div class="relative hidden h-[460px] lg:block" aria-hidden="true">
-            <img
-              src="{{ $heroImage }}"
-              alt=""
-              class="absolute left-2 top-4 w-52 -rotate-6 rounded-2xl object-cover shadow-2xl ring-4 ring-white xl:w-60"
-              style="aspect-ratio: 3 / 4"
-            />
-            <img
-              src="https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=800&auto=format&fit=crop"
-              alt=""
-              class="absolute right-0 top-0 w-56 rotate-3 rounded-2xl object-cover shadow-2xl ring-4 ring-white xl:w-64"
-              style="aspect-ratio: 4 / 3"
-            />
-            <img
-              src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=800&auto=format&fit=crop"
-              alt=""
-              class="absolute bottom-2 right-6 w-64 -rotate-2 rounded-2xl object-cover shadow-2xl ring-4 ring-white xl:w-72"
-              style="aspect-ratio: 4 / 3"
-            />
-            <div class="absolute bottom-16 left-0 rounded-2xl bg-brand-600 px-4 py-3 shadow-xl">
-              <p class="font-display text-2xl font-extrabold leading-none text-white">500+</p>
-              <p class="mt-1 text-xs font-medium text-white/90">Tours completed</p>
+          <!-- Destination slider (admin: Company content → Hero slide) -->
+          @php($slides = collect($frontendData['heroSlides'] ?? [])->filter(fn ($slide) => filled($slide['image']))->values())
+          @if($slides->isNotEmpty())
+            <div x-data="carousel({ count: {{ $slides->count() }}, interval: 5500 })" @mouseenter="pause()" @mouseleave="play()"
+                 @touchstart.passive="touchStart($event)" @touchend.passive="touchEnd($event)"
+                 class="relative overflow-hidden rounded-4xl shadow-2xl ring-4 ring-white/10" aria-roledescription="carousel" aria-label="Destinations">
+              <div class="relative aspect-[4/3] lg:aspect-[4/5] xl:aspect-[5/5]">
+                @foreach($slides as $i => $slide)
+                  <a href="{{ $slide['url'] ?: '#' }}" x-show="index === {{ $i }}" @if($i > 0) x-cloak @endif
+                     x-transition:enter="transition duration-700" x-transition:enter-start="opacity-0 scale-105" x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition duration-500 absolute inset-0" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     class="absolute inset-0 block" aria-roledescription="slide" aria-label="{{ $slide['place'] }}">
+                    <img src="{{ $slide['image'] }}" alt="{{ $slide['place'] }}" class="size-full object-cover" @if($i > 0) loading="lazy" @endif>
+                    <span class="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent"></span>
+                    <span class="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                      <span class="flex items-center gap-1.5 font-display text-2xl font-extrabold text-white sm:text-3xl"><span aria-hidden="true">📍</span>{{ $slide['place'] }}</span>
+                      @if($slide['caption'])<span class="mt-1 block text-sm text-ink-100">{{ $slide['caption'] }}</span>@endif
+                      @if($slide['url'])<span class="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">View tour →</span>@endif
+                    </span>
+                  </a>
+                @endforeach
+              </div>
+              @if($slides->count() > 1)
+                <button type="button" @click="prev(); play()" class="absolute left-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-xl text-ink-900 shadow hover:bg-white" aria-label="Previous destination">‹</button>
+                <button type="button" @click="next(); play()" class="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-xl text-ink-900 shadow hover:bg-white" aria-label="Next destination">›</button>
+                <div class="absolute right-5 top-5 flex gap-1.5">
+                  @foreach($slides as $i => $slide)
+                    <button type="button" @click="go({{ $i }}); play()" class="h-2 rounded-full transition-all" :class="index === {{ $i }} ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'" aria-label="Show {{ $slide['place'] }}"></button>
+                  @endforeach
+                </div>
+              @endif
             </div>
-          </div>
+          @endif
         </div>
       </section>
 
@@ -213,129 +224,23 @@
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p class="eyebrow">Upcoming Departures</p>
-              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-                Upcoming Tours
-              </h2>
-              <p class="mt-3 max-w-lg text-ink-500">
-                Reserve your seat on our next departures. Dates, prices and
-                availability are updated regularly.
-              </p>
+              <p class="eyebrow">{{ $sections->get('featured_tours')?->eyebrow ?: 'Upcoming Departures' }}</p>
+              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('featured_tours')?->title ?: 'Upcoming Tours' }}</h2>
+              <p class="mt-3 max-w-lg text-ink-500">{{ $sections->get('featured_tours')?->subtitle ?: 'Reserve your seat on our next departures. Dates, prices and availability are updated regularly.' }}</p>
             </div>
-            <a href="//one-day-tours" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
+            <a href="/one-day-tours" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
               View all tours
             </a>
           </div>
 
           <div x-data="tourList" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <template x-for="t in tours.filter((t) => t.home)" :key="t.id">
-              <article class="group flex flex-col overflow-hidden rounded-4xl bg-white shadow-card ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
-                <!-- Media -->
-                <div class="relative">
-                  <img
-                    :src="t.image"
-                    :alt="t.name"
-                    class="h-52 w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <span
-                    class="absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm"
-                    :class="badgeClass(t.label)"
-                    x-text="t.label"
-                  ></span>
-                  <button
-                    type="button"
-                    @click="$store.wishlist.toggle(t.id, t.name)"
-                    :aria-pressed="$store.wishlist.has(t.id)"
-                    :aria-label="$store.wishlist.has(t.id) ? 'Remove from wishlist' : 'Save to wishlist'"
-                    class="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-white/90 text-ink-500 backdrop-blur transition hover:text-brand-600"
-                  >
-                    <svg
-                      class="size-5"
-                      :class="$store.wishlist.has(t.id) && 'text-brand-600'"
-                      :fill="$store.wishlist.has(t.id) ? 'currentColor' : 'none'"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                    </svg>
-                  </button>
-                  <span
-                    class="absolute bottom-3 left-3 rounded-full bg-ink-950/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur"
-                    x-text="t.duration"
-                  ></span>
-                </div>
-
-                <!-- Body -->
-                <div class="flex flex-1 flex-col p-5">
-                  <h3 class="font-display text-lg font-bold text-ink-900" x-text="t.name"></h3>
-                  <p class="mt-1 flex items-center gap-1.5 text-sm text-ink-500">
-                    <svg class="size-4 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                    </svg>
-                    <span x-text="t.destination"></span>
-                  </p>
-
-                  <dl class="mt-4 grid grid-cols-1 gap-y-2 text-sm text-ink-600">
-                    <div class="flex items-center gap-2">
-                      <svg class="size-4 shrink-0 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                      </svg>
-                      <dt class="sr-only">Departure date</dt>
-                      <dd x-text="t.date"></dd>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <svg class="size-4 shrink-0 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-6m6-13.5v13.5m-6-13.5V18.75m0-13.5H5.625c-.621 0-1.125.504-1.125 1.125v9m0 0h6" />
-                      </svg>
-                      <dt class="sr-only">Transportation</dt>
-                      <dd x-text="t.transport"></dd>
-                    </div>
-                    <div class="flex items-center gap-2" :class="t.seatsLeft <= 5 && 'text-brand-600 font-medium'">
-                      <svg class="size-4 shrink-0" :class="t.seatsLeft > 5 && 'text-ink-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                      </svg>
-                      <dt class="sr-only">Availability</dt>
-                      <dd x-text="seatsLabel(t)"></dd>
-                    </div>
-                  </dl>
-
-                  <div class="mt-auto pt-5">
-                    <div class="flex items-baseline gap-1.5 border-t border-ink-100 pt-4">
-                      <template x-if="t.previousPrice">
-                        <span class="text-sm text-ink-400 line-through" x-text="'$' + t.previousPrice"></span>
-                      </template>
-                      <span class="text-xs text-ink-400">From</span>
-                      <span class="font-display text-xl font-extrabold text-ink-900" x-text="'$' + t.price"></span>
-                      <span class="text-xs text-ink-400">/ person</span>
-                    </div>
-
-                    <div class="mt-4 grid grid-cols-2 gap-2">
-<a :href="'/tours/' + t.slug" class="btn btn-outline btn-sm w-full">
-                        View Details
-                      </a>
-                      <template x-if="t.seatsLeft > 0">
-<a :href="'/tours/' + t.slug + '#booking'" class="btn btn-primary btn-sm w-full">
-                          Book Now
-                        </a>
-                      </template>
-                      <template x-if="t.seatsLeft === 0">
-                        <span class="btn btn-sm w-full cursor-not-allowed bg-ink-100 text-ink-400">
-                          Sold Out
-                        </span>
-                      </template>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            </template>
+            @foreach(collect($frontendData['tours'])->where('home', true) as $t)
+              @include('front.partials.tour_card', ['t' => $t])
+            @endforeach
           </div>
 
           <div class="mt-12 flex justify-center">
-            <a href="//one-day-tours" class="btn btn-primary btn-lg">
+            <a href="/one-day-tours" class="btn btn-primary btn-lg">
               View More Tours
               <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -352,22 +257,22 @@
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Browse by Category</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">Find the Right Kind of Trip</h2>
-            <p class="mt-3 text-ink-500">Choose an admin-managed tour category and explore available journeys.</p>
+            <p class="eyebrow">{{ $sections->get('tour_types')?->eyebrow ?: 'Browse by Category' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('tour_types')?->title ?: 'Find the Right Kind of Trip' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $sections->get('tour_types')?->subtitle ?: 'Choose an admin-managed tour category and explore available journeys.' }}</p>
           </div>
           <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <template x-for="category in window.DreamTourData.categories" :key="category.id">
-              <a :href="category.href" class="group overflow-hidden rounded-4xl bg-white ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
-                <img x-show="category.image" :src="category.image" :alt="category.name" class="h-40 w-full object-cover">
+            @foreach($frontendData['categories'] as $category)
+              <a href="{{ $category['href'] }}" class="group overflow-hidden rounded-4xl bg-white ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
+                @if($category['image'])<img src="{{ $category['image'] }}" alt="{{ $category['name'] }}" class="h-40 w-full object-cover">@endif
                 <div class="p-6">
-                  <p class="text-xs font-semibold uppercase tracking-wider text-brand-600" x-text="category.tourCount + ' tours'"></p>
-                  <h3 class="mt-2 font-display text-lg font-bold text-ink-900" x-text="category.name"></h3>
-                  <p class="mt-1 text-sm text-ink-500" x-text="category.description"></p>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">{{ $category['tourCount'] . ' tours' }}</p>
+                  <h3 class="mt-2 font-display text-lg font-bold text-ink-900">{{ $category['name'] }}</h3>
+                  <p class="mt-1 text-sm text-ink-500">{{ $category['description'] }}</p>
                   <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600">Explore</span>
                 </div>
               </a>
-            </template>
+            @endforeach
           </div>
         </div>
       </section>
@@ -379,16 +284,11 @@
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p class="eyebrow">Where People Go</p>
-              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-                Popular Destinations
-              </h2>
-              <p class="mt-3 max-w-lg text-ink-500">
-                The regions our travellers keep coming back to — across Ontario,
-                Québec and just over the border.
-              </p>
+              <p class="eyebrow">{{ $sections->get('destinations')?->eyebrow ?: 'Where People Go' }}</p>
+              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('destinations')?->title ?: 'Popular Destinations' }}</h2>
+              <p class="mt-3 max-w-lg text-ink-500">{{ $sections->get('destinations')?->subtitle ?: 'The regions our travellers keep coming back to — across Ontario, Québec and just over the border.' }}</p>
             </div>
-            <a href="//one-day-tours" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
+            <a href="/one-day-tours" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
               Browse all tours
             </a>
           </div>
@@ -397,15 +297,15 @@
             x-data="{ destinations: window.DreamTourData.destinations }"
             class="mt-10 grid gap-5 sm:grid-cols-2 lg:auto-rows-55 lg:grid-cols-3"
           >
-            <template x-for="(d, i) in destinations" :key="d.id">
+            @foreach($frontendData['destinations'] as $d)
               <a
-                :href="d.href"
-                :aria-label="'View tours in ' + d.name"
+                href="{{ $d['href'] }}"
+                aria-label="{{ 'View tours in ' . $d['name'] }}"
                 class="group relative isolate flex flex-col justify-end overflow-hidden rounded-4xl bg-ink-900 p-5 ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover"
-                :class="i === 0 ? 'min-h-64 lg:col-span-2 lg:row-span-2' : 'min-h-56'"
+                class="{{ $loop->first ? 'min-h-64 lg:col-span-2 lg:row-span-2' : 'min-h-56' }}"
               >
                 <img
-                  :src="d.image"
+                  src="{{ $d['image'] }}"
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
@@ -422,33 +322,28 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                   </svg>
-                  <span x-text="d.region"></span>
+                  <span>{{ $d['region'] }}</span>
                 </span>
 
                 <h3
                   class="mt-3 font-display font-bold text-white"
-                  :class="i === 0 ? 'text-2xl sm:text-3xl' : 'text-xl'"
-                  x-text="d.name"
-                ></h3>
+                  class="{{ $loop->first ? 'text-2xl sm:text-3xl' : 'text-xl' }}"
+                >{{ $d['name'] }}</h3>
 
-                <p
-                  x-show="i === 0"
-                  class="mt-2 max-w-md text-sm text-white/80"
-                  x-text="d.description"
-                ></p>
+                @if($loop->first)<p class="mt-2 max-w-md text-sm text-white/80">{{ $d['description'] }}</p>@endif
 
                 <div class="mt-3 flex items-center gap-2 text-sm font-semibold text-white">
-                  <span x-text="d.tourCount + (d.tourCount === 1 ? ' tour' : ' tours')"></span>
+                  <span>{{ $d['tourCount'] . ($d['tourCount'] === 1 ? ' tour' : ' tours') }}</span>
                   <svg class="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                   </svg>
                 </div>
               </a>
-            </template>
+            @endforeach
           </div>
 
           <div class="mt-8 sm:hidden">
-            <a href="//one-day-tours" class="btn btn-outline btn-sm w-full">
+            <a href="/one-day-tours" class="btn btn-outline btn-sm w-full">
               Browse all tours
             </a>
           </div>
@@ -461,14 +356,9 @@
       <section class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow text-brand-400">Why DreamTour</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Travel Made Easy &amp; Enjoyable
-            </h2>
-            <p class="mt-3 text-ink-200">
-              We handle the planning, the driving and the details — you just show
-              up and enjoy the trip.
-            </p>
+            <p class="eyebrow text-brand-400">{{ $sections->get('why_choose_us')?->eyebrow ?: 'Why DreamTour' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">{{ $sections->get('why_choose_us')?->title ?: 'Travel Made Easy & Enjoyable' }}</h2>
+            <p class="mt-3 text-ink-200">{{ $sections->get('why_choose_us')?->subtitle ?: 'We handle the planning, the driving and the details — you just show up and enjoy the trip.' }}</p>
           </div>
 
           <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -532,39 +422,29 @@
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p class="eyebrow">Plan Ahead</p>
-              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-                Upcoming Departure Dates
-              </h2>
-              <p class="mt-3 max-w-lg text-ink-500">
-                The next few departures at a glance. Seats are confirmed on a
-                first-come basis.
-              </p>
+              <p class="eyebrow">{{ $sections->get('departures')?->eyebrow ?: 'Plan Ahead' }}</p>
+              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('departures')?->title ?: 'Upcoming Departure Dates' }}</h2>
+              <p class="mt-3 max-w-lg text-ink-500">{{ $sections->get('departures')?->subtitle ?: 'The next few departures at a glance. Seats are confirmed on a first-come basis.' }}</p>
             </div>
-            <a href="//one-day-tours" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
+            <a href="/one-day-tours" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
               Full schedule
             </a>
           </div>
 
-          <ul
-            x-data="{ dates: window.DreamTourData.tours.filter((t) => t.home).sort((a, b) => new Date(a.date) - new Date(b.date)) }"
-            class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            <template x-for="t in dates" :key="t.id">
+          <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach(collect($frontendData['tours'])->where('home', true)->sortBy('dateValue') as $t)
+              @php($departsAt = $t['dateValue'] ? \Carbon\Carbon::parse($t['dateValue']) : null)
               <li>
-                <a
-:href="'/tours/' + t.slug"
-                  class="group flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-900/5 transition hover:-translate-y-0.5 hover:shadow-card-hover"
-                >
+                <a href="/tours/{{ $t['slug'] }}" class="group flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-900/5 transition hover:-translate-y-0.5 hover:shadow-card">
                   <span class="grid size-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-center text-brand-700">
-                    <span class="block font-display text-lg font-extrabold leading-none" x-text="new Date(t.date).getDate()"></span>
-                    <span class="mt-0.5 block text-[11px] font-semibold uppercase" x-text="new Date(t.date).toLocaleString('en-US', { month: 'short' })"></span>
+                    <span class="block font-display text-lg font-extrabold leading-none">{{ $departsAt?->format('j') }}</span>
+                    <span class="mt-0.5 block text-[11px] font-semibold uppercase">{{ $departsAt?->format('M') }}</span>
                   </span>
                   <span class="min-w-0 flex-1">
-                    <span class="block truncate font-display text-sm font-bold text-ink-900" x-text="t.name"></span>
+                    <span class="block truncate font-display text-sm font-bold text-ink-900">{{ $t['name'] }}</span>
                     <span class="mt-0.5 block text-xs text-ink-500">
-                      <span x-text="t.duration"></span> ·
-                      <span :class="t.seatsLeft === 0 && 'text-brand-600 font-medium'" x-text="t.seatsLeft === 0 ? 'Sold out' : t.seatsLeft + ' seats left'"></span>
+                      <span>{{ $t['duration'] }}</span> ·
+                      <span class="{{ $t['seatsLeft'] === 0 ? 'text-brand-600 font-medium' : '' }}">{{ $t['seatsLeft'] === 0 ? 'Sold out' : $t['seatsLeft'].' seats left' }}</span>
                     </span>
                   </span>
                   <svg class="size-4 shrink-0 text-ink-300 transition-transform group-hover:translate-x-1 group-hover:text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -572,7 +452,7 @@
                   </svg>
                 </a>
               </li>
-            </template>
+            @endforeach
           </ul>
         </div>
       </section>
@@ -583,10 +463,8 @@
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Traveller Reviews</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Trips People Loved
-            </h2>
+            <p class="eyebrow">{{ $sections->get('reviews')?->eyebrow ?: 'Traveller Reviews' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('reviews')?->title ?: 'Trips People Loved' }}</h2>
             <div
               x-data="{ s: window.DreamTourData.reviewsSummary }"
               class="mt-4 inline-flex items-center gap-2 text-sm text-ink-500"
@@ -606,30 +484,27 @@
             x-data="{ reviews: window.DreamTourData.reviews }"
             class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
           >
-            <template x-for="r in reviews" :key="r.id">
+            @foreach($frontendData['reviews'] as $r)
               <figure class="flex h-full flex-col rounded-4xl bg-sand-50 p-6 ring-1 ring-ink-900/5">
                 <div class="flex gap-0.5" aria-hidden="true">
-                  <template x-for="n in 5" :key="n">
-                    <svg class="size-4" :class="n <= r.rating ? 'text-brand-500' : 'text-ink-200'" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.36 4.18a1 1 0 0 0 .95.69h4.4c.97 0 1.37 1.24.59 1.81l-3.56 2.59a1 1 0 0 0-.36 1.12l1.36 4.18c.3.92-.76 1.69-1.54 1.12l-3.56-2.59a1 1 0 0 0-1.18 0l-3.56 2.59c-.78.57-1.84-.2-1.54-1.12l1.36-4.18a1 1 0 0 0-.36-1.12L2.1 9.61c-.78-.57-.38-1.81.59-1.81h4.4a1 1 0 0 0 .95-.69L9.05 2.93Z" />
+                  @for($n = 1; $n <= 5; $n++)
+                    <svg class="size-4 {{ $n <= $r['rating'] ? 'text-brand-500' : 'text-ink-200' }}" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.36 4.18a1 1 0 0 0 .95.69h4.4c.97 0 1.37 1.24.59 1.81l-3.56 2.59a1 1 0 0 0-.36 1.11l1.36 4.18c.3.92-.75 1.69-1.54 1.12l-3.55-2.58a1 1 0 0 0-1.18 0l-3.55 2.58c-.79.57-1.84-.2-1.54-1.12l1.36-4.18a1 1 0 0 0-.36-1.11L2.4 9.61c-.78-.57-.38-1.81.59-1.81h4.4a1 1 0 0 0 .95-.69L9.05 2.93Z" />
                     </svg>
-                  </template>
+                  @endfor
                 </div>
                 <blockquote class="mt-4 flex-1 text-sm leading-relaxed text-ink-700">
-                  <span x-text="'“' + r.quote + '”'"></span>
+                  <span>{{ '“'.$r['text'].'”' }}</span>
                 </blockquote>
                 <figcaption class="mt-5 flex items-center gap-3 border-t border-ink-100 pt-4">
-                  <span
-                    class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-100 font-display text-sm font-bold text-brand-700"
-                    x-text="r.name.split(' ').map((w) => w[0]).join('')"
-                  ></span>
+                  <span class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-100 font-display text-sm font-bold text-brand-700">{{ collect(explode(' ', (string) $r['name']))->filter()->map(fn ($w) => mb_substr($w, 0, 1))->implode('') }}</span>
                   <span class="min-w-0">
-                    <span class="block text-sm font-semibold text-ink-900" x-text="r.name"></span>
-                    <span class="block truncate text-xs text-ink-500" x-text="r.tour"></span>
+                    <span class="block text-sm font-semibold text-ink-900">{{ $r['name'] }}</span>
+                    <span class="block truncate text-xs text-ink-500">{{ $r['role'] }}</span>
                   </span>
                 </figcaption>
               </figure>
-            </template>
+            @endforeach
           </div>
         </div>
       </section>
@@ -641,16 +516,11 @@
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p class="eyebrow">Gallery</p>
-              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-                Moments From Past Trips
-              </h2>
-              <p class="mt-3 max-w-lg text-ink-500">
-                Real photos from recent departures — this is where you could be
-                next season.
-              </p>
+              <p class="eyebrow">{{ $sections->get('gallery_preview')?->eyebrow ?: 'Gallery' }}</p>
+              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('gallery_preview')?->title ?: 'Moments From Past Trips' }}</h2>
+              <p class="mt-3 max-w-lg text-ink-500">{{ $sections->get('gallery_preview')?->subtitle ?: 'Real photos from recent departures — this is where you could be next season.' }}</p>
             </div>
-            <a href="//gallery" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
+            <a href="/gallery" class="btn btn-outline btn-sm hidden shrink-0 sm:inline-flex">
               View full gallery
             </a>
           </div>
@@ -659,23 +529,23 @@
             x-data="{ photos: window.DreamTourData.gallery }"
             class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
           >
-            <template x-for="p in photos" :key="p.id">
+            @foreach($frontendData['gallery'] as $p)
               <figure class="group relative overflow-hidden rounded-2xl">
                 <img
-                  :src="p.image"
-                  :alt="p.caption"
+                  src="{{ $p['thumb'] ?: $p['src'] }}"
+                  alt="{{ $p['caption'] }}"
                   loading="lazy"
                   class="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
                 />
                 <figcaption class="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-ink-950/80 to-transparent p-3 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
-                  <span x-text="p.caption"></span>
+                  <span>{{ $p['caption'] }}</span>
                 </figcaption>
               </figure>
-            </template>
+            @endforeach
           </div>
 
           <div class="mt-8 sm:hidden">
-            <a href="//gallery" class="btn btn-outline btn-sm w-full">View full gallery</a>
+            <a href="/gallery" class="btn btn-outline btn-sm w-full">View full gallery</a>
           </div>
         </div>
       </section>
@@ -687,14 +557,9 @@
         <div class="container-page grid gap-12 lg:grid-cols-2 lg:gap-16">
           <!-- Contact info + social links -->
           <div>
-            <p class="eyebrow text-brand-400">Quick Request</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Not Sure Which Tour? Ask Us.
-            </h2>
-            <p class="mt-3 max-w-md text-ink-200">
-              Send a quick request and a DreamTour representative will call or
-              message you to help plan the trip — no obligation.
-            </p>
+            <p class="eyebrow text-brand-400">{{ $sections->get('request_form')?->eyebrow ?: 'Quick Request' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">{{ $sections->get('request_form')?->title ?: 'Not Sure Which Tour? Ask Us.' }}</h2>
+            <p class="mt-3 max-w-md text-ink-200">{{ $sections->get('request_form')?->subtitle ?: 'Send a quick request and a DreamTour representative will call or message you to help plan the trip — no obligation.' }}</p>
 
             <dl class="mt-8 space-y-4 text-sm">
               <div class="flex items-center gap-3">
@@ -810,15 +675,10 @@
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
           <div>
-            <p class="eyebrow">Pick-up Points</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Convenient Locations Across the GTA
-            </h2>
-            <p class="mt-3 max-w-md text-ink-500">
-              Choose the stop nearest you when you book. Most tours also offer a
-              central downtown departure.
-            </p>
-            <a href="//contact" class="btn btn-primary btn-sm mt-6 inline-flex">
+            <p class="eyebrow">{{ $sections->get('pickup_points')?->eyebrow ?: 'Pick-up Points' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('pickup_points')?->title ?: 'Convenient Locations Across the GTA' }}</h2>
+            <p class="mt-3 max-w-md text-ink-500">{{ $sections->get('pickup_points')?->subtitle ?: 'Choose the stop nearest you when you book. Most tours also offer a central downtown departure.' }}</p>
+            <a href="/contact" class="btn btn-primary btn-sm mt-6 inline-flex">
               View all pick-up points
             </a>
           </div>
@@ -827,18 +687,18 @@
             x-data="{ points: window.DreamTourData.pickupPoints }"
             class="grid gap-3 sm:grid-cols-2"
           >
-            <template x-for="pt in points" :key="pt.id">
+            @foreach($frontendData['pickupPoints'] as $pt)
               <li class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white px-4 py-3">
                 <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                 </svg>
                 <span class="min-w-0">
-                  <span class="block truncate text-sm font-semibold text-ink-900" x-text="pt.name"></span>
-                  <span class="block text-xs text-ink-500" x-text="pt.area"></span>
+                  <span class="block truncate text-sm font-semibold text-ink-900">{{ $pt['name'] }}</span>
+                  <span class="block text-xs text-ink-500">{{ $pt['area'] }}</span>
                 </span>
               </li>
-            </template>
+            @endforeach
           </ul>
         </div>
       </section>
@@ -855,13 +715,13 @@
               </svg>
             </span>
             <div>
-              <p class="font-display text-xl font-extrabold sm:text-2xl">Have questions? We're here to help.</p>
-              <p class="mt-1 text-sm text-white/85">Call or message us any day — 8:00 AM to 8:00 PM.</p>
+              <p class="font-display text-xl font-extrabold sm:text-2xl">{{ $sections->get('cta')?->title ?: 'Have questions? We\'re here to help.' }}</p>
+              <p class="mt-1 text-sm text-white/85">{{ $sections->get('cta')?->subtitle ?: 'Call or message us any day — 8:00 AM to 8:00 PM.' }}</p>
             </div>
           </div>
           <div class="flex flex-col items-center gap-3 sm:flex-row">
             <a href="tel:{{ $siteSettings->get('phone_link') }}" class="font-display text-2xl font-extrabold tracking-tight hover:text-white/90 sm:text-3xl">{{ $siteSettings->get('phone') }}</a>
-            <a href="//contact" class="btn btn-white">Contact Us</a>
+            <a href="/contact" class="btn btn-white">Contact Us</a>
           </div>
         </div>
       </section>

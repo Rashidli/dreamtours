@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// Seat numbers go out 1–2 days before departure. Requires the standard
+// `* * * * * php artisan schedule:run` cron entry on the server.
+Illuminate\Support\Facades\Schedule::command('bookings:send-seat-notices --days=2')->dailyAt('09:00');

@@ -1,12 +1,149 @@
 @include('admin.includes.header')
-<div class="main-content"><div class="page-content"><div class="container-fluid">
-<form method="post" action="{{ $page->exists ? route('cms-pages.update',$page) : route('cms-pages.store') }}">@csrf @if($page->exists)@method('PUT')@endif
-<div class="card"><div class="card-body"><h4>{{ $page->exists ? 'Edit page' : 'Add page' }}</h4>@include('admin.includes.validation_errors')
-<div class="row"><div class="col-md-6 mb-3"><label>Internal key</label><input class="form-control" name="key" value="{{ old('key',$page->key) }}" required></div><div class="col-md-6 mb-3"><label>Blade template</label><input class="form-control" name="template" value="{{ old('template',$page->template) }}" required></div></div>
-<h5>English content & SEO</h5><div class="row"><div class="col-md-8 mb-3"><label>Title</label><input class="form-control" name="en[title]" value="{{ old('en.title',$page->translate('en')?->title) }}" required></div><div class="col-md-4 mb-3"><label>Slug</label><input class="form-control" name="en[slug]" value="{{ old('en.slug',$page->translate('en')?->slug) }}"></div></div>
-<div class="mb-3"><label>Meta title</label><input class="form-control" name="en[meta_title]" value="{{ old('en.meta_title',$page->translate('en')?->meta_title) }}"></div><div class="mb-3"><label>Meta description</label><textarea class="form-control" name="en[meta_description]">{{ old('en.meta_description',$page->translate('en')?->meta_description) }}</textarea></div><div class="mb-3"><label>Meta keywords</label><input class="form-control" name="en[meta_keywords]" value="{{ old('en.meta_keywords',$page->translate('en')?->meta_keywords) }}"></div>
-<div class="row"><div class="col-md-3 mb-3"><label>Order</label><input type="number" min="0" class="form-control" name="sort_order" value="{{ old('sort_order',$page->sort_order ?? 0) }}"></div><div class="col-md-3 pt-4"><label><input type="checkbox" name="is_active" value="1" @checked(old('is_active',$page->exists ? $page->is_active : true))> Active</label></div></div>
-<button class="btn btn-primary">Save</button> <a class="btn btn-light" href="{{ route('cms-pages.index') }}">Back</a>
-</div></div></form>
-@if($page->exists)<div class="card"><div class="card-body"><div class="d-flex justify-content-between"><h5>Related sections</h5><a href="{{ route('page-sections.create',['page_id'=>$page->id]) }}">Add section</a></div><ul class="list-group">@forelse($page->sections as $section)<li class="list-group-item d-flex justify-content-between"><span>{{ $section->title ?: $section->key }} <small class="text-muted">({{ $section->key }})</small></span><a href="{{ route('page-sections.edit',$section) }}">Edit</a></li>@empty<li class="list-group-item">No sections yet.</li>@endforelse</ul></div></div>@endif
-</div></div></div>@include('admin.includes.footer')
+@php($locales = config('translatable.locales'))
+<div class="main-content">
+    <div class="page-content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                        <h4 class="mb-sm-0">Edit SEO</h4>
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('cms-pages.index') }}">Pages & SEO</a></li>
+                                <li class="breadcrumb-item active">{{ $page->title }}</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if(session('message'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('message') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            <form method="post" action="{{ route('cms-pages.update', $page) }}">
+                @csrf
+                @method('PUT')
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">Content & SEO</h4>
+
+                                @include('admin.includes.lang_tabs', ['id' => 'page'])
+
+                                <div class="tab-content pt-3">
+                                    @foreach($locales as $lang)
+                                        @php($t = $page->translate($lang))
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="page-{{ $lang }}" role="tabpanel">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Title ({{ strtoupper($lang) }}) <span class="text-danger">*</span></label>
+                                                    <input class="form-control @error("$lang.title") is-invalid @enderror" type="text"
+                                                           name="{{ $lang }}[title]" value="{{ old("$lang.title", $t?->title) }}">
+                                                    @error("$lang.title") <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Meta title ({{ strtoupper($lang) }})</label>
+                                                <input class="form-control @error("$lang.meta_title") is-invalid @enderror" type="text"
+                                                       name="{{ $lang }}[meta_title]" value="{{ old("$lang.meta_title", $t?->meta_title) }}">
+                                                <small class="text-muted">Falls back to the page title when empty.</small>
+                                                @error("$lang.meta_title") <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Meta description ({{ strtoupper($lang) }})</label>
+                                                <textarea class="form-control @error("$lang.meta_description") is-invalid @enderror" rows="3"
+                                                          name="{{ $lang }}[meta_description]">{{ old("$lang.meta_description", $t?->meta_description) }}</textarea>
+                                                @error("$lang.meta_description") <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Meta keywords ({{ strtoupper($lang) }})</label>
+                                                <input class="form-control @error("$lang.meta_keywords") is-invalid @enderror" type="text"
+                                                       name="{{ $lang }}[meta_keywords]" value="{{ old("$lang.meta_keywords", $t?->meta_keywords) }}"
+                                                       placeholder="comma-separated keywords">
+                                                @error("$lang.meta_keywords") <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="card-title mb-0">Page sections</h4>
+                                    </div>
+                                    <ul class="list-group">
+                                        @forelse($page->sections as $section)
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span>
+                                                    {{ $section->title ?: $section->key }}
+                                                    <code class="ms-1">{{ $section->key }}</code>
+                                                    @unless($section->is_active)<span class="badge bg-danger ms-1">Inactive</span>@endunless
+                                                </span>
+                                                <a class="btn btn-sm btn-primary" href="{{ route('page-sections.edit', $section) }}" title="Edit">
+                                                    <i class="ri-pencil-line"></i>
+                                                </a>
+                                            </li>
+                                        @empty
+                                            <li class="list-group-item text-muted">No sections yet.</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">Page</h4>
+                                <p class="mb-1"><code>{{ $page->key }}</code></p>
+                                <small class="text-muted">
+                                    The URL and template are wired into the code, so they are not
+                                    editable here — only the content and SEO are.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">Status</h4>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="statusSwitch" value="1"
+                                           @checked(old('is_active', $page->exists ? $page->is_active : true))>
+                                    <label class="form-check-label" for="statusSwitch">Active</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-grow-1">
+                                        <i class="ri-save-line align-middle me-1"></i> Save
+                                    </button>
+                                    <a href="{{ route('cms-pages.index') }}" class="btn btn-light">
+                                        <i class="ri-arrow-left-line align-middle me-1"></i> Back
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+@include('admin.includes.footer')

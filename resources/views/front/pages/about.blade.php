@@ -4,8 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>About Us — DreamTour</title>
-    <meta name="description" content="DreamTour is a registered Ontario tour company running day trips, multi-day tours, cruises and trips abroad. Meet the team and see our accreditations." />
+    <title>{{ $cmsPage->meta_title ?: ($cmsPage->title ?: 'About Us — DreamTour') }}</title>
+    <meta name="description" content="{{ $cmsPage->meta_description ?: 'DreamTour is a registered Ontario tour company running day trips, multi-day tours, cruises and trips abroad. Meet the team and see our accreditations.' }}" />
+    @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
+
+    @include('front.partials.favicon')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,13 +19,19 @@
     />
 
     <!-- Compiled Tailwind stylesheet -->
-    <link rel="stylesheet" href="/dreamtour/dist/main.css" />
+    <link rel="stylesheet" href="/dreamtour/dist/main.css?v={{ @filemtime(public_path('dreamtour/dist/main.css')) }}" />
 
     <!-- Scripts: database-backed page data + Alpine components load before Alpine core -->
     @include('front.partials.data')
-    <script defer src="/dreamtour/src/js/app.js"></script>
+    <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
-  </head>
+      <style>
+      .prose-story > * + * { margin-top: .75rem; }
+      .prose-story ul, .prose-story ol { padding-left: 1.25rem; list-style: revert; }
+      .prose-story a { color: rgb(var(--color-brand-600, 37 99 235)); text-decoration: underline; }
+      .prose-story strong { font-weight: 600; }
+    </style>
+</head>
 
   <body class="min-h-screen bg-white text-ink-800 antialiased">
     <a href="#main" class="skip-link">Skip to content</a>
@@ -46,7 +55,7 @@
 
         <div class="container-page py-10 sm:py-12 lg:py-16">
           <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-ink-200">
-            <a href="//" class="hover:text-white">Home</a>
+            <a href="/" class="hover:text-white">Home</a>
             <svg class="size-4 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
@@ -56,7 +65,7 @@
           <div class="mt-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <p class="eyebrow text-brand-400">{{ $sections->get('hero')?->eyebrow }}</p>
-            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
+            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl text-white">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
             <p class="mt-4 max-w-lg text-base text-ink-100 sm:text-lg">{{ $sections->get('hero')?->subtitle }}</p>
 
               <ul class="mt-8 grid gap-5 sm:grid-cols-2">
@@ -133,41 +142,57 @@
           </div>
 
           <div>
-            <p class="eyebrow">Our Story</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Built on Passion. Driven by People.
-            </h2>
-            <p class="mt-4 text-ink-600">
-              DreamTour started in 2021 with a single coach and a short list of
-              day trips out of Toronto. The trips sold out, the reviews came in,
-              and travellers kept asking where we were going next.
-            </p>
-            <p class="mt-3 text-ink-600">
-              Today we run day trips, multi-day tours, cruises and trips abroad —
-              but the idea hasn't changed. We take care of the planning, the
-              driving and the details so you can just enjoy the trip.
-            </p>
-            <div class="mt-6 rounded-2xl border-l-4 border-brand-500 bg-sand-50 p-5">
-              <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">Our mission</p>
-              <p class="mt-1 text-ink-700">
-                To make group travel feel personal — easy to book, comfortable to
-                take, and worth remembering.
+            <p class="eyebrow">{{ $sections->get('story')?->eyebrow ?: 'Our Story' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('story')?->title ?: 'Built on Passion. Driven by People.' }}</h2>
+            @php($storyBody = $about?->description ?: $sections->get('story')?->body)
+            @if($storyBody)
+              {{-- Rich text from the admin editor, so it renders as markup rather than escaped HTML. --}}
+              <div class="prose-story mt-4 text-ink-600">{!! $storyBody !!}</div>
+            @else
+              <p class="mt-4 text-ink-600">
+                DreamTour started in 2021 with a single coach and a short list of
+                day trips out of Toronto. The trips sold out, the reviews came in,
+                and travellers kept asking where we were going next.
               </p>
-            </div>
+              <p class="mt-3 text-ink-600">
+                Today we run day trips, multi-day tours, cruises and trips abroad —
+                but the idea hasn't changed. We take care of the planning, the
+                driving and the details so you can just enjoy the trip.
+              </p>
+            @endif
+
           </div>
         </div>
 
+        {{-- Vision & mission (admin: About → keys "vision" and "mission") --}}
+        @php($vision = $aboutBlocks->get('vision'))
+        @php($mission = $aboutBlocks->get('mission'))
+        @if($vision || $mission)
+          <div class="container-page mt-16 grid gap-6 md:grid-cols-2">
+            @foreach([['block' => $vision, 'label' => 'Our Vision', 'icon' => '🔭', 'class' => 'bg-ink-900 text-white', 'text' => 'text-ink-100', 'eyebrow' => 'text-brand-400'], ['block' => $mission, 'label' => 'Our Mission', 'icon' => '🧭', 'class' => 'bg-brand-600 text-white', 'text' => 'text-white/90', 'eyebrow' => 'text-white/80']] as $card)
+              @if($card['block'])
+                <article class="relative overflow-hidden rounded-4xl p-8 shadow-card sm:p-10 {{ $card['class'] }}">
+                  <span class="absolute -right-4 -top-6 text-[120px] leading-none opacity-10" aria-hidden="true">{{ $card['icon'] }}</span>
+                  <p class="eyebrow {{ $card['eyebrow'] }}">{{ $card['label'] }}</p>
+                  <h3 class="mt-3 font-display text-2xl font-extrabold text-white sm:text-3xl">{{ $card['block']->title }}</h3>
+                  <div class="prose-story mt-4 text-base leading-7 {{ $card['text'] }}">{!! $card['block']->description !!}</div>
+                </article>
+              @endif
+            @endforeach
+          </div>
+        @endif
+
         <div class="container-page mt-16">
           <dl x-data="{ stats: window.DreamTourData.about.stats }" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <template x-for="s in stats" :key="s.label">
+            @foreach($frontendData['about']['stats'] as $s)
               <div class="rounded-4xl bg-sand-50 p-6 text-center ring-1 ring-ink-900/5">
-                <dt class="sr-only" x-text="s.label"></dt>
+                <dt class="sr-only">{{ $s['label'] }}</dt>
                 <dd>
-                  <span class="block font-display text-3xl font-extrabold text-brand-600" x-text="s.value"></span>
-                  <span class="mt-1 block text-sm text-ink-500" x-text="s.label"></span>
+                  <span class="block font-display text-3xl font-extrabold text-brand-600">{{ $s['value'] }}</span>
+                  <span class="mt-1 block text-sm text-ink-500">{{ $s['label'] }}</span>
                 </dd>
               </div>
-            </template>
+            @endforeach
           </dl>
         </div>
       </section>
@@ -178,9 +203,9 @@
       <section class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow text-brand-400">Why Travel With DreamTour</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">More Than Just a Tour Company</h2>
-            <p class="mt-3 text-ink-200">We handle the planning, the driving and the details — you just show up and enjoy the trip.</p>
+            <p class="eyebrow text-brand-400">{{ $sections->get('values')?->eyebrow ?: 'Why Travel With DreamTour' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">{{ $sections->get('values')?->title ?: 'More Than Just a Tour Company' }}</h2>
+            <p class="mt-3 text-ink-200">{{ $sections->get('values')?->subtitle ?: 'We handle the planning, the driving and the details — you just show up and enjoy the trip.' }}</p>
           </div>
           <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -223,41 +248,56 @@
         </div>
       </section>
 
+      {{-- Founder (admin: About → key "founder"; title = name and role, description = story, image = photo) --}}
+      @php($founder = $aboutBlocks->get('founder'))
+      @if($founder && filled($founder->description))
+        <section class="bg-white py-16 lg:py-24">
+          <div class="container-page grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+            @if($founder->image)
+              <img src="{{ app(\App\Services\ImageUploadService::class)->url($founder->image) }}" alt="{{ $founder->title }}" class="mx-auto w-full max-w-sm rounded-4xl object-cover shadow-card" style="aspect-ratio: 4 / 5" loading="lazy">
+            @endif
+            <div>
+              <p class="eyebrow">Meet the founder</p>
+              <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $founder->title }}</h2>
+              <div class="prose-story mt-5 text-lg leading-8 text-ink-600">{!! $founder->description !!}</div>
+            </div>
+          </div>
+        </section>
+      @endif
+
       <!-- ==================================================================
            MEET THE TEAM
            ================================================================== -->
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Meet the Team</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              The People Behind Your Adventures
-            </h2>
-            <p class="mt-3 text-ink-500">A small team that plans every trip and, more often than not, comes along for it.</p>
+            <p class="eyebrow">{{ $sections->get('team')?->eyebrow ?: 'Meet the Team' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('team')?->title ?: 'The People Behind Your Adventures' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $sections->get('team')?->subtitle ?: 'A small team that plans every trip and, more often than not, comes along for it.' }}</p>
           </div>
 
           <div x-data="{ team: window.DreamTourData.team }" class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <template x-for="m in team" :key="m.id">
+            @foreach($frontendData['team'] as $m)
               <figure class="flex flex-col rounded-4xl bg-white p-5 text-center ring-1 ring-ink-900/5">
-                <img :src="m.photo" :alt="m.name" class="mx-auto size-28 rounded-full object-cover" loading="lazy" />
+                <img src="{{ $m['photo'] }}" alt="{{ $m['name'] }}" class="mx-auto size-28 rounded-full object-cover" loading="lazy" />
                 <figcaption class="mt-4 flex flex-1 flex-col">
-                  <p class="font-display text-lg font-bold text-ink-900" x-text="m.name"></p>
-                  <p class="text-sm font-semibold text-brand-600" x-text="m.role"></p>
-                  <p class="mt-2 flex-1 text-sm text-ink-500" x-text="m.bio"></p>
+                  <p class="font-display text-lg font-bold text-ink-900">{{ $m['name'] }}</p>
+                  <p class="text-sm font-semibold text-brand-600">{{ $m['role'] }}</p>
+                  <p class="mt-2 flex-1 text-sm text-ink-500">{{ $m['bio'] }}</p>
                   <div class="mt-4 flex justify-center gap-2">
-                    <a :href="m.socials.facebook" target="_blank" rel="noopener" :aria-label="m.name + ' on Facebook'" class="grid size-9 place-items-center rounded-full bg-ink-50 text-ink-500 transition hover:bg-brand-600 hover:text-white">
+                    @if(data_get($m, 'socials.facebook'))<a href="{{ data_get($m, 'socials.facebook') }}" target="_blank" rel="noopener" aria-label="{{ $m['name'] . ' on Facebook' }}" class="grid size-9 place-items-center rounded-full bg-ink-50 text-ink-500 transition hover:bg-brand-600 hover:text-white">
                       <svg class="size-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.99 3.657 9.128 8.438 9.878v-6.987H7.898V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.891h-2.33v6.987C18.343 21.128 22 16.99 22 12Z" /></svg>
-                    </a>
-                    <a :href="m.socials.instagram" target="_blank" rel="noopener" :aria-label="m.name + ' on Instagram'" class="grid size-9 place-items-center rounded-full bg-ink-50 text-ink-500 transition hover:bg-brand-600 hover:text-white">
+                    </a>@endif
+                    @if(data_get($m, 'socials.instagram'))<a href="{{ data_get($m, 'socials.instagram') }}" target="_blank" rel="noopener" aria-label="{{ $m['name'] . ' on Instagram' }}" class="grid size-9 place-items-center rounded-full bg-ink-50 text-ink-500 transition hover:bg-brand-600 hover:text-white">
                       <svg class="size-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2Zm0 3.87A5.93 5.93 0 1 0 12 17.93 5.93 5.93 0 0 0 12 6.07Zm0 1.8a4.13 4.13 0 1 1 0 8.26 4.13 4.13 0 0 1 0-8.26Zm6.03-3.04a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z" /></svg>
-                    </a>
-                    <a :href="'mailto:' + m.socials.email" :aria-label="'Email ' + m.name" class="grid size-9 place-items-center rounded-full bg-ink-50 text-ink-500 transition hover:bg-brand-600 hover:text-white">
+                    </a>@endif
+                    @if(data_get($m, 'socials.email'))<a href="{{ 'mailto:' . data_get($m, 'socials.email') }}" aria-label="{{ 'Email ' . $m['name'] }}" class="grid size-9 place-items-center rounded-full bg-ink-50 text-ink-500 transition hover:bg-brand-600 hover:text-white">
                       <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
-                    </a>
+                    </a>@endif
                   </div>
                 </figcaption>
               </figure>
-            </template>
+            @endforeach
           </div>
         </div>
       </section>
@@ -268,23 +308,19 @@
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Licensed &amp; Accredited</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">Book With Confidence</h2>
-            <p class="mt-3 text-ink-500">
-              DreamTour is a registered Ontario travel retailer. Payments made for
-              your trip are protected under the Ontario Travel Industry
-              Compensation Fund.
-            </p>
+            <p class="eyebrow">{{ $sections->get('partners')?->eyebrow ?: 'Licensed & Accredited' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('partners')?->title ?: 'Book With Confidence' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $sections->get('partners')?->subtitle ?: 'DreamTour is a registered Ontario travel retailer. Payments made for your trip are protected under the Ontario Travel Industry Compensation Fund.' }}</p>
           </div>
 
           <div x-data="{ partners: window.DreamTourData.about.partners }" class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <template x-for="p in partners" :key="p.name">
+            @foreach($frontendData['about']['partners'] as $p)
               <div class="rounded-2xl border border-ink-100 p-6 text-center">
-                <p class="font-display text-2xl font-extrabold text-ink-900" x-text="p.name"></p>
-                <p class="mt-1 text-sm text-ink-500" x-text="p.full"></p>
-                <p class="mt-2 text-xs font-medium text-brand-600" x-text="p.note"></p>
+                <p class="font-display text-2xl font-extrabold text-ink-900">{{ $p['name'] }}</p>
+                <p class="mt-1 text-sm text-ink-500">{{ $p['full'] }}</p>
+                <p class="mt-2 text-xs font-medium text-brand-600">{{ $p['note'] }}</p>
               </div>
-            </template>
+            @endforeach
           </div>
         </div>
       </section>
@@ -295,10 +331,8 @@
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">What Our Travellers Say</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Real Experiences. Happy Travellers.
-            </h2>
+            <p class="eyebrow">{{ $sections->get('reviews')?->eyebrow ?: 'What Our Travellers Say' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('reviews')?->title ?: 'Real Experiences. Happy Travellers.' }}</h2>
             <div
               x-data="{ s: window.DreamTourData.reviewsSummary }"
               class="mt-4 inline-flex items-center gap-2 text-sm text-ink-500"
@@ -315,30 +349,27 @@
           </div>
 
           <div x-data="{ reviews: window.DreamTourData.reviews }" class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <template x-for="r in reviews" :key="r.id">
-              <figure class="flex h-full flex-col rounded-4xl bg-white p-6 ring-1 ring-ink-900/5">
+            @foreach($frontendData['reviews'] as $r)
+              <figure class="flex h-full flex-col rounded-4xl bg-sand-50 p-6 ring-1 ring-ink-900/5">
                 <div class="flex gap-0.5" aria-hidden="true">
-                  <template x-for="n in 5" :key="n">
-                    <svg class="size-4" :class="n <= r.rating ? 'text-brand-500' : 'text-ink-200'" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.36 4.18a1 1 0 0 0 .95.69h4.4c.97 0 1.37 1.24.59 1.81l-3.56 2.59a1 1 0 0 0-.36 1.12l1.36 4.18c.3.92-.76 1.69-1.54 1.12l-3.56-2.59a1 1 0 0 0-1.18 0l-3.56 2.59c-.78.57-1.84-.2-1.54-1.12l1.36-4.18a1 1 0 0 0-.36-1.12L2.1 9.61c-.78-.57-.38-1.81.59-1.81h4.4a1 1 0 0 0 .95-.69L9.05 2.93Z" />
+                  @for($n = 1; $n <= 5; $n++)
+                    <svg class="size-4 {{ $n <= $r['rating'] ? 'text-brand-500' : 'text-ink-200' }}" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.36 4.18a1 1 0 0 0 .95.69h4.4c.97 0 1.37 1.24.59 1.81l-3.56 2.59a1 1 0 0 0-.36 1.11l1.36 4.18c.3.92-.75 1.69-1.54 1.12l-3.55-2.58a1 1 0 0 0-1.18 0l-3.55 2.58c-.79.57-1.84-.2-1.54-1.12l1.36-4.18a1 1 0 0 0-.36-1.11L2.4 9.61c-.78-.57-.38-1.81.59-1.81h4.4a1 1 0 0 0 .95-.69L9.05 2.93Z" />
                     </svg>
-                  </template>
+                  @endfor
                 </div>
                 <blockquote class="mt-4 flex-1 text-sm leading-relaxed text-ink-700">
-                  <span x-text="'“' + r.quote + '”'"></span>
+                  <span>{{ '“'.$r['text'].'”' }}</span>
                 </blockquote>
                 <figcaption class="mt-5 flex items-center gap-3 border-t border-ink-100 pt-4">
-                  <span
-                    class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-100 font-display text-sm font-bold text-brand-700"
-                    x-text="r.name.split(' ').map((w) => w[0]).join('')"
-                  ></span>
+                  <span class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-100 font-display text-sm font-bold text-brand-700">{{ collect(explode(' ', (string) $r['name']))->filter()->map(fn ($w) => mb_substr($w, 0, 1))->implode('') }}</span>
                   <span class="min-w-0">
-                    <span class="block text-sm font-semibold text-ink-900" x-text="r.name"></span>
-                    <span class="block truncate text-xs text-ink-500" x-text="r.tour"></span>
+                    <span class="block text-sm font-semibold text-ink-900">{{ $r['name'] }}</span>
+                    <span class="block truncate text-xs text-ink-500">{{ $r['role'] }}</span>
                   </span>
                 </figcaption>
               </figure>
-            </template>
+            @endforeach
           </div>
         </div>
       </section>
@@ -355,13 +386,13 @@
               </svg>
             </span>
             <div>
-              <p class="font-display text-xl font-extrabold sm:text-2xl">Have questions? We're here to help.</p>
-              <p class="mt-1 text-sm text-white/85">Call or message us any day — 8:00 AM to 8:00 PM.</p>
+              <p class="font-display text-xl font-extrabold sm:text-2xl">{{ $sections->get('cta')?->title ?: 'Have questions? We\'re here to help.' }}</p>
+              <p class="mt-1 text-sm text-white/85">{{ $sections->get('cta')?->subtitle ?: 'Call or message us any day — 8:00 AM to 8:00 PM.' }}</p>
             </div>
           </div>
           <div class="flex flex-col items-center gap-3 sm:flex-row">
             <a href="tel:{{ $siteSettings->get('phone_link') }}" class="font-display text-2xl font-extrabold tracking-tight hover:text-white/90 sm:text-3xl">{{ $siteSettings->get('phone') }}</a>
-            <a href="//contact" class="btn btn-white">Contact Us</a>
+            <a href="/contact" class="btn btn-white">Contact Us</a>
           </div>
         </div>
       </section>

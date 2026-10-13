@@ -22,18 +22,20 @@ class DomainContentController extends Controller{
    'type'=>['required','in:image,video'],
    'file'=>['nullable','file','max:51200',$isVideo?'mimetypes:video/mp4,video/webm,video/quicktime':'image'],
    'path'=>[$medium||$r->hasFile('file')?'nullable':'required','string','max:500'],
-   'sort_order'=>['nullable','integer','min:0'],
    'en.alt_text'=>['nullable','string','max:255'],
    'en.caption'=>['nullable','string','max:255'],
+   'sort_order'=>['nullable','integer','min:0'],
   ]);
+  $d['sort_order']=$d['sort_order']??($medium?->sort_order??(int)$r->route('album')?->media()->max('sort_order')+1);
   unset($d['file']);
   if($r->hasFile('file'))$d['path']=$isVideo?$this->media()->uploadFile($r->file('file')):$this->media()->upload($r->file('file'));
   elseif(!$r->filled('path'))$d['path']=$medium?->getRawOriginal('path');
   $this->resolveMedia($r,$d,'thumbnail',$medium?->getRawOriginal('thumbnail'));
-  $d['sort_order']??=0;
   return $d;
  }
  private function model(string $r):string{abort_unless(isset(self::MAP[$r]),404);return self::MAP[$r];}
  private function form(string $resource,$item):View{return view('admin.domain_content.form',['resource'=>$resource,'item'=>$item,'destinations'=>Destination::withTranslation()->get(),'categories'=>GalleryCategory::withTranslation()->get(),'tours'=>Tour::withTranslation()->get()]);}
- private function data(Request $r,string $resource,$item=null):array{$common=['sort_order'=>['nullable','integer','min:0'],'is_active'=>['nullable','boolean']];if($resource==='visa-services')$rules=$common+['destination_id'=>['nullable','exists:destinations,id'],'price'=>['nullable','numeric','min:0'],'currency'=>['required','string','size:3'],'processing_time'=>['nullable','string','max:255'],'en.name'=>['required','string','max:255'],'en.description'=>['nullable','string'],'en.required_documents'=>['nullable','string'],'en.disclaimer'=>['nullable','string']];elseif($resource==='gallery-categories')$rules=$common+['en.name'=>['required','string','max:255'],'en.slug'=>['required','alpha_dash','max:255']];else $rules=$common+$this->mediaRules('cover_image')+['gallery_category_id'=>['nullable','exists:gallery_categories,id'],'tour_id'=>['nullable','exists:tours,id'],'destination_id'=>['nullable','exists:destinations,id'],'tour_date'=>['nullable','date'],'en.title'=>['required','string','max:255'],'en.description'=>['nullable','string']];$d=$r->validate($rules);if($resource==='gallery-albums')$this->resolveMedia($r,$d,'cover_image',$item?->getRawOriginal('cover_image'));$d['is_active']=$r->boolean('is_active');$d['sort_order']??=0;return $d;}
+ private function data(Request $r,string $resource,$item=null):array{$common=['is_active'=>['nullable','boolean'],'sort_order'=>['nullable','integer','min:0']];if($resource==='visa-services')$rules=$common+['destination_id'=>['nullable','exists:destinations,id'],'price'=>['nullable','numeric','min:0'],'currency'=>['required','string','size:3'],'processing_time'=>['nullable','string','max:255']]+$this->localeRules(['name'=>['required','string','max:255'],'description'=>['nullable','string'],'required_documents'=>['nullable','string'],'disclaimer'=>['nullable','string']]);elseif($resource==='gallery-categories')$rules=$common+$this->localeRules(['name'=>['required','string','max:255']]);else $rules=$common+$this->mediaRules('cover_image')+['gallery_category_id'=>['nullable','exists:gallery_categories,id'],'tour_id'=>['nullable','exists:tours,id'],'destination_id'=>['nullable','exists:destinations,id'],'tour_date'=>['nullable','date']]+$this->localeRules(['title'=>['required','string','max:255'],'description'=>['nullable','string']]);$d=$r->validate($rules);if($resource==='gallery-albums')$this->resolveMedia($r,$d,'cover_image',$item?->getRawOriginal('cover_image'));$d['is_active']=$r->boolean('is_active');$d['sort_order']=$d['sort_order']??0;return $d;}
+ /** Repeat a set of translated-field rules for every configured locale. */
+ private function localeRules(array $fields):array{$rules=[];foreach(config('translatable.locales') as $locale)foreach($fields as $field=>$rule)$rules["$locale.$field"]=$rule;return $rules;}
 }

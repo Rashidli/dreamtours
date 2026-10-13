@@ -325,9 +325,8 @@ document.addEventListener("alpine:init", () => {
      t.international). e.g. x-data="tourFilter('one-day')".
      ------------------------------------------------------------------------ */
   Alpine.data("tourFilter", (scope = "one-day") => ({
-    all: (window.DreamTourData?.tours || []).filter((t) =>
-      scope === "international" ? t.international : t.type === scope,
-    ),
+    all: (window.DreamTourData?.tours || []).filter((t) => (t.listings || [t.type]).includes(scope)),
+    categoryId: null,
     q: "",
     date: "",
     regions: [],
@@ -352,7 +351,15 @@ document.addEventListener("alpine:init", () => {
       if (p.get("q")) this.q = p.get("q");
       if (p.get("date")) this.date = p.get("date");
       if (p.get("region")) this.regions = [p.get("region")];
-      if (p.get("destination")) this.destinations = [p.get("destination")];
+      if (p.get("destination")) {
+        // Links carry the destination id; the filter works on names.
+        const id = Number(p.get("destination"));
+        const match = this.all.find((t) => t.destinationId === id);
+        const country = match ? null : this.all.find((t) => t.countryId === id);
+        if (country) this.regions = [country.country];
+        else this.destinations = [match ? match.destination : p.get("destination")];
+      }
+      if (p.get("category")) this.categoryId = Number(p.get("category"));
       if (p.get("vehicle")) this.vehicles = [p.get("vehicle")];
       if (p.get("duration")) this.durations = [p.get("duration")];
       if (p.get("min_seats")) this.minSeats = Number(p.get("min_seats"));
@@ -382,10 +389,12 @@ document.addEventListener("alpine:init", () => {
     get months() {
       const seen = new Map();
       this.all.forEach((t) => {
-        const d = new Date(t.dateValue);
-        seen.set(d.getMonth(), d.toLocaleString("en-US", { month: "long" }));
+        (t.dates || []).forEach((value) => {
+          const d = new Date(value + "T12:00:00");
+          seen.set(d.getFullYear() * 12 + d.getMonth(), d.toLocaleString("en-US", { month: "long" }));
+        });
       });
-      return [...seen.keys()].sort((a, b) => a - b).map((k) => seen.get(k));
+      return [...new Set([...seen.keys()].sort((a, b) => a - b).map((k) => seen.get(k)))];
     },
     get regionOptions() {
       return [...new Set(this.all.map((t) => t.country).filter(Boolean))];
@@ -408,15 +417,18 @@ document.addEventListener("alpine:init", () => {
         const hay = [t.name,t.destination,t.country,...(t.categories||[])].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(this.q.trim().toLowerCase())) return false;
       }
-      if (this.date && t.dateValue !== this.date) return false;
+      if (this.categoryId && !(t.categoryIds || []).includes(this.categoryId)) return false;
+      if (this.date && !(t.dates || []).includes(this.date)) return false;
       if (this.regions.length && !this.regions.includes(t.country)) return false;
       if (this.destinations.length && !this.destinations.includes(t.destination)) return false;
       if (this.vehicles.length && !this.vehicles.includes(t.vehicle)) return false;
       if (this.durations.length && !this.durations.includes(this.durationBucket(t)))
         return false;
       if (this.month) {
-        const m = new Date(t.dateValue).toLocaleString("en-US", { month: "long" });
-        if (m !== this.month) return false;
+        const inMonth = (t.dates || []).some(
+          (value) => new Date(value + "T12:00:00").toLocaleString("en-US", { month: "long" }) === this.month,
+        );
+        if (!inMonth) return false;
       }
       if (Number(this.priceMax) && t.price > Number(this.priceMax)) return false;
       if (Number(this.minSeats) && t.seatsLeft < Number(this.minSeats)) return false;
@@ -440,6 +452,16 @@ document.addEventListener("alpine:init", () => {
     get results() {
       return this.filtered.slice(0, this.shown);
     },
+    /* The cards are rendered server-side so they are in the HTML for crawlers; these two let
+       the same filter state show/hide and re-order those existing nodes instead of building
+       them from scratch. */
+    get visibleIds() {
+      return this.results.map((item) => String(item.id));
+    },
+    orderOf(id) {
+      const at = this.results.findIndex((item) => String(item.id) === String(id));
+      return at === -1 ? 0 : at;
+    },
     get hasMore() {
       return this.filtered.length > this.shown;
     },
@@ -461,6 +483,7 @@ document.addEventListener("alpine:init", () => {
         (this.age ? 1 : 0) +
         (this.availability ? 1 : 0) +
         (this.tourKind ? 1 : 0) +
+        (this.categoryId ? 1 : 0) +
         (this.hideSoldOut ? 1 : 0)
       );
     },
@@ -476,6 +499,7 @@ document.addEventListener("alpine:init", () => {
       this.minSeats = 0;
       this.age = "";
       this.availability = "";
+      this.categoryId = null;
       this.tourKind = "";
       this.hideSoldOut = false;
       this.sort = "date";
@@ -587,6 +611,16 @@ document.addEventListener("alpine:init", () => {
     },
     get results() {
       return this.filtered.slice(0, this.shown);
+    },
+    /* The cards are rendered server-side so they are in the HTML for crawlers; these two let
+       the same filter state show/hide and re-order those existing nodes instead of building
+       them from scratch. */
+    get visibleIds() {
+      return this.results.map((item) => String(item.id));
+    },
+    orderOf(id) {
+      const at = this.results.findIndex((item) => String(item.id) === String(id));
+      return at === -1 ? 0 : at;
     },
     get hasMore() {
       return this.filtered.length > this.shown;
@@ -702,6 +736,16 @@ document.addEventListener("alpine:init", () => {
     get results() {
       return this.filtered.slice(0, this.shown);
     },
+    /* The cards are rendered server-side so they are in the HTML for crawlers; these two let
+       the same filter state show/hide and re-order those existing nodes instead of building
+       them from scratch. */
+    get visibleIds() {
+      return this.results.map((item) => String(item.id));
+    },
+    orderOf(id) {
+      const at = this.results.findIndex((item) => String(item.id) === String(id));
+      return at === -1 ? 0 : at;
+    },
     get hasMore() {
       return this.filtered.length > this.shown;
     },
@@ -723,6 +767,12 @@ document.addEventListener("alpine:init", () => {
     },
 
     /* ---- lightbox ---- */
+    /* The album cards are rendered server-side, so the lightbox is opened by id rather than
+       by passing the object the template used to hold. */
+    openById(id) {
+      const album = this.albums.find((a) => String(a.id) === String(id));
+      if (album) this.open(album);
+    },
     open(album, i = 0) {
       this.activeAlbum = album;
       this.photoIndex = i;
@@ -743,6 +793,287 @@ document.addEventListener("alpine:init", () => {
     },
     get currentPhoto() {
       return this.activeAlbum ? this.activeAlbum.photos[this.photoIndex] : null;
+    },
+  }));
+
+  /* --------------------------------------------------------------------------
+     Image carousel — home hero slides and the tour page gallery.
+     x-data="carousel({ count: 5, interval: 6000 })"
+     ------------------------------------------------------------------------ */
+  Alpine.data("carousel", ({ count = 0, interval = 0 } = {}) => ({
+    index: 0,
+    count,
+    timer: null,
+    touchX: null,
+    init() {
+      this.play();
+    },
+    play() {
+      if (!interval || this.count < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      clearInterval(this.timer);
+      this.timer = setInterval(() => this.next(), interval);
+    },
+    pause() {
+      clearInterval(this.timer);
+    },
+    go(i) {
+      this.index = (i + this.count) % this.count;
+    },
+    next() {
+      this.go(this.index + 1);
+    },
+    prev() {
+      this.go(this.index - 1);
+    },
+    touchStart(e) {
+      this.touchX = e.touches[0].clientX;
+      this.pause();
+    },
+    touchEnd(e) {
+      if (this.touchX === null) return;
+      const dx = e.changedTouches[0].clientX - this.touchX;
+      if (Math.abs(dx) > 40) dx < 0 ? this.next() : this.prev();
+      this.touchX = null;
+      this.play();
+    },
+  }));
+
+  /* --------------------------------------------------------------------------
+     Tour page request dialog — "Invoice request", "Let us call you" and private
+     tour quotes. Every request lands in the admin CRM with its own type.
+     ------------------------------------------------------------------------ */
+  Alpine.data("tourRequest", ({ tourId, tourName }) => ({
+    open: false,
+    mode: "invoice",
+    sending: false,
+    sent: false,
+    error: "",
+    form: { name: "", phone: "", email: "", people: 2, date: "", time: "", message: "" },
+    titles: {
+      invoice: "Request an invoice",
+      callback: "Let us call you",
+      private_tour: "Request a private tour quote",
+    },
+    show(mode) {
+      this.mode = mode;
+      this.sent = false;
+      this.error = "";
+      this.open = true;
+      this.$nextTick(() => this.$refs.firstField?.focus());
+    },
+    async submit() {
+      this.error = "";
+      if (!this.form.name.trim() || !this.form.phone.trim() || !this.form.email.trim()) {
+        this.error = "Please enter your name, phone and email.";
+        return;
+      }
+      this.sending = true;
+      const lines = [
+        `Tour: ${tourName}`,
+        this.form.date ? `Preferred date: ${this.form.date}` : "",
+        this.mode === "callback" && this.form.time ? `Best time to call: ${this.form.time}` : "",
+        this.form.message,
+      ].filter(Boolean);
+      try {
+        await postRequest({
+          ...person(this.form.name),
+          type: this.mode,
+          tour_id: tourId,
+          email: this.form.email,
+          phone: this.form.phone,
+          participant_count: Math.max(1, Number(this.form.people) || 1),
+          comments: lines.join("\n"),
+        });
+        this.sent = true;
+      } catch (error) {
+        this.error = error.message;
+      } finally {
+        this.sending = false;
+      }
+    },
+  }));
+
+  /* --------------------------------------------------------------------------
+     Step-by-step tour booking (tour-booking.blade.php). Mirrors the server-side
+     App\Support\BookingQuote arithmetic for the live price; the server recalculates.
+     ------------------------------------------------------------------------ */
+  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, taxNote = "" }) => ({
+    departures,
+    step: 1,
+    steps: ["Travellers", "Names", "Contact", "Extras", "Payment"],
+    departureId: Number(old.tour_departure_id) || departures[0]?.id || null,
+    selections: {},
+    passengers: [],
+    pickup: old.pickup_point_id ? String(old.pickup_point_id) : "",
+    phone: old.phone || "",
+    email: old.email || "",
+    emergencyName: old.emergency_contact_name || "",
+    emergencyPhone: old.emergency_contact_phone || "",
+    roommate: old.roommate_request || "",
+    fileName: "",
+    accepted: false,
+    clientError: "",
+    taxNote,
+
+    init() {
+      const saved = old.selections || {};
+      this.resetSelections(saved);
+      (old.passengers || []).forEach((p, i) => {
+        if (this.passengers[i]) Object.assign(this.passengers[i], { ...p, is_child: p.is_child === "1" || p.is_child === true });
+      });
+      // Jump to the first step that has a server-side error.
+      const keys = Object.keys(errors);
+      const stepOf = (key) => {
+        if (/^(tour_departure_id|selections)/.test(key)) return 1;
+        if (/^(passengers|roommate)/.test(key)) return 2;
+        if (/^(pickup_point_id|phone|email|emergency)/.test(key)) return 3;
+        if (/^(meal|special|food|promo)/.test(key)) return 4;
+        return 5;
+      };
+      if (keys.length) this.step = Math.min(...keys.map(stepOf));
+      this.$watch("departureId", () => this.resetSelections({}));
+    },
+
+    get departure() {
+      return this.departures.find((d) => d.id === Number(this.departureId)) || null;
+    },
+    get prices() {
+      const d = this.departure;
+      if (!d) return [];
+      return d.prices.length ? d.prices : [{ code: "adult", label: "Adult", price: d.basePrice, occupancy: null }];
+    },
+    get roomPricing() {
+      return this.prices.some((p) => p.occupancy);
+    },
+    get childPrice() {
+      return this.prices.find((p) => p.code === "child") || null;
+    },
+    get options() {
+      // With room pricing, children are flagged per passenger rather than counted here.
+      return this.roomPricing ? this.prices.filter((p) => p.occupancy) : this.prices;
+    },
+    resetSelections(saved) {
+      const next = {};
+      this.options.forEach((p, i) => {
+        const fallback = this.roomPricing ? 0 : i === 0 ? 1 : 0;
+        next[p.code] = saved[p.code] !== undefined ? Number(saved[p.code]) : fallback;
+      });
+      this.selections = next;
+      this.syncPassengers();
+    },
+    change(code, delta) {
+      const value = Math.max(0, Math.min(20, (Number(this.selections[code]) || 0) + delta));
+      this.selections[code] = value;
+      this.syncPassengers();
+    },
+    get slots() {
+      const slots = [];
+      let room = 0;
+      this.options.forEach((p) => {
+        const qty = Number(this.selections[p.code]) || 0;
+        for (let n = 0; n < qty; n++) {
+          const roomNo = p.occupancy ? ++room : null;
+          for (let s = 0; s < (p.occupancy || 1); s++) slots.push({ code: p.code, label: p.label, price: p.price, room: roomNo, roomLabel: p.label });
+        }
+      });
+      return slots;
+    },
+    syncPassengers() {
+      const count = this.slots.length;
+      while (this.passengers.length < count) this.passengers.push({ first_name: "", last_name: "", date_of_birth: "", is_child: false });
+      this.passengers = this.passengers.slice(0, count);
+    },
+    priceOf(i) {
+      const slot = this.slots[i];
+      if (!slot) return 0;
+      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child) return this.childPrice.price;
+      return slot.price;
+    },
+    fareLabel(i) {
+      const slot = this.slots[i];
+      if (!slot) return "";
+      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child) return this.childPrice.label;
+      return slot.label;
+    },
+    get count() {
+      return this.slots.length;
+    },
+    get total() {
+      return this.slots.reduce((sum, _s, i) => sum + this.priceOf(i), 0);
+    },
+    get deposit() {
+      return depositPerPerson ? Math.min(this.total, depositPerPerson * this.count) : this.total;
+    },
+    money(value) {
+      const currency = this.departure?.currency || "CAD";
+      const symbol = { CAD: "CA$", USD: "US$" }[currency] || currency + " ";
+      const n = Number(value) || 0;
+      return symbol + n.toLocaleString("en-CA", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+    },
+    isNewRoom(i) {
+      const slot = this.slots[i];
+      return slot && slot.room && (i === 0 || this.slots[i - 1].room !== slot.room);
+    },
+
+    validPhone(value) {
+      let digits = String(value || "").replace(/\D+/g, "");
+      if (digits.length === 11 && digits[0] === "1") digits = digits.slice(1);
+      return digits.length === 10 && digits[0] >= "2";
+    },
+    check(step) {
+      if (step === 1) {
+        if (!this.departure) return "Please choose a departure date.";
+        if (!this.count) return this.roomPricing ? "Please choose at least one room." : "Please choose at least one passenger.";
+        if (this.count > this.departure.seats) return `Only ${this.departure.seats} seats are left on this date.`;
+      }
+      if (step === 2) {
+        if (this.passengers.some((p) => !p.first_name.trim() || !p.last_name.trim())) return "Please enter the first and last name of every passenger.";
+        if (!this.passengers[0]?.date_of_birth) return "Please enter the date of birth of the main passenger.";
+      }
+      if (step === 3) {
+        if (!this.pickup) return "Please choose your pickup point.";
+        if (!this.validPhone(this.phone)) return "Please enter a valid Canadian phone number, e.g. 416-555-0100.";
+        if (!/^\S+@\S+\.\S+$/.test(this.email)) return "Please enter an active email address.";
+        if (!this.emergencyName.trim() || !this.emergencyPhone.trim()) return "Please enter an emergency contact name and phone number.";
+      }
+      if (step === 5) {
+        if (!this.fileName) return "Please upload a screenshot of your deposit payment.";
+        if (!this.accepted) return "Please confirm that you agree to the policies.";
+      }
+      return "";
+    },
+    next() {
+      this.clientError = this.check(this.step);
+      if (this.clientError) return;
+      this.step = Math.min(this.steps.length, this.step + 1);
+      this.$nextTick(() => document.getElementById("booking-steps")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    },
+    back() {
+      this.clientError = "";
+      this.step = Math.max(1, this.step - 1);
+    },
+    goTo(target) {
+      for (let s = 1; s < target; s++) {
+        const error = this.check(s);
+        if (error) {
+          this.step = s;
+          this.clientError = error;
+          return;
+        }
+      }
+      this.clientError = "";
+      this.step = target;
+    },
+    submit(event) {
+      for (let s = 1; s <= this.steps.length; s++) {
+        const error = this.check(s);
+        if (error) {
+          event.preventDefault();
+          this.step = s;
+          this.clientError = error;
+          return;
+        }
+      }
     },
   }));
 

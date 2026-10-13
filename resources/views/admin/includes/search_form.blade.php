@@ -15,7 +15,7 @@
         </div>
         <div class="col-2">
             <div class="mb-3">
-                <label class="col-form-label" >Tarixi</label>
+                <label class="col-form-label" >Datei</label>
                 <input class="form-control" id="text" value="{{ request()->date}}" type="date" name="date">
             </div>
         </div>
@@ -38,21 +38,21 @@
         <div class="col-1">
             <div class="mb-3">
                 <div class="pt-4 mt-3">
-                    <button value="submit" class="btn btn-primary">Axtar</button>
+                    <button value="submit" class="btn btn-primary">Search</button>
                 </div>
             </div>
         </div>
         <div class="col-1">
             <div class="mb-3">
                 <div class="pt-4 mt-3">
-                    <a class="btn btn-primary" href="{{route($route)}}">Sıfırla</a>
+                    <a class="btn btn-primary" href="{{route($route)}}">Reset</a>
                 </div>
             </div>
         </div>
         <div class="col-1">
             <div class="mb-3">
                 <div class="pt-4 mt-3">
-                    <p class="text-primary">Nəticə: {{$data['count']}}</p>
+                    <p class="text-primary">Result: {{$data['count']}}</p>
                 </div>
             </div>
         </div>

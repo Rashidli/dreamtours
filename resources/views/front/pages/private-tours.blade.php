@@ -4,8 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Private Tours — DreamTour</title>
-    <meta name="description" content="Custom private tours across Ontario, Québec and beyond — your own group, vehicle and guide. See tour ideas and request a free quote." />
+    <title>{{ $cmsPage->meta_title ?: ($cmsPage->title ?: 'Private Tours — DreamTour') }}</title>
+    <meta name="description" content="{{ $cmsPage->meta_description ?: 'Custom private tours across Ontario, Québec and beyond — your own group, vehicle and guide. See tour ideas and request a free quote.' }}" />
+    @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
+
+    @include('front.partials.favicon')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,11 +19,11 @@
     />
 
     <!-- Compiled Tailwind stylesheet -->
-    <link rel="stylesheet" href="/dreamtour/dist/main.css" />
+    <link rel="stylesheet" href="/dreamtour/dist/main.css?v={{ @filemtime(public_path('dreamtour/dist/main.css')) }}" />
 
     <!-- Scripts: database-backed page data + Alpine components load before Alpine core -->
     @include('front.partials.data')
-    <script defer src="/dreamtour/src/js/app.js"></script>
+    <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
   </head>
 
@@ -46,7 +49,7 @@
 
         <div class="container-page py-10 sm:py-12 lg:py-16">
           <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-ink-200">
-            <a href="//" class="hover:text-white">Home</a>
+            <a href="/" class="hover:text-white">Home</a>
             <svg class="size-4 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
@@ -56,7 +59,7 @@
           <div class="mt-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <p class="eyebrow text-brand-400">{{ $sections->get('hero')?->eyebrow }}</p>
-            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
+            <h1 class="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl text-white">{{ $sections->get('hero')?->title ?: $cmsPage->title }}</h1>
             <p class="mt-4 max-w-lg text-base text-ink-100 sm:text-lg">{{ $sections->get('hero')?->subtitle }}</p>
 
               <ul class="mt-8 grid gap-4 sm:grid-cols-2">
@@ -102,11 +105,9 @@
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Why Choose Private Tours</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Travel On Your Terms, In Total Comfort
-            </h2>
-            <p class="mt-3 text-ink-500">All the planning and driving handled — just your group, going where you want to go.</p>
+            <p class="eyebrow">{{ $sections->get('benefits')?->eyebrow ?: 'Why Choose Private Tours' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('benefits')?->title ?: 'Travel On Your Terms, In Total Comfort' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $sections->get('benefits')?->subtitle ?: 'All the planning and driving handled — just your group, going where you want to go.' }}</p>
           </div>
 
           <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -148,32 +149,30 @@
       <section id="ideas" class="scroll-mt-24 bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Popular Private Tour Ideas</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">
-              Inspiration For Your Next Adventure
-            </h2>
-            <p class="mt-3 text-ink-500">Start from one of these or bring your own idea — every private tour is built from scratch.</p>
+            <p class="eyebrow">{{ $sections->get('trip_ideas')?->eyebrow ?: 'Popular Private Tour Ideas' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('trip_ideas')?->title ?: 'Inspiration For Your Next Adventure' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $sections->get('trip_ideas')?->subtitle ?: 'Start from one of these or bring your own idea — every private tour is built from scratch.' }}</p>
           </div>
 
           <div x-data="{ ideas: window.DreamTourData.privateTours.ideas }" class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <template x-for="idea in ideas" :key="idea.id">
+            @foreach($frontendData['privateTours']['ideas'] as $idea)
               <article class="group flex flex-col overflow-hidden rounded-4xl bg-white shadow-card ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
                 <div class="relative">
-                  <img :src="idea.image" :alt="idea.title" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-                  <span class="absolute bottom-3 left-3 rounded-full bg-ink-950/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur" x-text="idea.duration"></span>
+                  <img src="{{ $idea['image'] }}" alt="{{ $idea['title'] }}" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                  <span class="absolute bottom-3 left-3 rounded-full bg-ink-950/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">{{ $idea['duration'] }}</span>
                 </div>
                 <div class="flex flex-1 flex-col p-5">
-                  <h3 class="font-display text-lg font-bold text-ink-900" x-text="idea.title"></h3>
-                  <p class="mt-2 flex-1 text-sm text-ink-500" x-text="idea.summary"></p>
+                  <h3 class="font-display text-lg font-bold text-ink-900">{{ $idea['title'] }}</h3>
+                  <p class="mt-2 flex-1 text-sm text-ink-500">{{ $idea['summary'] }}</p>
                   <ul class="mt-3 flex flex-wrap gap-1.5">
-                    <template x-for="tag in idea.tags" :key="tag">
-                      <li class="rounded-full bg-sand-100 px-2.5 py-1 text-xs font-medium text-ink-600" x-text="tag"></li>
-                    </template>
+                    @foreach($idea['tags'] ?? [] as $tag)
+                      <li class="rounded-full bg-sand-100 px-2.5 py-1 text-xs font-medium text-ink-600">{{ $tag }}</li>
+                    @endforeach
                   </ul>
                   <button type="button" @click="prefill(idea.title)" class="btn btn-primary btn-sm mt-5 w-full">Request a quote</button>
                 </div>
               </article>
-            </template>
+            @endforeach
           </div>
 
           <div class="mt-10 text-center">
@@ -188,17 +187,17 @@
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">How It Works</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">Simple Steps to Your Perfect Trip</h2>
+            <p class="eyebrow">{{ $sections->get('process')?->eyebrow ?: 'How It Works' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $sections->get('process')?->title ?: 'Simple Steps to Your Perfect Trip' }}</h2>
           </div>
           <ol x-data="{ steps: window.DreamTourData.privateTours.steps }" class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <template x-for="(s, i) in steps" :key="i">
+            @foreach($frontendData['privateTours']['steps'] as $s)
               <li class="rounded-4xl bg-sand-50 p-6 ring-1 ring-ink-900/5">
-                <span class="grid size-10 place-items-center rounded-full bg-brand-600 font-display text-sm font-extrabold text-white" x-text="i + 1"></span>
-                <h3 class="mt-4 font-display text-lg font-bold text-ink-900" x-text="s.title"></h3>
-                <p class="mt-1 text-sm text-ink-500" x-text="s.text"></p>
+                <span class="grid size-10 place-items-center rounded-full bg-brand-600 font-display text-sm font-extrabold text-white">{{ $loop->iteration }}</span>
+                <h3 class="mt-4 font-display text-lg font-bold text-ink-900">{{ $s['title'] }}</h3>
+                <p class="mt-1 text-sm text-ink-500">{{ $s['description'] }}</p>
               </li>
-            </template>
+            @endforeach
           </ol>
         </div>
       </section>
@@ -209,15 +208,9 @@
       <section id="request" class="scroll-mt-24 bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
-            <p class="eyebrow text-brand-400">Plan Your Private Tour</p>
-            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Tell Us What You Have in Mind
-            </h2>
-            <p class="mt-3 max-w-md text-ink-200">
-              Send the basics and a DreamTour planner will come back with an
-              itinerary and a quote — usually within one business day. No cost,
-              no commitment.
-            </p>
+            <p class="eyebrow text-brand-400">{{ $sections->get('request_form')?->eyebrow ?: 'Plan Your Private Tour' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">{{ $sections->get('request_form')?->title ?: 'Tell Us What You Have in Mind' }}</h2>
+            <p class="mt-3 max-w-md text-ink-200">{{ $sections->get('request_form')?->subtitle ?: 'Send the basics and a DreamTour planner will come back with an itinerary and a quote — usually within one business day. No cost, no commitment.' }}</p>
 
             <ul class="mt-8 space-y-3 text-sm text-ink-200">
               <li class="flex gap-3">
@@ -325,13 +318,13 @@
               </svg>
             </span>
             <div>
-              <p class="font-display text-xl font-extrabold sm:text-2xl">Have questions? We're here to help.</p>
-              <p class="mt-1 text-sm text-white/85">Call or message us any day — 8:00 AM to 8:00 PM.</p>
+              <p class="font-display text-xl font-extrabold sm:text-2xl">{{ $sections->get('cta')?->title ?: 'Have questions? We\'re here to help.' }}</p>
+              <p class="mt-1 text-sm text-white/85">{{ $sections->get('cta')?->subtitle ?: 'Call or message us any day — 8:00 AM to 8:00 PM.' }}</p>
             </div>
           </div>
           <div class="flex flex-col items-center gap-3 sm:flex-row">
             <a href="tel:{{ $siteSettings->get('phone_link') }}" class="font-display text-2xl font-extrabold tracking-tight hover:text-white/90 sm:text-3xl">{{ $siteSettings->get('phone') }}</a>
-            <a href="//contact" class="btn btn-white">Contact Us</a>
+            <a href="/contact" class="btn btn-white">Contact Us</a>
           </div>
         </div>
       </section>

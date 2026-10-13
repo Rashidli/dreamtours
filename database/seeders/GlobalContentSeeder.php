@@ -13,7 +13,7 @@ class GlobalContentSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            'site_name' => 'DreamTour', 'phone' => '416-726-6393', 'phone_link' => '+14167266393',
+            'logo' => '', 'favicon' => '', 'site_name' => 'DreamTour', 'phone' => '416-726-6393', 'phone_link' => '+14167266393',
             'whatsapp' => '14167266393', 'email' => 'info@dreamtour.ca',
             'visa_email' => 'visa@dreamtour.ca', 'photos_email' => 'photos@dreamtour.ca',
             'working_hours' => 'Mon–Sun: 8:00 AM – 8:00 PM',
@@ -39,7 +39,6 @@ class GlobalContentSeeder extends Seeder
         foreach ([
             'footer_company' => [['About Us','/about'],['Gallery','/gallery'],['Contact Us','/contact']],
             'footer_support' => [['Private Tours','/private-tours'],['Visa Support','/visa-support'],['Cruises','/cruises']],
-            'footer_legal' => [['Privacy Policy','#'],['Terms & Conditions','#']],
         ] as $location => $links) foreach ($links as $order => [$title,$url]) {
             // Keyed on the title, not the URL: the legal links share '#', so
             // matching on the URL made the second overwrite the first.

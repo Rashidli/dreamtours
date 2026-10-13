@@ -43,7 +43,16 @@ class AppServiceProvider extends ServiceProvider
                     ->orderByDesc('tours_count')
                     ->orderBy('sort_order')
                     ->take(6)
-                    ->get(),
+                    ->get()
+                    ->each(function (Destination $destination) {
+                        // Open the listing page that holds most of this destination's tours.
+                        $slug = Tour::where('status', 'published')->whereHas('destination', fn ($q) => $q->whereKey($destination->id)->orWhere('parent_id', $destination->id))
+                            ->with('categories.translations')->get()
+                            ->flatMap(fn (Tour $tour) => $tour->categories->pluck('slug'))
+                            ->intersect(['one-day', 'multi-day', 'international', 'cruises'])
+                            ->countBy()->sortDesc()->keys()->first();
+                        $destination->listing_url = ['multi-day' => '/multi-day-tours', 'international' => '/international-tours', 'cruises' => '/cruises'][$slug] ?? '/one-day-tours';
+                    }),
             ]);
         });
     }

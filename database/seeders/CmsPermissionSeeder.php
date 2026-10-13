@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\PermissionGroups;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -32,8 +33,15 @@ class CmsPermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $name) {
-            Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
+            Permission::updateOrCreate(
+                ['name' => $name, 'guard_name' => 'web'],
+                ['group_name' => PermissionGroups::sectionFor($name)],
+            );
         }
+
+        // Anything seeded elsewhere (or created by hand) still needs a section to sit under.
+        Permission::whereNull('group_name')->orWhere('group_name', '')->get()
+            ->each(fn (Permission $permission) => $permission->update(['group_name' => PermissionGroups::sectionFor($permission->name)]));
 
         Role::where('name', 'admin')->first()?->givePermissionTo($permissions);
         app(PermissionRegistrar::class)->forgetCachedPermissions();

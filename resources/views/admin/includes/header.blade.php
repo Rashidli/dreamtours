@@ -104,7 +104,7 @@
                                 class="ri-user-line align-middle me-1"></i> Profile</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item text-danger" href="{{route('logout')}}"><i
-                                class="ri-shut-down-line align-middle me-1 text-danger"></i> Çıxış</a>
+                                class="ri-shut-down-line align-middle me-1 text-danger"></i> Log out</a>
                     </div>
                 </div>
 
