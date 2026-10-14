@@ -5,7 +5,7 @@
 
     Expects: $t — one entry of $frontendData['tours'].
 --}}
-<article class="group flex flex-col overflow-hidden rounded-4xl bg-white shadow-card ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
+<article class="group flex w-full flex-col overflow-hidden rounded-4xl bg-white shadow-card ring-1 ring-ink-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
   <div class="relative">
     <img src="{{ $t['image'] }}" alt="{{ $t['name'] }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
 
