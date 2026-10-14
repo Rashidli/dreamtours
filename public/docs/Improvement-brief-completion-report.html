@@ -1,0 +1,214 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>DreamTour — Improvement brief completion report</title><style>
+:root{--ink:#141824;--muted:#5b6475;--line:#e6eaf3;--brand:#e11d48;--bg:#f7f5f1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:30px;line-height:1.2;margin:0 0 8px}h2{font-size:22px;margin:40px 0 12px;padding-top:8px;border-top:3px solid var(--brand);display:inline-block}
+p{margin:8px 0;overflow-wrap:anywhere}a{color:var(--brand)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(20,24,36,.08);margin:12px 0;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}th{background:var(--ink);color:#fff;font-weight:600}
+td:first-child{font-weight:700;white-space:nowrap;color:var(--brand)}td:last-child{color:var(--muted);width:28%}tr:last-child td{border-bottom:0}
+ul{background:#fff;border-radius:12px;padding:16px 16px 16px 36px;box-shadow:0 1px 3px rgba(20,24,36,.08)}li{margin:4px 0}
+@media (max-width:720px){table,thead,tbody,tr,th,td{display:block}thead{display:none}tr{border-bottom:1px solid var(--line);padding:6px 0}td{border:0;padding:4px 14px}td:last-child{width:auto}}
+</style></head><body><main><h1>DreamTour — Website Improvement Brief: completion report</h1>
+<p>Reference: <em>DreamTour_Website_Improvement_Developer_Brief.docx</em> and the owner's voice note (14 October 2026).
+Staging site: <a href="https://tours.microcode.az">https://tours.microcode.az</a> — admin: <a href="https://tours.microcode.az/admin">https://tours.microcode.az/admin</a></p>
+<p>Every item below was tested from the admin save through to the public page, on desktop (1280 px) and mobile (390 px), and re-checked after a page refresh.</p>
+<h2>1. Shared website controls</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>What was done</th>
+<th>Where in admin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G01</td>
+<td>Every “Active” switch now hides the item on the website. A switched-off page section disappears completely (it no longer falls back to the template wording); a section whose items are all inactive is hidden too, so no empty heading is left. A switched-off page returns “not found”. Inactive items stay editable.</td>
+<td>Each module’s “Active” checkbox · Website CMS → Page sections · Pages &amp; SEO</td>
+</tr>
+<tr>
+<td>G02</td>
+<td>The logo’s transparent margins were trimmed (they made it render at half size) and it is shown larger in the header, mobile menu and footer. New logo uploads are trimmed automatically.</td>
+<td>Website CMS → Global settings → Logo</td>
+</tr>
+<tr>
+<td>G03</td>
+<td>One shared motto band — “Don’t just dream places — go and see them.” — above the footer on every public page, including tour, booking, policy and Visa Support pages. Text after the dash is shown in brand pink.</td>
+<td>Global settings → Company → Motto</td>
+</tr>
+</tbody>
+</table>
+<h2>2. Homepage and footer</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>What was done</th>
+<th>Where in admin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H01</td>
+<td>Cookie banner with <strong>Accept all</strong>, <strong>Reject optional</strong> and <strong>Preferences</strong>. Categories: Essential (always on), Preferences (saved trips and sort order kept between visits), Analytics, Marketing. The choice is kept for 12 months and can be changed any time from “Cookie settings” in the footer. Analytics / Meta tags load only after consent and only if an ID is entered.</td>
+<td>Global settings → Analytics &amp; cookies</td>
+</tr>
+<tr>
+<td>H02</td>
+<td>“Homepage carousel” menu entry: add, replace, remove, reorder (Order number) and switch slides on/off, with image preview and alternative text. The carousel is full-width with the trip search below it.</td>
+<td>Content → Homepage carousel</td>
+</tr>
+<tr>
+<td>H03</td>
+<td>Fixed: approving a review now publishes it (homepage, About page and the related tour). Actions: Approve &amp; publish, Reject, Unpublish (keeps the approval, hides the review). The customer review that was approved before the fix is now published.</td>
+<td>Content → Reviews</td>
+</tr>
+<tr>
+<td>H04</td>
+<td>Homepage Visa Support introduction with heading, text and “More Information” button to the Visa Support page. Text, button and visibility are editable.</td>
+<td>Page sections → home / visa_intro</td>
+</tr>
+<tr>
+<td>H05</td>
+<td>Footer Destinations block can be hidden and shown again without losing it.</td>
+<td>Global settings → Company → Footer: Destinations block</td>
+</tr>
+<tr>
+<td>H06</td>
+<td>Privacy Policy and Terms and Conditions pages with an editor, linked from the footer of every page and from the booking form’s consent checkboxes. <strong>The wording is a placeholder until DreamTour supplies its policies.</strong></td>
+<td>Page sections → privacy-policy / terms-and-conditions → content · Navigation &amp; footer (footer links) · Global settings → Policies (booking form links)</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Tour listings, private tours and About Us</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>What was done</th>
+<th>Where in admin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T01</td>
+<td>“Tour filters”: create filter groups (e.g. Theme) for One Day, Multi Day or both; add, rename, reorder, activate/deactivate and delete options. Assign options on each tour. The listing pages show only active options that at least one tour uses. Deleting a used option unassigns it from its tours and keeps the tours.</td>
+<td>Tours &amp; CRM → Tour filters · Tour page → Listing filters</td>
+</tr>
+<tr>
+<td>P01</td>
+<td>Private Tours hero background and its three collage photos are replaceable, each with alternative text.</td>
+<td>Page sections → private-tours / hero</td>
+</tr>
+<tr>
+<td>P02</td>
+<td>“Private tour places”: name, tagline, image, description, link, order, active. Active places appear on the Private Tours page with a “Plan a trip here” button.</td>
+<td>Content → Private tour places · Page sections → private-tours / places (heading)</td>
+</tr>
+<tr>
+<td>A01</td>
+<td>Every About page image is editable: hero background, the three collage photos, the story photo, founder photo and team photos.</td>
+<td>Page sections → about / hero and story · About content → founder · Team members</td>
+</tr>
+<tr>
+<td>A02</td>
+<td>Team members marked “Always first (Founder / CEO)” lead the list; everyone else follows the Order number. New members go to the end.</td>
+<td>Content → Team members</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Visa support and FAQs</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>What was done</th>
+<th>Where in admin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V01</td>
+<td>“Visa Support Pricing”: country (typed or linked), service, DreamTour assistance fee and currency, optional government / third-party fee and note, processing time, active, order. Shown on the Visa Support page as “DreamTour assistance fee”, with third-party fees listed separately.</td>
+<td>Tours &amp; CRM → Visa Support Pricing</td>
+</tr>
+<tr>
+<td>V02</td>
+<td>Dedicated visa enquiry form: full name, email, phone/WhatsApp with searchable country code, country, passport country, assistance required, applicants, travel date, question. It shows an enquiry reference (VE-…), emails the office, and is saved in its own list — it never creates a trip booking or touches seats.</td>
+<td>Tours &amp; CRM → Visa enquiries</td>
+</tr>
+<tr>
+<td>F01</td>
+<td>FAQs are split into Trip FAQs (Contact page) and Visa Support FAQs (Visa Support page), each with its own order and active switch. All existing FAQs were visa questions and are in the visa group; Trip FAQs will show once added.</td>
+<td>Content → FAQs</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Published trips and departure calendars</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>What was done</th>
+<th>Where in admin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B01</td>
+<td>One trip, many dates: dates can be entered while creating the trip (“Add another date”) and added several at a time later.</td>
+<td>Tour page → Departure dates</td>
+</tr>
+<tr>
+<td>B02</td>
+<td>Each date has its own seat capacity, seats held offline, base price and price list, status (Open, Limited, Sold out, Closed, Hidden, Cancelled) and pickup points, and is edited on its own. Multi-day dates show start and end. A date with bookings cannot be deleted (close or hide it instead).</td>
+<td>Tour page → Departure dates → Edit this date</td>
+</tr>
+<tr>
+<td>B03</td>
+<td>Calendar on the trip page and on the booking page: available dates highlighted with their price, sold-out and closed dates disabled. Picking a date shows its prices, pickup points and seats. Scheduled trips show <strong>Book Now</strong>; a trip with no open dates shows “New dates coming soon”.</td>
+<td>—</td>
+</tr>
+<tr>
+<td>B04</td>
+<td>Each booking is saved against the trip and the chosen date; passengers are listed under that date. Seats are counted per date from live bookings, checked again inside a database lock on submission, and a full date becomes Sold out automatically.</td>
+<td>Tour page → Departure dates → Passengers</td>
+</tr>
+</tbody>
+</table>
+<h2>6. Booking form and admin</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>What was done</th>
+<th>Where in admin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B05</td>
+<td>Steps: Date &amp; travellers → Passengers (name, pickup point and meal for each person) → Contact (Canadian phone, email, WhatsApp with searchable country code, emergency contact) → Extras → Payment &amp; agreements (deposit, JPG/PNG/HEIC/PDF payment proof up to 10 MB, required Terms and Privacy checkboxes, optional marketing consent stored separately, trip waiver when one is set) → <strong>Review</strong> with “Edit Booking Information” and “Confirm and Submit Booking”. The booking is created only on confirmation; double clicks and resubmissions create one booking. A confirmation with the booking reference follows. Payment proof is visible only to staff.</td>
+<td>Tour page → Booking form (meal choices, waiver)</td>
+</tr>
+<tr>
+<td>B06</td>
+<td>Booking list with search (reference, customer, passenger name, email, phone) and filters (trip, date, pickup point, status, payment). Booking page: reference, date, contact, WhatsApp, emergency contact, passengers with pickups and meals, payment proof, total / paid / balance, status (New, Payment pending, Confirmed, Cancelled, Completed), internal notes, last updated by, agreements and the exact waiver text accepted. Staff can edit contact details and passengers, add or remove passengers; cancelling releases the seats and re-confirming takes them back, refused if the date is full.</td>
+<td>Tours &amp; CRM → Bookings &amp; enquiries</td>
+</tr>
+</tbody>
+</table>
+<h2>Items to confirm with DreamTour</h2>
+<ul>
+<li>Final <strong>Privacy Policy</strong> and <strong>Terms and Conditions</strong> wording (placeholders are live now).</li>
+<li>Whether analytics / Meta Pixel should be used; if so, the IDs.</li>
+<li>Replacement images for the About page, Private Tours page and homepage carousel.</li>
+<li>Approval of the new logo size.</li>
+<li>Filter groups and options to create (none are set up yet).</li>
+<li>Visa service fees per country.</li>
+<li>Meal choices and waiver text for each trip.</li>
+<li>Private tour places and Trip FAQs to publish.</li>
+</ul>
+</main></body></html>
