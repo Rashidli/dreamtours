@@ -1,6 +1,8 @@
 @include('admin.includes.header')
 @php($labels = App\Support\SettingLabels::class)
 @php($grouped = $labels::group($settings))
+{{-- The theme's overflow:hidden on .main-content stops position:sticky; clip looks the same but lets the Save card follow the scroll. --}}
+<style>.main-content{overflow:clip}</style>
 <div class="main-content">
     <div class="page-content">
         <div class="container-fluid">
@@ -76,10 +78,14 @@
                                 </div>
                             </div>
                         @endforeach
+                        <button type="submit" class="btn btn-primary w-100 mb-4 d-lg-none">
+                            <i class="ri-save-line align-middle me-1"></i> Save
+                        </button>
                     </div>
 
                     <div class="col-lg-4">
-                        <div class="card">
+                        {{-- Stays in view while scrolling the long list of settings --}}
+                        <div class="card" style="position:sticky;top:90px;z-index:2">
                             <div class="card-body">
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="ri-save-line align-middle me-1"></i> Save
