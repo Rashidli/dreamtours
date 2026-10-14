@@ -17,7 +17,7 @@ class SettingController extends Controller{
     $file=$r->file("setting_file.$key");
     // SVG logos are stored as-is; raster logos go through the WebP pipeline.
     $raw=in_array($key,\App\Support\SettingLabels::MEDIA_RAW,true)||strtolower($file->getClientOriginalExtension())==='svg';
-    $value=$raw?$this->media()->uploadFile($file):$this->media()->upload($file);
+    $value=$raw?$this->media()->uploadFile($file):$this->media()->upload($file,trim:$key==='logo');
    }
    Setting::set($key,$value);
   }

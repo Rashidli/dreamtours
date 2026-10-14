@@ -12,7 +12,9 @@ class Faq extends Model
     use HasFactory, Translatable, SoftDeletes;
 
     public $translatedAttributes = ['question', 'answer'];
-    protected $fillable = ['is_active', 'order'];
+    protected $fillable = ['group', 'is_active', 'order'];
+
+    public const GROUPS = ['trip' => 'Trip FAQs', 'visa' => 'Visa Support FAQs'];
 
     protected $casts = [
         'is_active' => 'boolean',

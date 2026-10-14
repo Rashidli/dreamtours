@@ -31,4 +31,16 @@ class PageSection extends Model implements TranslatableContract
     {
         return $this->mediaUrl($value);
     }
+
+    /** Extra photos some layouts use (the About and Private Tours hero collages): image_2, image_3. */
+    public function extraImage(string $slot): ?string
+    {
+        return $this->mediaUrl($this->options['images'][$slot] ?? null);
+    }
+
+    /** Admin-entered alternative text for image, background_image, image_2 or image_3. */
+    public function alt(string $slot, string $default = ''): string
+    {
+        return (string) ($this->options['alt'][$slot] ?? '') ?: $default;
+    }
 }

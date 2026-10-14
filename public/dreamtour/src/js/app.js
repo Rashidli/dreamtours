@@ -8,6 +8,29 @@
    x-data. Only genuinely reusable logic belongs here.
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   Cookie consent — the visitor's choice lives in the `dt_consent` cookie
+   (12 months). Essential storage is always on; "preferences" (favourites,
+   remembered sort order), "analytics" and "marketing" only when allowed.
+   ------------------------------------------------------------------------ */
+const readConsent = () => {
+  try {
+    const m = document.cookie.match(/(?:^|; )dt_consent=([^;]*)/);
+    return m ? JSON.parse(decodeURIComponent(m[1])) : null;
+  } catch (error) {
+    return null;
+  }
+};
+const consentAllows = (category) => category === "essential" || !!readConsent()?.[category];
+/** Where remembered preferences go: kept between visits only with consent, otherwise for this visit. */
+const prefStorage = () => {
+  try {
+    return consentAllows("preferences") ? window.localStorage : window.sessionStorage;
+  } catch (error) {
+    return null;
+  }
+};
+
 document.addEventListener("alpine:init", () => {
   const postRequest = async (payload) => {
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -104,32 +127,103 @@ document.addEventListener("alpine:init", () => {
      and confirms the stored CRM request.
      ------------------------------------------------------------------------ */
   const blankVisaForm = () => ({
-    name: "",
+    full_name: "",
     email: "",
+    phone_country: "CA",
     phone: "",
-    nationality: "",
-    destination: "",
-    travelDate: "",
+    country: "",
+    countryOther: "",
+    passport_country: "",
+    assistance: [],
     applicants: "1",
+    travel_date: "",
     message: "",
   });
+
+  /** Digits of a local number valid for the dialling code, or "" — mirrors international_phone() in helpers.php. */
+  const intlPhoneDigits = (dial, number) => {
+    let digits = String(number || "").replace(/\D+/g, "");
+    if (dial === "1") {
+      if (digits.length === 11 && digits[0] === "1") digits = digits.slice(1);
+      return digits.length === 10 && digits[0] >= "2" ? digits : "";
+    }
+    digits = digits.replace(/^0+/, "");
+    const length = String(dial || "").length + digits.length;
+    return dial && digits.length >= 4 && length >= 8 && length <= 15 ? digits : "";
+  };
+
+  /* Searchable dialling-code picker; lives inside a component whose `form` has phone_country. */
+  Alpine.data("dialPicker", () => ({
+    dialOpen: false,
+    dialQuery: "",
+    get dials() {
+      return window.DreamTourDialCodes || [];
+    },
+    get dialCountry() {
+      return this.dials.find((c) => c.iso === this.form.phone_country) || null;
+    },
+    get filteredDials() {
+      const q = this.dialQuery.trim().toLowerCase().replace(/^\+/, "");
+      return q ? this.dials.filter((c) => c.name.toLowerCase().includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q) : this.dials;
+    },
+    toggleDial() {
+      this.dialOpen = !this.dialOpen;
+      this.dialQuery = "";
+      if (this.dialOpen) this.$nextTick(() => this.$refs.dialSearch?.focus());
+    },
+    chooseDial(c) {
+      if (!c) return;
+      this.form.phone_country = c.iso;
+      this.dialOpen = false;
+    },
+  }));
+
   Alpine.data("visaRequest", () => ({
     sent: false,
+    sending: false,
+    reference: "",
+    error: "",
     form: blankVisaForm(),
-    countries: (window.DreamTourData?.visa?.services || []).map((s) => s.country),
+    countries: [...new Set((window.DreamTourData?.visa?.services || []).map((s) => s.country))],
     init() {
       const dest = new URLSearchParams(window.location.search).get("country");
-      if (dest && this.countries.includes(dest)) this.form.destination = dest;
+      if (dest && this.countries.includes(dest)) this.form.country = dest;
+    },
+    validate() {
+      const f = this.form;
+      const dial = (window.DreamTourDialCodes || []).find((c) => c.iso === f.phone_country)?.dial;
+      if (!f.full_name.trim()) return "Please enter your full name.";
+      if (!/^\S+@\S+\.\S+$/.test(f.email)) return "Please enter a valid email address.";
+      if (!intlPhoneDigits(dial, f.phone)) return "Please enter a complete phone or WhatsApp number for the selected country.";
+      if (!f.country || (f.country === "Other" && !f.countryOther.trim())) return "Please choose the country you need a visa for.";
+      if (!f.assistance.length) return "Please choose what you need help with.";
+      return "";
     },
     async submit() {
-      try { await postRequest({ ...person(this.form.name), type: 'visa', email: this.form.email, phone: this.form.phone, participant_count: Number(this.form.applicants), comments: `Nationality: ${this.form.nationality}\nDestination: ${this.form.destination}\nTravel date: ${this.form.travelDate}\n${this.form.message || ''}` }); } catch (error) { Alpine.store('toast').push({ message: error.message, type: 'error' }); return; }
-      this.sent = true;
-      this.form = blankVisaForm();
-      Alpine.store("toast").push({
-        message:
-          "Your visa support request has been received. A DreamTour advisor will contact you with your document list and a quote.",
-        timeout: 6000,
-      });
+      if (this.sending) return;
+      this.error = this.validate();
+      if (this.error) return;
+      const { countryOther, ...form } = this.form;
+      const payload = { ...form, country: form.country === "Other" ? countryOther.trim() : form.country, applicants: Number(form.applicants) || 1 };
+      if (!payload.travel_date) delete payload.travel_date;
+      this.sending = true;
+      try {
+        const response = await fetch("/visa-enquiries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "" },
+          body: JSON.stringify(payload),
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(Object.values(body.errors || {}).flat()[0] || body.message || "Your enquiry could not be sent.");
+        this.reference = body.reference || "";
+        this.sent = true;
+        this.form = blankVisaForm();
+        this.$el.closest("section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) {
+        this.error = e.message;
+      } finally {
+        this.sending = false;
+      }
     },
   }));
 
@@ -220,7 +314,7 @@ document.addEventListener("alpine:init", () => {
   // every read and write degrades to an in-memory list rather than breaking.
   const readFavourites = () => {
     try {
-      const stored = JSON.parse(window.localStorage.getItem(FAVOURITES_KEY) || "[]");
+      const stored = JSON.parse(prefStorage()?.getItem(FAVOURITES_KEY) || "[]");
       return Array.isArray(stored) ? stored.map(String) : [];
     } catch (error) {
       return [];
@@ -228,11 +322,88 @@ document.addEventListener("alpine:init", () => {
   };
   const writeFavourites = (ids) => {
     try {
-      window.localStorage.setItem(FAVOURITES_KEY, JSON.stringify(ids));
+      prefStorage()?.setItem(FAVOURITES_KEY, JSON.stringify(ids));
     } catch (error) {
       /* storage unavailable — favourites last for this page only */
     }
   };
+
+  Alpine.store("consent", {
+    decided: false,
+    preferences: false,
+    analytics: false,
+    marketing: false,
+    panel: false,
+    init() {
+      const saved = readConsent();
+      this.decided = !!saved;
+      this.preferences = !!saved?.preferences;
+      this.analytics = !!saved?.analytics;
+      this.marketing = !!saved?.marketing;
+      this.apply();
+    },
+    openPanel() {
+      this.panel = true;
+    },
+    acceptAll() {
+      this.preferences = this.analytics = this.marketing = true;
+      this.save();
+    },
+    rejectOptional() {
+      this.preferences = this.analytics = this.marketing = false;
+      this.save();
+    },
+    save() {
+      const hadPrefs = consentAllows("preferences");
+      const value = { v: 1, preferences: this.preferences, analytics: this.analytics, marketing: this.marketing, at: new Date().toISOString() };
+      document.cookie = `dt_consent=${encodeURIComponent(JSON.stringify(value))}; Max-Age=31536000; Path=/; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+      // Move remembered favourites to where the new choice keeps them.
+      if (hadPrefs !== this.preferences) {
+        try {
+          const ids = JSON.stringify(Alpine.store("wishlist").ids);
+          (this.preferences ? window.localStorage : window.sessionStorage).setItem(FAVOURITES_KEY, ids);
+          if (!this.preferences) {
+            window.localStorage.removeItem(FAVOURITES_KEY);
+            Object.keys(window.localStorage).filter((k) => k.startsWith("dreamtour.")).forEach((k) => window.localStorage.removeItem(k));
+          }
+        } catch (error) {
+          /* storage unavailable */
+        }
+      }
+      if (!this.analytics || !this.marketing) {
+        // Withdrawn consent: drop analytics / ad cookies already set on this domain.
+        document.cookie.split("; ").map((c) => c.split("=")[0]).filter((n) => (!this.analytics && /^(_ga|_gid|_gat)/.test(n)) || (!this.marketing && /^(_fbp|_fbc)/.test(n)))
+          .forEach((n) => {
+            // Trackers often set their cookie on the parent domain, so clear it on every level.
+            const parts = location.hostname.split(".");
+            document.cookie = `${n}=; Max-Age=0; Path=/`;
+            for (let i = 0; i < parts.length - 1; i++) document.cookie = `${n}=; Max-Age=0; Path=/; Domain=.${parts.slice(i).join(".")}`;
+          });
+      }
+      this.decided = true;
+      this.panel = false;
+      this.apply();
+      Alpine.store("toast").push({ message: "Your cookie choices are saved." });
+    },
+    /** Load third-party tags only for the categories the visitor allowed. */
+    apply() {
+      const cfg = window.DreamTourConsentConfig || {};
+      const load = (id, src, inline) => {
+        if (document.getElementById(id)) return;
+        if (src) { const s = document.createElement("script"); s.async = true; s.src = src; s.id = id; document.head.appendChild(s); }
+        if (inline) { const s = document.createElement("script"); s.id = id + "-init"; s.textContent = inline; document.head.appendChild(s); }
+      };
+      if (this.analytics && cfg.ga) {
+        load("dt-ga", `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(cfg.ga)}`, `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config',${JSON.stringify(cfg.ga)});`);
+      }
+      if (this.analytics && cfg.gtm) {
+        load("dt-gtm", null, `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',${JSON.stringify(cfg.gtm)});`);
+      }
+      if (this.marketing && cfg.pixel) {
+        load("dt-pixel", null, `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init',${JSON.stringify(cfg.pixel)});fbq('track','PageView');`);
+      }
+    },
+  });
 
   Alpine.store("wishlist", {
     ids: readFavourites(),
@@ -340,6 +511,7 @@ document.addEventListener("alpine:init", () => {
     availability: "",
     tourKind: "",
     hideSoldOut: false,
+    picked: [], // ids of staff-managed filter options (admin: Tour filters)
     sort: "date",
     perPage: 6,
     shown: 6,
@@ -366,6 +538,31 @@ document.addEventListener("alpine:init", () => {
       if (p.get("age")) this.age = p.get("age");
       if (p.get("availability")) this.availability = p.get("availability");
       if (p.get("kind")) this.tourKind = p.get("kind");
+      if (p.get("f")) this.picked = p.get("f").split(",").map(Number).filter(Boolean);
+      // Remember the visitor's sort order (between visits only with preference cookies allowed).
+      const sortKey = `dreamtour.sort.${scope}`;
+      try {
+        const savedSort = prefStorage()?.getItem(sortKey);
+        if (savedSort && ["date", "price-asc", "price-desc"].includes(savedSort)) this.sort = savedSort;
+      } catch (error) {
+        /* storage unavailable */
+      }
+      this.$watch("sort", (value) => {
+        try {
+          prefStorage()?.setItem(sortKey, value);
+        } catch (error) {
+          /* storage unavailable */
+        }
+      });
+    },
+
+    /** Admin-defined filter groups for this listing, showing only options some tour here uses. */
+    get customFilters() {
+      const used = new Set(this.all.flatMap((t) => t.filterOptionIds || []));
+      return (window.DreamTourData?.tourFilters || [])
+        .filter((f) => f.listing === "both" || f.listing === scope)
+        .map((f) => ({ ...f, options: f.options.filter((o) => used.has(o.id)) }))
+        .filter((f) => f.options.length);
     },
 
     get priceCeiling() {
@@ -438,6 +635,11 @@ document.addEventListener("alpine:init", () => {
       if (this.tourKind === 'group' && t.isPrivate) return false;
       if (this.tourKind === 'cruise' && !t.isCruise) return false;
       if (this.hideSoldOut && t.seatsLeft === 0) return false;
+      // Within a group any ticked option matches; every group with a tick must match.
+      for (const f of this.customFilters) {
+        const ticked = f.options.map((o) => o.id).filter((id) => this.picked.includes(id));
+        if (ticked.length && !ticked.some((id) => (t.filterOptionIds || []).includes(id))) return false;
+      }
       return true;
     },
 
@@ -484,7 +686,8 @@ document.addEventListener("alpine:init", () => {
         (this.availability ? 1 : 0) +
         (this.tourKind ? 1 : 0) +
         (this.categoryId ? 1 : 0) +
-        (this.hideSoldOut ? 1 : 0)
+        (this.hideSoldOut ? 1 : 0) +
+        this.picked.length
       );
     },
     reset() {
@@ -500,6 +703,7 @@ document.addEventListener("alpine:init", () => {
       this.age = "";
       this.availability = "";
       this.categoryId = null;
+      this.picked = [];
       this.tourKind = "";
       this.hideSoldOut = false;
       this.sort = "date";
@@ -800,11 +1004,92 @@ document.addEventListener("alpine:init", () => {
      Image carousel — home hero slides and the tour page gallery.
      x-data="carousel({ count: 5, interval: 6000 })"
      ------------------------------------------------------------------------ */
+  /* --------------------------------------------------------------------------
+     Floating WhatsApp button — hidden while an element marked
+     [data-hide-wa-float] is on screen, so it never covers the home search.
+     ------------------------------------------------------------------------ */
+  Alpine.data("waFloat", () => ({
+    hidden: false,
+    init() {
+      const targets = document.querySelectorAll("[data-hide-wa-float]");
+      if (!targets.length || !("IntersectionObserver" in window)) return;
+      const onScreen = new Set();
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((e) => (e.isIntersecting ? onScreen.add(e.target) : onScreen.delete(e.target)));
+        this.hidden = onScreen.size > 0;
+      });
+      targets.forEach((t) => observer.observe(t));
+    },
+  }));
+
+  /* --------------------------------------------------------------------------
+     Departure calendar — month grid of a tour's dates. Bookable dates are
+     selectable; sold-out / closed dates are shown but disabled. Emits
+     `departure-selected` (detail = departure id) to the surrounding component.
+     departures: [{ id, date: "YYYY-MM-DD", label, status, statusLabel, bookable, seats, priceLabel }]
+     ------------------------------------------------------------------------ */
+  Alpine.data("departureCalendar", ({ departures = [], selected = null } = {}) => ({
+    departures,
+    selected: selected ? Number(selected) : null,
+    month: null,
+    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    init() {
+      const first = this.byId(this.selected) || this.departures.find((d) => d.bookable) || this.departures[0];
+      this.month = first ? first.date.slice(0, 7) : new Date().toISOString().slice(0, 7);
+      this.$watch("selected", (id) => {
+        const d = this.byId(id);
+        if (d && d.date.slice(0, 7) !== this.month) this.month = d.date.slice(0, 7);
+      });
+    },
+    byId(id) {
+      return this.departures.find((d) => d.id === Number(id)) || null;
+    },
+    get months() {
+      return [...new Set(this.departures.map((d) => d.date.slice(0, 7)))].sort();
+    },
+    get monthLabel() {
+      const [y, m] = this.month.split("-").map(Number);
+      return new Date(y, m - 1, 1).toLocaleDateString("en-CA", { month: "long", year: "numeric" });
+    },
+    get canPrev() {
+      return this.months.some((m) => m < this.month);
+    },
+    get canNext() {
+      return this.months.some((m) => m > this.month);
+    },
+    shift(dir) {
+      const list = dir < 0 ? this.months.filter((m) => m < this.month).reverse() : this.months.filter((m) => m > this.month);
+      if (list.length) this.month = list[0];
+    },
+    get cells() {
+      const [y, m] = this.month.split("-").map(Number);
+      const start = new Date(y, m - 1, 1).getDay();
+      const days = new Date(y, m, 0).getDate();
+      const cells = [];
+      for (let i = 0; i < start; i++) cells.push(null);
+      for (let d = 1; d <= days; d++) {
+        const date = `${this.month}-${String(d).padStart(2, "0")}`;
+        cells.push({ day: d, date, departures: this.departures.filter((x) => x.date === date) });
+      }
+      return cells;
+    },
+    get monthDepartures() {
+      return this.departures.filter((d) => d.date.startsWith(this.month));
+    },
+    choose(d) {
+      if (!d || !d.bookable) return;
+      this.selected = d.id;
+      this.$dispatch("departure-selected", d.id);
+    },
+  }));
+
   Alpine.data("carousel", ({ count = 0, interval = 0 } = {}) => ({
     index: 0,
     count,
     timer: null,
     touchX: null,
+    // Set by the visitor's pause button; hover and focus only pause until they leave.
+    stopped: false,
     init() {
       this.play();
     },
@@ -815,6 +1100,13 @@ document.addEventListener("alpine:init", () => {
     },
     pause() {
       clearInterval(this.timer);
+    },
+    resume() {
+      if (!this.stopped) this.play();
+    },
+    toggle() {
+      this.stopped = !this.stopped;
+      this.stopped ? this.pause() : this.play();
     },
     go(i) {
       this.index = (i + this.count) % this.count;
@@ -834,7 +1126,7 @@ document.addEventListener("alpine:init", () => {
       const dx = e.changedTouches[0].clientX - this.touchX;
       if (Math.abs(dx) > 40) dx < 0 ? this.next() : this.prev();
       this.touchX = null;
-      this.play();
+      this.resume();
     },
   }));
 
@@ -897,21 +1189,34 @@ document.addEventListener("alpine:init", () => {
      Step-by-step tour booking (tour-booking.blade.php). Mirrors the server-side
      App\Support\BookingQuote arithmetic for the live price; the server recalculates.
      ------------------------------------------------------------------------ */
-  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, taxNote = "" }) => ({
+  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, taxNote = "", countries = [], pickups = [], meals = [], hasWaiver = false }) => ({
     departures,
+    countries,
+    pickups,
+    meals,
+    hasWaiver,
     step: 1,
-    steps: ["Travellers", "Names", "Contact", "Extras", "Payment"],
+    steps: ["Date & travellers", "Passengers", "Contact", "Extras", "Payment", "Review"],
     departureId: Number(old.tour_departure_id) || departures[0]?.id || null,
     selections: {},
     passengers: [],
-    pickup: old.pickup_point_id ? String(old.pickup_point_id) : "",
+    samePickup: old.passengers ? old.same_pickup === "1" : true,
     phone: old.phone || "",
+    waCountry: old.whatsapp_country || "CA",
+    waNumber: old.whatsapp || "",
+    waSame: old.whatsapp_same === "1",
+    waOpen: false,
+    waQuery: "",
     email: old.email || "",
     emergencyName: old.emergency_contact_name || "",
     emergencyPhone: old.emergency_contact_phone || "",
     roommate: old.roommate_request || "",
     fileName: "",
-    accepted: false,
+    acceptTerms: old.accept_terms === "1",
+    acceptPrivacy: old.accept_privacy === "1",
+    acceptWaiver: old.accept_waiver === "1",
+    marketing: old.marketing_consent === "1",
+    submitting: false,
     clientError: "",
     taxNote,
 
@@ -926,16 +1231,48 @@ document.addEventListener("alpine:init", () => {
       const stepOf = (key) => {
         if (/^(tour_departure_id|selections)/.test(key)) return 1;
         if (/^(passengers|roommate)/.test(key)) return 2;
-        if (/^(pickup_point_id|phone|email|emergency)/.test(key)) return 3;
+        if (/^(phone|whatsapp|email|emergency)/.test(key)) return 3;
         if (/^(meal|special|food|promo)/.test(key)) return 4;
         return 5;
       };
       if (keys.length) this.step = Math.min(...keys.map(stepOf));
-      this.$watch("departureId", () => this.resetSelections({}));
+      this.$watch("departureId", () => {
+        this.resetSelections({});
+        this.fitPickups();
+      });
+      this.fitPickups();
+      this.$watch("phone", () => this.waSame && this.syncWhatsapp());
     },
 
     get departure() {
       return this.departures.find((d) => d.id === Number(this.departureId)) || null;
+    },
+    /** Pickup points offered on the selected date. */
+    get departurePickups() {
+      const ids = this.departure?.pickups || [];
+      return this.pickups.filter((p) => ids.includes(p.id));
+    },
+    pickupName(id) {
+      const p = this.pickups.find((x) => x.id === String(id));
+      return p ? p.name : "—";
+    },
+    /** Drop pickup choices the new date does not offer; a date with one point fills it in. */
+    fitPickups() {
+      const ids = this.departurePickups.map((p) => p.id);
+      this.passengers.forEach((p) => {
+        if (!ids.includes(String(p.pickup_point_id))) p.pickup_point_id = ids.length === 1 ? ids[0] : "";
+      });
+    },
+    get extrasSummary() {
+      const form = this.$root.querySelector("form");
+      const val = (name) => form?.querySelector(`[name="${name}"]`)?.value?.trim() || "";
+      return [
+        ["Meal preference", val("meal_selection")],
+        ["Food allergies", val("food_allergies")],
+        ["Special requests", val("special_requests")],
+        ["Promo code", val("promo_code")],
+        ["Roommate requests", this.roommate.trim()],
+      ].filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("\n");
     },
     get prices() {
       const d = this.departure;
@@ -980,7 +1317,9 @@ document.addEventListener("alpine:init", () => {
     },
     syncPassengers() {
       const count = this.slots.length;
-      while (this.passengers.length < count) this.passengers.push({ first_name: "", last_name: "", date_of_birth: "", is_child: false });
+      const only = this.departurePickups.length === 1 ? this.departurePickups[0].id : "";
+      const pickup = only || (this.samePickup && this.passengers[0]?.pickup_point_id) || "";
+      while (this.passengers.length < count) this.passengers.push({ first_name: "", last_name: "", date_of_birth: "", is_child: false, pickup_point_id: pickup, meal_selection: "" });
       this.passengers = this.passengers.slice(0, count);
     },
     priceOf(i) {
@@ -1010,6 +1349,61 @@ document.addEventListener("alpine:init", () => {
       const n = Number(value) || 0;
       return symbol + n.toLocaleString("en-CA", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
     },
+    pickupChanged(i) {
+      const value = this.passengers[i].pickup_point_id;
+      if (!this.samePickup) return;
+      if (i === 0) this.passengers.forEach((p) => (p.pickup_point_id = value));
+      else if (value !== this.passengers[0].pickup_point_id) this.samePickup = false;
+    },
+    applySamePickup() {
+      if (this.samePickup) this.pickupChanged(0);
+    },
+
+    // WhatsApp number with an international dialling code.
+    get country() {
+      return this.countries.find((c) => c.iso === this.waCountry) || null;
+    },
+    get filteredCountries() {
+      const q = this.waQuery.trim().toLowerCase().replace(/^\+/, "");
+      if (!q) return this.countries;
+      return this.countries.filter((c) => c.name.toLowerCase().includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q);
+    },
+    toggleCountries() {
+      this.waOpen = !this.waOpen;
+      this.waQuery = "";
+      // The panel is shown with a class binding (not x-show, which reveals a frame later), so it is visible by the next tick.
+      if (this.waOpen) this.$nextTick(() => this.$refs.waSearch?.focus());
+    },
+    chooseCountry(c) {
+      if (!c) return;
+      this.waCountry = c.iso;
+      this.waOpen = false;
+    },
+    syncWhatsapp() {
+      if (!this.waSame) return;
+      this.waCountry = "CA";
+      this.waNumber = this.phone;
+    },
+    // Mirrors international_phone() in app/Helpers/helpers.php.
+    whatsappDigits() {
+      const dial = this.country?.dial || "";
+      let digits = String(this.waNumber || "").replace(/\D+/g, "");
+      if (dial === "1") {
+        if (digits.length === 11 && digits[0] === "1") digits = digits.slice(1);
+        return digits.length === 10 && digits[0] >= "2" ? digits : "";
+      }
+      digits = digits.replace(/^0+/, "");
+      const length = dial.length + digits.length;
+      return dial && digits.length >= 4 && length >= 8 && length <= 15 ? digits : "";
+    },
+    validWhatsapp() {
+      return this.whatsappDigits() !== "";
+    },
+    whatsappPreview() {
+      const d = this.whatsappDigits();
+      if (this.country?.dial === "1") return `+1 ${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+      return `+${this.country?.dial} ${d}`;
+    },
     isNewRoom(i) {
       const slot = this.slots[i];
       return slot && slot.room && (i === 0 || this.slots[i - 1].room !== slot.room);
@@ -1029,16 +1423,23 @@ document.addEventListener("alpine:init", () => {
       if (step === 2) {
         if (this.passengers.some((p) => !p.first_name.trim() || !p.last_name.trim())) return "Please enter the first and last name of every passenger.";
         if (!this.passengers[0]?.date_of_birth) return "Please enter the date of birth of the main passenger.";
+        const missing = this.passengers.findIndex((p) => !p.pickup_point_id);
+        if (missing !== -1) return `Please choose a pickup point for passenger ${missing + 1}.`;
+        const noMeal = this.meals.length ? this.passengers.findIndex((p) => !p.meal_selection) : -1;
+        if (noMeal !== -1) return `Please choose a meal for passenger ${noMeal + 1}.`;
       }
       if (step === 3) {
-        if (!this.pickup) return "Please choose your pickup point.";
         if (!this.validPhone(this.phone)) return "Please enter a valid Canadian phone number, e.g. 416-555-0100.";
+        if (!this.waNumber.trim()) return "Please enter your WhatsApp number.";
+        if (!this.validWhatsapp()) return `Please enter a complete WhatsApp number for ${this.country?.name || "the selected country"} (+${this.country?.dial || ""}).`;
         if (!/^\S+@\S+\.\S+$/.test(this.email)) return "Please enter an active email address.";
         if (!this.emergencyName.trim() || !this.emergencyPhone.trim()) return "Please enter an emergency contact name and phone number.";
       }
       if (step === 5) {
         if (!this.fileName) return "Please upload a screenshot of your deposit payment.";
-        if (!this.accepted) return "Please confirm that you agree to the policies.";
+        if (!this.acceptTerms) return "Please accept the Terms and Conditions of Booking.";
+        if (!this.acceptPrivacy) return "Please confirm you have read the Privacy Policy.";
+        if (this.hasWaiver && !this.acceptWaiver) return "Please read and accept the waiver for this trip.";
       }
       return "";
     },
@@ -1065,6 +1466,12 @@ document.addEventListener("alpine:init", () => {
       this.step = target;
     },
     submit(event) {
+      // Enter in a field must not skip the review; and a booking is sent once only.
+      if (this.submitting) return event.preventDefault();
+      if (this.step < this.steps.length) {
+        event.preventDefault();
+        return this.next();
+      }
       for (let s = 1; s <= this.steps.length; s++) {
         const error = this.check(s);
         if (error) {
@@ -1074,6 +1481,7 @@ document.addEventListener("alpine:init", () => {
           return;
         }
       }
+      this.submitting = true;
     },
   }));
 

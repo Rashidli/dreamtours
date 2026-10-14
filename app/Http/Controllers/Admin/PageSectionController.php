@@ -66,7 +66,10 @@ class PageSectionController extends Controller
 
     private function validated(Request $request, ?PageSection $section = null): array
     {
-        $data = $request->validate($this->mediaRules('image') + $this->mediaRules('background_image') + [
+        $data = $request->validate($this->mediaRules('image') + $this->mediaRules('background_image')
+            + $this->mediaRules('image_2') + $this->mediaRules('image_3') + [
+            'alt' => ['nullable', 'array'],
+            'alt.*' => ['nullable', 'string', 'max:255'],
             'button_url' => ['nullable', 'string', 'max:500'],
             'options_json' => ['nullable', 'json'],
             'is_active' => ['nullable', 'boolean'],
@@ -74,8 +77,17 @@ class PageSectionController extends Controller
         $this->resolveMedia($request, $data, 'image', $section?->getRawOriginal('image'));
         $this->resolveMedia($request, $data, 'background_image', $section?->getRawOriginal('background_image'));
         $data['is_active'] = $request->boolean('is_active');
-        $data['options'] = $request->filled('options_json') ? json_decode($request->string('options_json')->toString(), true) : null;
-        unset($data['options_json']);
+        $options = $request->filled('options_json') ? \Illuminate\Support\Arr::except((array) json_decode($request->string('options_json')->toString(), true), ['images', 'alt']) : [];
+        // Extra collage photos and alt texts live in options, outside the free-form JSON editor.
+        foreach (['image_2', 'image_3'] as $slot) {
+            $this->resolveMedia($request, $data, $slot, $section?->options['images'][$slot] ?? null);
+            $options['images'][$slot] = $data[$slot];
+            unset($data[$slot]);
+        }
+        $options['images'] = array_filter($options['images']);
+        $options['alt'] = array_filter(array_map(fn ($v) => trim((string) $v), $data['alt'] ?? []));
+        unset($data['alt'], $data['options_json']);
+        $data['options'] = array_filter($options) ?: null;
         return $data;
     }
 }

@@ -32,7 +32,7 @@
   <div class="container-page flex h-16 items-center justify-between gap-4 lg:h-20">
     <a href="/" class="flex shrink-0 items-center gap-2.5" aria-label="{{ $siteSettings->get('site_name','DreamTour') }} home">
       @if($siteLogo = setting_image('logo'))
-        <img src="{{ $siteLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-9 w-auto max-w-[160px] object-contain lg:h-11 lg:max-w-[210px]">
+        <img src="{{ $siteLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-8 w-auto max-w-[190px] object-contain sm:h-9 sm:max-w-[220px] xl:h-10 xl:max-w-[240px]">
       @else
         <span class="grid size-10 place-items-center rounded-lg bg-white font-display text-xl font-extrabold text-brand-600">D</span>
         <span class="font-display text-xl font-extrabold tracking-tight lg:text-2xl"><span class="text-white">DREAM</span><span class="text-brand-500">TOUR</span></span>
@@ -68,7 +68,7 @@
     </div>
   </div>
   <div x-show="mobile" x-cloak class="fixed inset-0 z-50 xl:hidden"><button class="absolute inset-0 bg-ink-950/70" @click="mobile=false" aria-label="Close menu"></button><div class="absolute right-0 top-0 h-full w-[86%] max-w-sm overflow-y-auto bg-ink-900 p-5 shadow-2xl">
-    <div class="mb-5 flex items-center justify-between">@if($mobileLogo = setting_image('logo'))<img src="{{ $mobileLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-8 w-auto">@else<strong class="font-display text-xl">DREAM<span class="text-brand-500">TOUR</span></strong>@endif<button @click="mobile=false" class="text-2xl" aria-label="Close menu">×</button></div>
+    <div class="mb-5 flex items-center justify-between">@if($mobileLogo = setting_image('logo'))<img src="{{ $mobileLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-8 w-auto max-w-[200px] object-contain">@else<strong class="font-display text-xl">DREAM<span class="text-brand-500">TOUR</span></strong>@endif<button @click="mobile=false" class="text-2xl" aria-label="Close menu">×</button></div>
     <nav class="flex flex-col gap-1">@foreach($headerNavigation as $item)@if($item->url && $item->url !== '#')<a href="{{ $item->url }}" class="rounded-xl px-4 py-3 font-semibold hover:bg-white/10">{{ $item->title }}</a>@else<span class="rounded-xl px-4 py-3 font-semibold text-ink-300">{{ $item->title }}</span>@endif @foreach($item->children as $child)<a href="{{ $child->url }}" class="ml-4 rounded-xl px-4 py-2 text-sm text-ink-200 hover:bg-white/10">{{ $child->title }}</a>@endforeach @endforeach</nav>
     <div class="mt-6 grid gap-2"><a href="{{ $toursUrl }}" class="btn btn-ghost w-full">View Tours</a><a href="{{ $bookUrl }}" class="btn btn-primary w-full">Book Now</a><a href="/favorites" class="btn btn-ghost w-full">My Favourites <span x-cloak x-show="$store.wishlist?.count" x-text="'(' + $store.wishlist?.count + ')'"></span></a></div>
     <div class="mt-6 grid gap-2 border-t border-white/10 pt-5 text-sm text-ink-200">

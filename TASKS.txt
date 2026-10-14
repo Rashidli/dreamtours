@@ -1,0 +1,62 @@
+DreamTour — DreamTour_Website_Improvement_Developer_Brief.docx + sahibkarın səs mesajı
+Başlanğıc: 14.10.2026
+"+" = görülüb və test olunub (sonra siz yoxlayırsınız)
+
+ÜMUMİ
+[+] 1.  G01  Bütün admin bölmələrində aktiv/deaktiv düzgün işləsin: deaktiv olan saytdan itsin, boş yer qalmasın, admin paneldə redaktə olunsun
+[+] 2.  G02  Logo masaüstü və mobildə böyüsün (dartılmadan, menyu ilə üst-üstə düşmədən)
+[+] 3.  G03  Şüar "Don't just dream places — go and see them." bütün səhifələrdə footer-in üstündə, bir ortaq komponent kimi
+
+ANA SƏHİFƏ VƏ FOOTER
+[+] 4.  H01  Cookie razılığı: qəbul et / opsionalları rədd et / ayarlar, seçim yadda qalsın, sonradan dəyişmək mümkün olsun
+[+] 5.  H02  Admin paneldə ayrıca "Homepage Carousel" bölməsi: yüklə, dəyiş, sil, sırala, aktiv/deaktiv, önizləmə, alt mətn
+[+] 6.  H03  Təsdiqlənmiş rəylər saytda görünsün; admin paneldə approve / reject / unpublish
+[+] 7.  H04  Ana səhifədə viza bölməsi (başlıq, mətn, "More Information" → Visa Support), admin paneldən mətn və görünmə idarəsi
+[+] 8.  H05  Footer Destinations bloku admin paneldən gizlədilsin/göstərilsin
+[+] 9.  H06  Footer-də Privacy Policy və Terms of Service linkləri, admin paneldə redaktə olunan siyasət səhifələri; booking formasındakı linklər də bura bağlansın
+
+TURLAR, PRIVATE TOURS, ABOUT
+[+] 10. T01  One Day / Multi Day turlar üçün admin paneldə filtrlər: əlavə et, adını dəyiş, sırala, aktiv/deaktiv, sil (istifadədə olanı təhlükəsiz), turlara dəyər təyin et
+[+] 11. P01  Private Tours əsas şəkli admin paneldən dəyişsin (önizləmə + alt mətn)
+[+] 12. P02  Private Tours yerləri: ad, şəkil, təsvir, sıra, aktiv/deaktiv; aktivlər Private Tours səhifəsində
+[+] 13. A01  About səhifəsindəki bütün şəkillər admin paneldən dəyişsin
+[+] 14. A02  Founder/CEO həmişə birinci, qalan komanda üzvləri admin paneldəki sıraya görə
+
+VİZA VƏ FAQ
+[+] 15. V01  Admin paneldə "Visa Support Pricing": ölkə, xidmət, haqq, valyuta, aktiv/deaktiv; Visa Support səhifəsində göstərilsin (DreamTour xidmət haqqı kimi)
+[+] 16. V02  Ayrıca viza sorğu forması (ad, email, ölkə kodlu telefon/WhatsApp, ölkə, lazım olan kömək, sual); ayrıca "Visa Enquiries" admin siyahısı; sorğu nömrəsi; tur booking-i yaratmasın
+[+] 17. F01  FAQ iki qrup: Trip FAQs və Visa Support FAQs; hər biri öz yerində; admin paneldə ayrıca sıra və aktivlik
+
+TARİXLƏR VƏ TƏQVİM
+[+] 18. B01  Bir tur — bir neçə tarix; admin paneldə tur yaradarkən tarixlər rahat əlavə olunsun (səs mesajı)
+[+] 19. B02  Hər tarix ayrıca: tarix, tutum, status (açıq / bağlı / gizli / sold out), qiymət, pickup nöqtələri; çoxgünlüklərdə başlama-bitmə tarixi
+[+] 20. B03  Tur səhifəsində təqvim; tarix seçiləndə qiymət, pickup və boş yerlər yüklənsin; "Request a quote" əvəzinə "Book Now" (səs mesajı)
+[+] 21. B04  Booking seçilmiş tarixə bağlansın, yerlər yalnız o tarixdən azalsın, eyni anda gələn booking-lər tutumu aşmasın
+
+BOOKING FORMASI (B05 + səs mesajı)
+[+] 22. Böyük/uşaq sayı; hər nəfər üçün ad, soyad, pickup nöqtəsi
+[+] 23. Kanada telefonu, email, ölkə kodlu WhatsApp, təcili əlaqə
+[+] 24. Hər sərnişin üçün yemək seçimi; seçimləri admin hər tur üçün təyin edir (məs. tuna sendviçi, vegetarian)
+[+] 25. Avtomatik depozit, ödəniş qəbzi (JPG/PNG/PDF, yalnız staff görür), booking nömrəsi
+[+] 26. Məcburi Terms və Privacy checkbox-ları (DreamTour səhifələrinə link), opsional marketinq razılığı ayrıca saxlanılsın
+[+] 27. Waiver: admin istənilən tura waiver əlavə edir, müştəri oxuyub məcburi razılaşır
+[+] 28. "Review Booking" addımı ("Edit Booking Information" / "Confirm and Submit Booking"), məlumat itməsin, təkrar göndərmə olmasın
+[+] 29. Göndərəndən sonra təşəkkür mesajı və booking nömrəsi
+
+ADMİN BOOKING İDARƏSİ (B06)
+[+] 30. Booking nömrəsi, tarix, tur və gediş tarixi, əlaqə, sərnişinlər və pickup, təcili əlaqə, qəbz, Deposit Paid, Balance, status, daxili qeydlər; axtarış və filtr; redaktə; sərnişin sayı dəyişəndə və ləğvdə yer sayğacı yenilənsin; yer bitəndə qeydiyyat dayansın
+
+TƏHVİL
+[+] 31. Hər bənd admin paneldən saytadək masaüstü və mobildə test; tələb-tələb hesabat; yeni admin bölmələrinin harada olduğunu göstərən qısa təlimat
+
+MÜŞTƏRİDƏN GÖZLƏNİLƏNLƏR (gələnə qədər admin paneldən dəyişdirilə bilən nümunə məzmun)
+- Cookie seçimləri və analitikanın daxil olub-olmaması
+- Privacy Policy və Terms mətnləri
+- Əvəz ediləcək şəkillər (About, Private Tours, karusel)
+- Logonun son ölçüsü
+- Filtr seçimləri
+- Viza qiymətləri və viza formasının məcburi sahələri
+- Yemək seçimləri və waiver mətni
+
+HESABAT VƏ ADMİN TƏLİMATI (ingiliscə, müştəri üçün): docs/Improvement-brief-completion-report.md
+NÜMUNƏ MƏZMUN (14.10.2026): database/seeders/BriefDemoContentSeeder.php — siyasət mətnləri, Private Tours yerləri, Trip FAQ, viza haqları, filtrlər, yemək seçimləri və waiver. Hamısı admin paneldən dəyişdirilir.

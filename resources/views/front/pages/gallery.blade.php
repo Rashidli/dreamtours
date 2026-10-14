@@ -36,6 +36,7 @@
       <!-- ==================================================================
            PAGE HERO + BREADCRUMB  (Gallery — §14)
            ================================================================== -->
+      @if($showSection('hero'))
       <section class="relative isolate overflow-hidden bg-ink-900 text-white">
         <img
           src="{{ $sections->get('hero')?->background_image ?: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1920&auto=format&fit=crop' }}"
@@ -67,6 +68,7 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            FILTER BAR
@@ -274,6 +276,7 @@
       <!-- ==================================================================
            HELP CTA BAND
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -294,6 +297,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

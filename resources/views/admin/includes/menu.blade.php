@@ -20,14 +20,19 @@
     <li class="menu-title">Tours & CRM</li>
     @can('list-tours')<li><a href="{{route('tours.index')}}"><i class="ri-suitcase-line"></i><span>Tours & cruises</span></a></li>@endcan
     @can('list-tour-categories')<li><a href="{{route('tour-catalogue.index','categories')}}"><i class="ri-price-tag-3-line"></i><span>Tour categories</span></a></li>@endcan
+    @can('list-tour-filters')<li><a href="{{route('tour-filters.index')}}"><i class="ri-filter-3-line"></i><span>Tour filters</span></a></li>@endcan
     @can('list-destinations')<li><a href="{{route('tour-catalogue.index','destinations')}}"><i class="ri-map-pin-line"></i><span>Destinations</span></a></li>@endcan
     @can('list-transportations')<li><a href="{{route('tour-catalogue.index','transportations')}}"><i class="ri-bus-line"></i><span>Transportation</span></a></li>@endcan
     @can('list-pickup-points')<li><a href="{{route('tour-catalogue.index','pickup-points')}}"><i class="ri-map-pin-2-line"></i><span>Pickup points</span></a></li>@endcan
     @can('list-bookings')<li><a href="{{route('bookings.index')}}"><i class="ri-calendar-check-line"></i><span>Bookings & enquiries</span></a></li>@endcan
-    @can('list-visa-services')<li><a href="{{route('domain-content.index','visa-services')}}"><i class="ri-passport-line"></i><span>Visa services</span></a></li>@endcan
+    @can('list-visa-services')<li><a href="{{route('domain-content.index','visa-services')}}"><i class="ri-passport-line"></i><span>Visa Support Pricing</span></a></li>@endcan
+    @can('list-visa-enquiries')<li><a href="{{route('visa-enquiries.index')}}"><i class="ri-question-answer-line"></i><span>Visa enquiries</span></a></li>@endcan
 
     <li class="menu-title">Content</li>
-    @can('list-company-content')<li><a href="{{route('company-content.index')}}"><i class="ri-team-line"></i><span>Team, partners & stats</span></a></li>@endcan
+    @can('list-company-content')<li><a href="{{route('company-content.index',['type'=>'hero_slide'])}}"><i class="ri-slideshow-line"></i><span>Homepage carousel</span></a></li>@endcan
+    @can('list-company-content')<li><a href="{{route('company-content.index',['type'=>'team'])}}"><i class="ri-team-line"></i><span>Team members</span></a></li>@endcan
+    @can('list-company-content')<li><a href="{{route('company-content.index',['type'=>'private_place'])}}"><i class="ri-map-pin-line"></i><span>Private tour places</span></a></li>@endcan
+    @can('list-company-content')<li><a href="{{route('company-content.index')}}"><i class="ri-apps-line"></i><span>Partners, stats & steps</span></a></li>@endcan
     @can('list-abouts')<li><a href="{{route('abouts.index')}}"><i class="ri-information-line"></i><span>About content</span></a></li>@endcan
     @can('list-reviews')<li><a href="{{route('reviews.index')}}"><i class="ri-star-line"></i><span>Reviews</span></a></li>@endcan
     @can('list-faqs')<li><a href="{{route('faqs.index')}}"><i class="ri-question-line"></i><span>FAQs</span></a></li>@endcan

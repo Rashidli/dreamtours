@@ -36,11 +36,13 @@
       <!-- ==================================================================
            PAGE HERO + BREADCRUMB  (Private Tours — §4)
            ================================================================== -->
+      @if($showSection('hero'))
       <section class="relative isolate overflow-hidden bg-ink-900 text-white">
+        @php($heroBgAlt = $sections->get('hero')?->alt('background_image') ?? '')
         <img
           src="{{ $sections->get('hero')?->background_image ?: 'https://images.unsplash.com/photo-1517090504586-fde19ea6066f?q=80&w=1920&auto=format&fit=crop' }}"
-          alt=""
-          aria-hidden="true"
+          alt="{{ $heroBgAlt }}"
+          @if($heroBgAlt === '') aria-hidden="true" @endif
           class="absolute inset-0 -z-10 size-full object-cover"
           loading="eager"
         />
@@ -87,10 +89,11 @@
               </div>
             </div>
 
-            <div class="relative mx-auto hidden h-[420px] w-full max-w-md lg:block" aria-hidden="true">
-              <img src="{{ $sections->get('hero')?->image ?: 'https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=700&auto=format&fit=crop' }}" alt="" class="absolute left-0 top-2 w-52 -rotate-6 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 3 / 4" />
-              <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=700&auto=format&fit=crop" alt="" class="absolute right-0 top-10 w-52 rotate-3 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
-              <img src="https://images.unsplash.com/photo-1489447068241-b3490214e879?q=80&w=700&auto=format&fit=crop" alt="" class="absolute bottom-0 left-6 w-56 -rotate-2 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
+            @php($privateHero = $sections->get('hero'))
+            <div class="relative mx-auto hidden h-[420px] w-full max-w-md lg:block">
+              <img src="{{ $privateHero?->image ?: 'https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=700&auto=format&fit=crop' }}" alt="{{ $privateHero?->alt('image') }}" class="absolute left-0 top-2 w-52 -rotate-6 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 3 / 4" />
+              <img src="{{ $privateHero?->extraImage('image_2') ?: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=700&auto=format&fit=crop' }}" alt="{{ $privateHero?->alt('image_2') }}" class="absolute right-0 top-10 w-52 rotate-3 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
+              <img src="{{ $privateHero?->extraImage('image_3') ?: 'https://images.unsplash.com/photo-1489447068241-b3490214e879?q=80&w=700&auto=format&fit=crop' }}" alt="{{ $privateHero?->alt('image_3') }}" class="absolute bottom-0 left-6 w-56 -rotate-2 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
               <span class="absolute -bottom-4 right-0 grid size-28 place-items-center rounded-full bg-brand-600 p-3 text-center font-display text-[11px] font-bold leading-tight text-white shadow-xl">
                 Families · Friends · Corporate · Special occasions
               </span>
@@ -98,10 +101,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            WHY CHOOSE PRIVATE
            ================================================================== -->
+      @if($showSection('benefits'))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -142,10 +147,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            POPULAR PRIVATE TOUR IDEAS
            ================================================================== -->
+      @if($showSection('trip_ideas') && filled($frontendData['privateTours']['ideas']))
       <section id="ideas" class="scroll-mt-24 bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -169,7 +176,7 @@
                       <li class="rounded-full bg-sand-100 px-2.5 py-1 text-xs font-medium text-ink-600">{{ $tag }}</li>
                     @endforeach
                   </ul>
-                  <button type="button" @click="prefill(idea.title)" class="btn btn-primary btn-sm mt-5 w-full">Request a quote</button>
+                  <button type="button" @click="prefill(@js($idea['title']))" class="btn btn-primary btn-sm mt-5 w-full">Request a quote</button>
                 </div>
               </article>
             @endforeach
@@ -180,10 +187,46 @@
           </div>
         </div>
       </section>
+      @endif
+
+      <!-- ==================================================================
+           PLACES FOR PRIVATE TOURS  (admin: Private tour places)
+           ================================================================== -->
+      @if($showSection('places') && filled($frontendData['privateTours']['places']))
+      @php($placesSection = $sections->get('places'))
+      <section id="places" class="scroll-mt-24 bg-white py-16 lg:py-24">
+        <div class="container-page">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="eyebrow">{{ $placesSection?->eyebrow ?: 'Where We Can Take You' }}</p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-900 sm:text-4xl">{{ $placesSection?->title ?: 'Places For Your Private Tour' }}</h2>
+            <p class="mt-3 text-ink-500">{{ $placesSection?->subtitle ?: 'Pick a destination and we will plan the day around your group.' }}</p>
+          </div>
+          <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach($frontendData['privateTours']['places'] as $place)
+              <article class="group flex flex-col overflow-hidden rounded-4xl bg-sand-50 ring-1 ring-ink-900/5">
+                @if($place['image'])
+                  <div class="overflow-hidden"><img src="{{ $place['image'] }}" alt="{{ $place['name'] }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div>
+                @endif
+                <div class="flex flex-1 flex-col p-5">
+                  <h3 class="font-display text-lg font-bold text-ink-900">{{ $place['name'] }}</h3>
+                  @if($place['tagline'])<p class="mt-1 text-sm font-medium text-brand-600">{{ $place['tagline'] }}</p>@endif
+                  @if($place['description'])<p class="mt-2 flex-1 text-sm text-ink-500">{!! nl2br(e($place['description'])) !!}</p>@endif
+                  <div class="mt-5 flex flex-wrap gap-2">
+                    <button type="button" @click="prefill(@js($place['name']))" class="btn btn-primary btn-sm">Plan a trip here</button>
+                    @if($place['url'])<a href="{{ $place['url'] }}" class="btn btn-outline btn-sm">Learn more</a>@endif
+                  </div>
+                </div>
+              </article>
+            @endforeach
+          </div>
+        </div>
+      </section>
+      @endif
 
       <!-- ==================================================================
            HOW IT WORKS
            ================================================================== -->
+      @if($showSection('process') && filled($frontendData['privateTours']['steps']))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -201,10 +244,12 @@
           </ol>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            REQUEST FORM
            ================================================================== -->
+      @if($showSection('request_form'))
       <section id="request" class="scroll-mt-24 bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
@@ -305,10 +350,12 @@
           </form>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            HELP CTA BAND
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -328,6 +375,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

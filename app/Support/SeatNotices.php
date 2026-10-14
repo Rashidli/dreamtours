@@ -23,7 +23,7 @@ class SeatNotices
 
     public static function send(Booking $booking): void
     {
-        $booking->loadMissing(['tour.translations', 'tour.contentItems.translations', 'departure', 'pickupPoint.translations', 'passengers']);
+        $booking->loadMissing(['tour.translations', 'tour.contentItems.translations', 'departure', 'pickupPoint.translations', 'passengers.pickupPoint.translations']);
         Mail::to($booking->email)->send(new SeatAssignment($booking));
         $booking->forceFill(['seat_notice_sent_at' => now()])->save();
     }

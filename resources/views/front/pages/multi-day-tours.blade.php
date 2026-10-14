@@ -36,6 +36,7 @@
       <!-- ==================================================================
            PAGE HERO + BREADCRUMB  (Multi-Day Tours — §5)
            ================================================================== -->
+      @if($showSection('hero'))
       <section class="relative isolate overflow-hidden bg-ink-900 text-white">
         <img
           src="{{ $sections->get('hero')?->background_image ?: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1920&auto=format&fit=crop' }}"
@@ -121,10 +122,12 @@
           </ul>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            LISTING — filter sidebar + results grid
            ================================================================== -->
+      @if($showSection('catalogue'))
       <section class="bg-sand-50 py-10 lg:py-14">
         <div class="container-page lg:grid lg:grid-cols-[280px_1fr] lg:gap-10">
           <!-- ---- Filter sidebar ---- -->
@@ -161,6 +164,7 @@
                 <input id="f-q" type="text" x-model="q" placeholder="Trip or place" class="w-full rounded-xl border border-ink-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
               </div>
 
+              @include('front.partials.custom_filters')
               <fieldset class="mt-5">
                 <legend class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Duration</legend>
                 <div class="space-y-1.5">
@@ -265,10 +269,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            WHY DREAMTOUR  (shared advantages band)
            ================================================================== -->
+      @if($showSection('benefits'))
       <section class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -316,10 +322,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            HELP CTA BAND
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -339,6 +347,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

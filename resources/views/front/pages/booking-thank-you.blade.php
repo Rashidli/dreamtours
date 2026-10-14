@@ -23,12 +23,12 @@
           <dl class="mt-3 space-y-2 text-sm">
             <div class="flex justify-between gap-3"><dt class="text-ink-500">Tour</dt><dd class="text-right font-semibold">{{ $booking->tour?->name }}</dd></div>
             <div class="flex justify-between gap-3"><dt class="text-ink-500">Departure</dt><dd class="text-right font-semibold">{{ $booking->departure?->departs_at?->format('D, M j, Y g:i A') }}</dd></div>
-            <div class="flex justify-between gap-3"><dt class="text-ink-500">Pickup</dt><dd class="text-right font-semibold">{{ $booking->pickupPoint?->name }}</dd></div>
+            <div class="flex justify-between gap-3"><dt class="text-ink-500">Pickup</dt><dd class="text-right font-semibold">{{ $booking->hasMixedPickups() ? 'Per passenger, see below' : $booking->pickupPoint?->name }}</dd></div>
             <div class="flex justify-between gap-3"><dt class="text-ink-500">Passengers</dt><dd class="text-right font-semibold">{{ $booking->participant_count }}</dd></div>
           </dl>
           <ul class="mt-4 space-y-1 border-t border-ink-100 pt-4 text-sm text-ink-600">
             @foreach($booking->passengers as $passenger)
-              <li class="flex justify-between gap-3"><span>{{ $passenger->first_name }} {{ $passenger->last_name }}@if($passenger->room_number) <small class="text-ink-400">· room {{ $passenger->room_number }}</small>@endif</span><span>{{ money($passenger->price, $booking->currency) }}</span></li>
+              <li class="flex justify-between gap-3"><span>{{ $passenger->first_name }} {{ $passenger->last_name }}@if($passenger->room_number) <small class="text-ink-400">· room {{ $passenger->room_number }}</small>@endif @if($passenger->pickupPoint)<small class="block text-ink-400">Pickup: {{ $passenger->pickupPoint->name }}</small>@endif</span><span>{{ money($passenger->price, $booking->currency) }}</span></li>
             @endforeach
           </ul>
         </div>

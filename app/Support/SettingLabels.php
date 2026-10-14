@@ -18,6 +18,8 @@ class SettingLabels
             'site_name' => ['Site name', null],
             'copyright' => ['Copyright text', 'Shown at the very bottom of the footer.'],
             'footer_description' => ['Footer description', 'The short line under the logo.'],
+            'motto' => ['Motto', 'Shown above the footer on every page. Text after the dash (—) is set in the brand colour.'],
+            'footer_show_destinations' => ['Footer: Destinations block', 'Hide the Destinations column in the footer without losing it.'],
         ],
         'Contact' => [
             'phone' => ['Phone', 'Type it exactly as it should appear on the site.'],
@@ -35,6 +37,15 @@ class SettingLabels
             'price_tax_note' => ['Price tax note', 'Shown after every price, e.g. “+ TAX”. Leave empty to hide.'],
             'whatsapp_label' => ['WhatsApp button text', 'Text on the floating WhatsApp button, e.g. “Chat with Jenn on WhatsApp”.'],
         ],
+        'Policies' => [
+            'terms_url' => ['Terms and Conditions link', 'Where the booking form’s “Terms and Conditions of Booking” link opens. Edit the page itself under Pages & SEO.'],
+            'privacy_url' => ['Privacy Policy link', 'Where the booking form’s “Privacy Policy” link opens.'],
+        ],
+        'Analytics & cookies' => [
+            'google_analytics_id' => ['Google Analytics ID', 'e.g. G-XXXXXXX. Loaded only for visitors who accept analytics cookies. Leave empty for none.'],
+            'google_tag_manager_id' => ['Google Tag Manager ID', 'e.g. GTM-XXXXXXX. Loaded only with analytics consent.'],
+            'meta_pixel_id' => ['Meta (Facebook) Pixel ID', 'Loaded only for visitors who accept marketing cookies.'],
+        ],
         'Navigation buttons' => [
             'header_tours_url' => ['Header: tours link', null],
             'header_book_url' => ['Header: book link', null],
@@ -43,6 +54,9 @@ class SettingLabels
 
     /** Multi-line fields render as a textarea. */
     public const LONG = ['footer_description', 'map_embed', 'address', 'payment_instructions'];
+
+    /** On/off switches, stored as "1" / "0". */
+    public const TOGGLES = ['footer_show_destinations'];
 
     /** Fields that accept a file upload as well as a pasted URL. */
     public const MEDIA = ['logo', 'favicon'];

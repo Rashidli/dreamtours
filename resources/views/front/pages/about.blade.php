@@ -42,11 +42,13 @@
       <!-- ==================================================================
            PAGE HERO + BREADCRUMB  (About Us — §15)
            ================================================================== -->
+      @if($showSection('hero'))
       <section class="relative isolate overflow-hidden bg-ink-900 text-white">
+        @php($heroBgAlt = $sections->get('hero')?->alt('background_image') ?? '')
         <img
           src="{{ $sections->get('hero')?->background_image ?: 'https://images.unsplash.com/photo-1517090504586-fde19ea6066f?q=80&w=1920&auto=format&fit=crop' }}"
-          alt=""
-          aria-hidden="true"
+          alt="{{ $heroBgAlt }}"
+          @if($heroBgAlt === '') aria-hidden="true" @endif
           class="absolute inset-0 -z-10 size-full object-cover"
           loading="eager"
         />
@@ -109,24 +111,27 @@
               </ul>
             </div>
 
-            <div class="relative hidden h-[420px] lg:block" aria-hidden="true">
-              <img src="{{ $sections->get('hero')?->image ?: 'https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=700&auto=format&fit=crop' }}" alt="" class="absolute left-2 top-2 w-56 -rotate-6 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 3 / 4" />
-              <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=700&auto=format&fit=crop" alt="" class="absolute right-0 top-8 w-56 rotate-3 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
-              <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=700&auto=format&fit=crop" alt="" class="absolute bottom-0 right-8 w-60 -rotate-2 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
+            @php($aboutHero = $sections->get('hero'))
+            <div class="relative hidden h-[420px] lg:block">
+              <img src="{{ $aboutHero?->image ?: 'https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=700&auto=format&fit=crop' }}" alt="{{ $aboutHero?->alt('image') }}" class="absolute left-2 top-2 w-56 -rotate-6 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 3 / 4" />
+              <img src="{{ $aboutHero?->extraImage('image_2') ?: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=700&auto=format&fit=crop' }}" alt="{{ $aboutHero?->alt('image_2') }}" class="absolute right-0 top-8 w-56 rotate-3 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
+              <img src="{{ $aboutHero?->extraImage('image_3') ?: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=700&auto=format&fit=crop' }}" alt="{{ $aboutHero?->alt('image_3') }}" class="absolute bottom-0 right-8 w-60 -rotate-2 rounded-2xl object-cover shadow-2xl ring-4 ring-white" style="aspect-ratio: 4 / 3" />
             </div>
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            OUR STORY + MISSION + STATS
            ================================================================== -->
+      @if($showSection('story'))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div class="relative">
             <img
-              src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1100&auto=format&fit=crop"
-              alt="The DreamTour team on a tour"
+              src="{{ $sections->get('story')?->image ?: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1100&auto=format&fit=crop' }}"
+              alt="{{ $sections->get('story')?->alt('image', 'The DreamTour team on a tour') ?? 'The DreamTour team on a tour' }}"
               class="w-full rounded-4xl object-cover shadow-card"
               style="aspect-ratio: 5 / 4"
               loading="lazy"
@@ -196,10 +201,12 @@
           </dl>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            WHY DREAMTOUR  (shared advantages band)
            ================================================================== -->
+      @if($showSection('values'))
       <section class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -247,6 +254,7 @@
           </div>
         </div>
       </section>
+      @endif
 
       {{-- Founder (admin: About → key "founder"; title = name and role, description = story, image = photo) --}}
       @php($founder = $aboutBlocks->get('founder'))
@@ -268,6 +276,7 @@
       <!-- ==================================================================
            MEET THE TEAM
            ================================================================== -->
+      @if($showSection('team') && filled($frontendData['team']))
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -301,10 +310,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            LICENCES & PARTNERS
            ================================================================== -->
+      @if($showSection('partners') && filled($frontendData['about']['partners']))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -324,10 +335,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            TRAVELLER REVIEWS
            ================================================================== -->
+      @if($showSection('reviews') && filled($frontendData['reviews']))
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -373,10 +386,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            HELP CTA BAND
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -396,6 +411,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

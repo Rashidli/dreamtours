@@ -47,6 +47,7 @@
       <!-- ==================================================================
            PAGE HERO + BREADCRUMB  (Contact Us — §16)
            ================================================================== -->
+      @if($showSection('hero'))
       <section class="relative isolate overflow-hidden bg-ink-900 text-white">
         <img
           src="{{ $sections->get('hero')?->background_image ?: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=1920&auto=format&fit=crop' }}"
@@ -114,10 +115,12 @@
           </ul>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            MESSAGE FORM + CONTACT INFORMATION
            ================================================================== -->
+      @if($showSection('contact_details', 'contact_form'))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <!-- Form -->
@@ -279,10 +282,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            MAP + PICK-UP POINTS
            ================================================================== -->
+      @if($showSection('pickup_points'))
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
           <!-- Map: a real embed once one is configured, otherwise the stylised fallback -->
@@ -352,10 +357,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            FAQ
            ================================================================== -->
+      @if($showSection('faq') && filled($frontendData['faqs']))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -382,10 +389,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            HELP CTA BAND
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -405,6 +414,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

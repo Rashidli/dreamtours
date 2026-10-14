@@ -8,7 +8,12 @@ class ReviewController extends Controller{
  public function store(Request $r):RedirectResponse{Review::create($this->data($r));return redirect()->route('reviews.index')->with('message','Review created.');}
  public function show(Review $review):RedirectResponse{return redirect()->route('reviews.edit',$review);}
  public function edit(Review $review):View{return view('admin.reviews.form',['review'=>$review,'tours'=>Tour::withTranslation()->get()]);}
- public function moderate(Request $r,Review $review):RedirectResponse{$d=$r->validate(['status'=>['required',Rule::in(array_keys(Review::STATUSES))]]);$review->update($d);return back()->with('message','Review '.$d['status'].'.');}
+ public function moderate(Request $r,Review $review):RedirectResponse{
+  // approve publishes, reject hides, unpublish hides an approved review without losing its approval.
+  $action=$r->validate(['action'=>['required',Rule::in(['approve','reject','unpublish'])]])['action'];
+  $review->update(match($action){'approve'=>['status'=>'approved','is_active'=>true],'reject'=>['status'=>'rejected','is_active'=>false],'unpublish'=>['is_active'=>false]});
+  return back()->with('message',['approve'=>'Review approved and published.','reject'=>'Review rejected.','unpublish'=>'Review unpublished.'][$action]);
+ }
  public function update(Request $r,Review $review):RedirectResponse{$review->update($this->data($r,$review));return back()->with('message','Review updated.');}
  public function destroy(Review $review):RedirectResponse{$review->delete();return redirect()->route('reviews.index')->with('message','Review deleted.');}
  private function data(Request $r,?Review $review=null):array{$d=$r->validate(['image'=>['nullable','image','max:4096'],'image_path'=>['nullable','string','max:500'],'rating'=>['required','integer','between:1,5'],'is_active'=>['nullable','boolean'],'tour_id'=>['nullable','exists:tours,id'],'status'=>['required',Rule::in(array_keys(Review::STATUSES))],'email'=>['nullable','email','max:255'],'travel_date'=>['nullable','date'],'en.name'=>['required','string','max:255'],'en.position'=>['nullable','string','max:255'],'en.content'=>['required','string']]);$d['is_active']=$r->boolean('is_active');if($r->hasFile('image'))$d['image']=$this->images->upload($r->file('image'));elseif($r->filled('image_path'))$d['image']=$r->image_path;elseif($review)$d['image']=$review->image;unset($d['image_path']);return $d;}

@@ -77,7 +77,19 @@
                                 <div class="row">
                                     @include('admin.includes.media_field', ['field' => 'image', 'label' => 'Section image', 'cols' => 6, 'current' => $section->getRawOriginal('image'), 'preview' => $section->image])
                                     @include('admin.includes.media_field', ['field' => 'background_image', 'label' => 'Background image', 'cols' => 6, 'current' => $section->getRawOriginal('background_image'), 'preview' => $section->background_image])
+                                    @include('admin.includes.media_field', ['field' => 'image_2', 'label' => 'Image 2 (photo collages)', 'cols' => 6, 'current' => $section->options['images']['image_2'] ?? null, 'preview' => $section->extraImage('image_2')])
+                                    @include('admin.includes.media_field', ['field' => 'image_3', 'label' => 'Image 3 (photo collages)', 'cols' => 6, 'current' => $section->options['images']['image_3'] ?? null, 'preview' => $section->extraImage('image_3')])
                                 </div>
+                                <h5 class="mt-2 mb-3 font-size-14">Alternative text <small class="text-muted fw-normal">— describes each photo for screen readers and search engines</small></h5>
+                                <div class="row">
+                                    @foreach(['image' => 'Section image', 'background_image' => 'Background image', 'image_2' => 'Image 2', 'image_3' => 'Image 3'] as $slot => $slotLabel)
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">{{ $slotLabel }}</label>
+                                            <input class="form-control" name="alt[{{ $slot }}]" value="{{ old('alt.'.$slot, $section->options['alt'][$slot] ?? '') }}" maxlength="255">
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <small class="text-muted">Not every layout shows every image; leave a slot empty to keep the default photo.</small>
                             </div>
                         </div>
                     </div>
@@ -110,14 +122,14 @@
                                            @checked(old('is_active', $section->is_active))>
                                     <label class="form-check-label" for="statusSwitch">Active</label>
                                 </div>
-                                <small class="text-muted">When inactive, the section falls back to the wording in the template.</small>
+                                <small class="text-muted">When inactive, the whole section is hidden on the website. Its saved content stays here.</small>
                             </div>
                         </div>
 
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title mb-3">Advanced options</h4>
-                                <textarea class="form-control font-monospace" rows="4" name="options_json">{{ old('options_json', $section->options ? json_encode($section->options, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '') }}</textarea>
+                                <textarea class="form-control font-monospace" rows="4" name="options_json">@php($advancedOptions = \Illuminate\Support\Arr::except($section->options ?? [], ['images', 'alt'])){{ old('options_json', $advancedOptions ? json_encode($advancedOptions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '') }}</textarea>
                                 <small class="text-muted">JSON, for example an extra CSS class. May be left empty.</small>
                             </div>
                         </div>

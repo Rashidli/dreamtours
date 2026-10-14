@@ -1,6 +1,6 @@
 @include('admin.includes.header')
 @php($locales = config('translatable.locales'))
-@php($labels = ['visa-services' => 'Visa service', 'gallery-albums' => 'Gallery album', 'gallery-categories' => 'Gallery category'])
+@php($labels = ['visa-services' => 'Visa service fee', 'gallery-albums' => 'Gallery album', 'gallery-categories' => 'Gallery category'])
 @php($title = $labels[$resource] ?? str($resource)->replace('-', ' ')->title())
 @php($isAlbum = $resource === 'gallery-albums')
 @php($isVisa = $resource === 'visa-services')
@@ -97,9 +97,14 @@
                         @if($isVisa)
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title mb-4">Service</h4>
+                                    <h4 class="card-title mb-4">Country & fees</h4>
                                     <div class="mb-3">
                                         <label class="form-label">Country</label>
+                                        <input class="form-control" type="text" name="country" value="{{ old('country', $item->country) }}" placeholder="e.g. United Kingdom">
+                                        <small class="text-muted">Type the country, or link it to a destination below.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Linked destination <small class="text-muted">(optional)</small></label>
                                         <select class="form-select" name="destination_id">
                                             <option value="">None</option>
                                             @foreach($destinations as $d)
@@ -109,13 +114,18 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-7 mb-3">
-                                            <label class="form-label">Price</label>
+                                            <label class="form-label">DreamTour service fee</label>
                                             <input class="form-control" type="text" name="price" value="{{ old('price', $item->price) }}">
                                         </div>
                                         <div class="col-5 mb-3">
                                             <label class="form-label">Currency <span class="text-danger">*</span></label>
-                                            <input class="form-control" type="text" name="currency" maxlength="3" value="{{ old('currency', $item->currency ?: 'USD') }}">
+                                            <input class="form-control" type="text" name="currency" maxlength="3" value="{{ old('currency', $item->currency ?: 'CAD') }}">
                                         </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Government / third-party fee <small class="text-muted">(optional, same currency)</small></label>
+                                        <input class="form-control" type="text" name="third_party_fee" value="{{ old('third_party_fee', $item->third_party_fee) }}" placeholder="leave empty if not included">
+                                        <input class="form-control mt-2" type="text" name="third_party_fee_note" value="{{ old('third_party_fee_note', $item->third_party_fee_note) }}" placeholder="note, e.g. paid directly to the consulate">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Processing time</label>

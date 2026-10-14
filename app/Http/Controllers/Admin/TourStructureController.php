@@ -11,9 +11,11 @@ class TourStructureController extends Controller
 {
  use HandlesMediaUploads;
 
- public function index(Request $r,Tour $tour,string $section):View
+ public function index(Request $r,Tour $tour,string $section):View|RedirectResponse
  {
   abort_unless(in_array($section,['departures','itinerary','content'],true),404);
+  // Dates are managed on the tour page itself now.
+  if($section==='departures')return redirect()->to(route('tours.edit',$tour).'#departures');
   $permission=$section==='departures'?'list-tour-departures':($section==='itinerary'?'list-tour-itineraries':'list-tour-content');
   abort_unless($r->user()->can($permission),403);
   if($section==='departures')$items=$tour->departures()->with('prices')->when($r->filled('q'),fn($q)=>$q->where(fn($x)=>$x->where('status',$r->q)->orWhere('currency','like','%'.$r->q.'%')))->orderByDesc('departs_at')->paginate(20)->withQueryString();

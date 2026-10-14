@@ -150,44 +150,61 @@
             </dl>
           </div>
 
-          {{-- Prices --}}
+          {{-- Dates: calendar of departures; the selected date shows its prices, seats and pickup points --}}
           @if($tour->departures->isNotEmpty())
-            <div id="prices" class="scroll-mt-28" x-data="{ selected: {{ $tour->departures->search($nextDeparture) ?: 0 }} }">
-              <h2 class="font-display text-2xl font-bold text-ink-900">Tour Price</h2>
-              @if($tour->departures->count() > 1)
-                <div class="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Departure dates">
-                  @foreach($tour->departures as $i => $departure)
-                    <button type="button" role="tab" @click="selected = {{ $i }}" :aria-selected="selected === {{ $i }}"
-                            class="rounded-full px-4 py-2 text-sm font-semibold ring-1 transition"
-                            :class="selected === {{ $i }} ? 'bg-ink-900 text-white ring-ink-900' : 'bg-white text-ink-700 ring-ink-200 hover:ring-ink-400'">
-                      {{ $departure->departs_at->format('M j') }}@if($departure->status === 'sold_out') · Sold out @endif
-                    </button>
+            @php($selectedDeparture = $nextDeparture ?? $tour->departures->first())
+            <div id="prices" class="scroll-mt-28" x-data="{ selected: {{ $selectedDeparture->id }} }" @departure-selected="selected = $event.detail">
+              <h2 class="font-display text-2xl font-bold text-ink-900">Choose your date</h2>
+              <p class="mt-1 text-sm text-ink-500">Pick an available date in the calendar to see its price, pickup points and seats left.</p>
+              <div class="mt-5 grid gap-5 md:grid-cols-2">
+                @include('front.partials.departure_calendar', ['calendarDepartures' => \App\Support\DepartureCalendar::payload($tour->departures), 'calendarSelected' => $selectedDeparture->id])
+                <div>
+                  @foreach($tour->departures as $departure)
+                    <div x-show="selected === {{ $departure->id }}" @if($departure->id !== $selectedDeparture->id) x-cloak @endif class="overflow-hidden rounded-3xl ring-1 ring-ink-100">
+                      <div class="bg-ink-900 px-5 py-3 text-white">
+                        <p class="font-semibold">{{ \App\Support\DepartureCalendar::range($departure) }}</p>
+                        <p class="mt-0.5 text-sm {{ $departure->is_bookable && $departure->available_seats <= 6 ? 'text-amber-300' : 'text-ink-200' }}">
+                          Departs {{ $departure->departs_at->format('g:i A') }} ·
+                          {{ $departure->is_bookable ? $departure->available_seats.' seats left' : $departure->status_label }}
+                        </p>
+                      </div>
+                      <ul class="divide-y divide-ink-100 bg-white">
+                        @forelse($departure->prices as $price)
+                          <li class="flex items-center justify-between gap-4 px-5 py-3.5">
+                            <span class="text-sm text-ink-600">
+                              @if($price->is_room) Per person in a <b class="text-ink-900">{{ str($price->label)->replace(' room', '') }} room</b>
+                              @elseif($price->code === 'child') Per <b class="text-ink-900">child under 12</b>
+                              @elseif($price->code === 'senior') Per <b class="text-ink-900">senior (65+)</b>
+                              @else Per <b class="text-ink-900">adult</b> @endif
+                            </span>
+                            <span class="whitespace-nowrap font-display text-lg font-extrabold text-ink-900">{{ money($price->price, $departure->currency) }} <small class="text-xs font-medium text-ink-400">{{ $taxNote }}</small></span>
+                          </li>
+                        @empty
+                          <li class="flex items-center justify-between px-5 py-3.5"><span class="text-sm text-ink-600">Per person</span><span class="font-display text-lg font-extrabold">{{ money($departure->price, $departure->currency) }} <small class="text-xs font-medium text-ink-400">{{ $taxNote }}</small></span></li>
+                        @endforelse
+                      </ul>
+                      @php($datePickups = $departure->availablePickupPoints())
+                      @if($datePickups->isNotEmpty())
+                        <div class="border-t border-ink-100 bg-sand-50 px-5 py-3.5">
+                          <p class="text-xs font-semibold uppercase tracking-wide text-ink-500">Pickup points for this date</p>
+                          <ul class="mt-2 space-y-1.5 text-sm">
+                            @foreach($datePickups as $point)
+                              <li class="flex gap-2"><span class="text-brand-600" aria-hidden="true">●</span><span><b class="text-ink-900">{{ $point->name }}</b>@if($point->address)<span class="text-ink-500"> — {{ $point->address }}</span>@endif</span></li>
+                            @endforeach
+                          </ul>
+                        </div>
+                      @endif
+                      <div class="border-t border-ink-100 bg-white p-4">
+                        @if($departure->is_bookable && !$tour->is_private)
+                          <a href="{{ route('front.tours.book', ['slug' => $tour->slug, 'departure' => $departure->id]) }}" class="btn btn-primary w-full">Book Now — {{ $departure->departs_at->format('M j') }}</a>
+                        @else
+                          <span class="btn w-full cursor-not-allowed bg-ink-100 text-ink-400">{{ $departure->status_label }}</span>
+                        @endif
+                      </div>
+                    </div>
                   @endforeach
                 </div>
-              @endif
-              @foreach($tour->departures as $i => $departure)
-                <div x-show="selected === {{ $i }}" @if($i !== ($tour->departures->search($nextDeparture) ?: 0)) x-cloak @endif class="mt-4 overflow-hidden rounded-3xl ring-1 ring-ink-100">
-                  <div class="flex flex-wrap items-center justify-between gap-2 bg-ink-900 px-5 py-3 text-sm text-white">
-                    <span class="font-semibold">{{ $departure->departs_at->format('l, F j, Y') }}</span>
-                    <span class="{{ $departure->available_seats <= 6 ? 'text-amber-300' : 'text-ink-200' }}">{{ $departure->available_seats > 0 ? $departure->available_seats.' seats left' : 'Sold out' }}</span>
-                  </div>
-                  <ul class="divide-y divide-ink-100 bg-white">
-                    @forelse($departure->prices as $price)
-                      <li class="flex items-center justify-between gap-4 px-5 py-4">
-                        <span class="text-sm text-ink-600">
-                          @if($price->is_room) Per person in a <b class="text-ink-900">{{ str($price->label)->replace(' room', '') }} room</b>
-                          @elseif($price->code === 'child') Per <b class="text-ink-900">child under 12</b> years of age
-                          @elseif($price->code === 'senior') Per <b class="text-ink-900">senior (65+)</b>
-                          @else Per <b class="text-ink-900">adult</b> @endif
-                        </span>
-                        <span class="whitespace-nowrap font-display text-lg font-extrabold text-ink-900">{{ money($price->price, $departure->currency) }} <small class="text-xs font-medium text-ink-400">{{ $departure->currency }} {{ $taxNote }}</small></span>
-                      </li>
-                    @empty
-                      <li class="flex items-center justify-between px-5 py-4"><span class="text-sm text-ink-600">Per person</span><span class="font-display text-lg font-extrabold">{{ money($departure->price, $departure->currency) }} <small class="text-xs font-medium text-ink-400">{{ $taxNote }}</small></span></li>
-                    @endforelse
-                  </ul>
-                </div>
-              @endforeach
+              </div>
               @if($tour->deposit_per_person)
                 <p class="mt-3 text-sm text-ink-500">Reserve with a deposit of <b class="text-ink-800">{{ money($tour->deposit_per_person, $currency) }} per person</b>. <a href="#policies" class="text-brand-600 hover:underline">Deposit policy</a></p>
               @endif
@@ -432,11 +449,16 @@
         <aside id="booking" class="scroll-mt-28">
           <div class="space-y-4 lg:sticky lg:top-28">
             <div class="rounded-3xl bg-white p-6 shadow-card ring-1 ring-ink-900/5">
-              @if($tour->is_private || !$nextDeparture)
-                <p class="text-sm text-ink-500">{{ $tour->is_private ? 'Private tour' : 'New dates coming soon' }}</p>
+              @if($tour->is_private)
+                <p class="text-sm text-ink-500">Private tour</p>
                 <p class="mt-1 font-display text-2xl font-extrabold text-ink-900">Price on request</p>
                 <p class="mt-2 text-sm text-ink-500">Tell us your dates and group size and we will send a personal quote.</p>
                 <button type="button" class="btn btn-primary btn-lg mt-5 w-full" @click="show('private_tour')">Request a quote</button>
+              @elseif(!$nextDeparture)
+                <p class="text-sm text-ink-500">Scheduled trip</p>
+                <p class="mt-1 font-display text-2xl font-extrabold text-ink-900">New dates coming soon</p>
+                <p class="mt-2 text-sm text-ink-500">There are no open departure dates right now. Leave your number and we will tell you when booking opens.</p>
+                <button type="button" class="btn btn-primary btn-lg mt-5 w-full" @click="show('callback')">Ask about dates</button>
               @else
                 <p class="text-sm text-ink-500">Price starts at</p>
                 <p class="mt-0.5 font-display text-3xl font-extrabold text-ink-900">{{ money($fromPrice, $currency) }} <span class="text-sm font-semibold text-ink-400">{{ $taxNote }}</span></p>
@@ -448,7 +470,8 @@
                   @if($tour->deposit_per_person)<p class="flex justify-between gap-2"><span class="text-ink-500">Deposit</span><b>{{ money($tour->deposit_per_person, $currency) }} / person</b></p>@endif
                 </div>
                 @if($canBook)
-                  <a href="{{ route('front.tours.book', $tour->slug) }}" class="btn btn-primary btn-lg mt-5 w-full">Book Now</a>
+                  <a href="{{ route('front.tours.book', ['slug' => $tour->slug, 'departure' => $nextDeparture->id]) }}" class="btn btn-primary btn-lg mt-5 w-full">Book Now</a>
+                  @if($tour->departures->count() > 1)<a href="#prices" class="mt-2 block text-center text-sm font-semibold text-brand-600 hover:underline">See all {{ $tour->departures->count() }} dates</a>@endif
                 @else
                   <span class="btn btn-lg mt-5 w-full cursor-not-allowed bg-ink-100 text-ink-400">Sold Out</span>
                 @endif
@@ -473,12 +496,15 @@
     {{-- Mobile booking bar --}}
     <div class="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-white/95 px-4 py-3 backdrop-blur lg:hidden" style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom))">
       <div class="flex items-center justify-between gap-3">
-        @if($tour->is_private || !$nextDeparture)
+        @if($tour->is_private)
           <p class="font-display font-bold text-ink-900">Price on request</p>
           <button type="button" class="btn btn-primary" @click="show('private_tour')">Request a quote</button>
+        @elseif(!$nextDeparture)
+          <p class="font-display font-bold text-ink-900">New dates coming soon</p>
+          <button type="button" class="btn btn-primary" @click="show('callback')">Ask about dates</button>
         @else
           <p class="leading-tight"><span class="block text-xs text-ink-500">From</span><b class="font-display text-lg text-ink-900">{{ money($fromPrice, $currency) }}</b> <small class="text-xs text-ink-400">{{ $taxNote }}</small></p>
-          @if($canBook)<a href="{{ route('front.tours.book', $tour->slug) }}" class="btn btn-primary">Book Now</a>@else<span class="btn bg-ink-100 text-ink-400">Sold Out</span>@endif
+          @if($canBook)<a href="#prices" class="btn btn-primary">Choose a date</a>@else<span class="btn bg-ink-100 text-ink-400">Sold Out</span>@endif
         @endif
       </div>
     </div>

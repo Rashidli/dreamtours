@@ -5,6 +5,7 @@
   $address = $siteSettings->get('address');
   $hours   = $siteSettings->get('working_hours');
 @endphp
+@include('front.partials.motto')
 <footer class="bg-ink-950 text-ink-300">
   <div class="container-page py-14 lg:py-18">
 
@@ -14,7 +15,7 @@
       <div class="lg:col-span-4">
         <a href="/" class="inline-block font-display text-2xl font-extrabold">
           @if($footerLogo = setting_image('logo'))
-            <img src="{{ $footerLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-11 w-auto max-w-[220px] object-contain">
+            <img src="{{ $footerLogo }}" alt="{{ $siteSettings->get('site_name','DreamTour') }}" class="h-10 w-auto max-w-[240px] object-contain">
           @else
             <span class="text-white">DREAM</span><span class="text-brand-500">TOUR</span>
           @endif
@@ -53,7 +54,7 @@
       @endif
 
       {{-- Destinations --}}
-      @if(!empty($footerDestinations) && $footerDestinations->isNotEmpty())
+      @if(setting('footer_show_destinations', '1') !== '0' && !empty($footerDestinations) && $footerDestinations->isNotEmpty())
         <div class="lg:col-span-2">
           <h2 class="font-display font-bold text-white">Destinations</h2>
           <ul class="mt-4 space-y-2.5 text-sm">
@@ -101,7 +102,7 @@
 
     {{-- Bottom bar --}}
     <div class="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
-      <span>{{ $siteSettings->get('copyright') }}</span>
+      <span>{{ $siteSettings->get('copyright') }} <button type="button" x-data @click="$store.consent.openPanel()" class="ms-3 underline-offset-2 hover:text-white hover:underline">Cookie settings</button></span>
       @php $legal = $footerNavigation->get('footer_legal', collect()); @endphp
       @if($legal->isNotEmpty())
         <ul class="flex flex-wrap gap-x-5 gap-y-2">
@@ -114,3 +115,4 @@
   </div>
 </footer>
 @include('front.partials.whatsapp_float')
+@include('front.partials.cookie_consent')

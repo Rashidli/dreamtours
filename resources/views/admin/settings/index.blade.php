@@ -55,6 +55,11 @@
                                                         <img src="{{ $preview }}" alt="Logo" style="height:44px;width:auto">
                                                     </div>
                                                 @endif
+                                            @elseif(in_array($setting->key, $labels::TOGGLES, true))
+                                                <select class="form-select" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}]">
+                                                    <option value="1" @selected(old('settings.'.$setting->key, $setting->value) !== '0')>Show</option>
+                                                    <option value="0" @selected(old('settings.'.$setting->key, $setting->value) === '0')>Hide</option>
+                                                </select>
                                             @elseif(in_array($setting->key, $labels::LONG, true))
                                                 <textarea class="form-control" rows="3" id="setting-{{ $setting->key }}"
                                                           name="settings[{{ $setting->key }}]">{{ old('settings.'.$setting->key, $setting->value) }}</textarea>

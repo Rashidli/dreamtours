@@ -18,11 +18,11 @@ class TourPageController extends Controller
             ->whereTranslation('slug', $slug)
             ->with([
                 'translations', 'destination.translations', 'destination.parent.translations', 'categories.translations',
-                'transportations.translations', 'pickupPoints.translations',
-                'departures' => fn ($query) => $query->upcoming()->whereIn('status', ['available', 'limited', 'sold_out'])->with('prices')->orderBy('departs_at'),
+                'transportations' => fn ($query) => $query->where('is_active', true)->with('translations'), 'pickupPoints.translations',
+                'departures' => fn ($query) => $query->visible()->with(['prices', 'pickupPoints.translations'])->orderBy('departs_at'),
                 'itineraryDays.translations', 'itineraryDays.items.translations',
                 'contentItems.translations', 'galleryAlbums' => fn ($query) => $query->where('is_active', true)->with('media.translations'),
-                'reviews' => fn ($query) => $query->approved()->with('translations')->latest('travel_date')->latest(),
+                'reviews' => fn ($query) => $query->published()->with('translations')->latest('travel_date')->latest(),
             ])->firstOrFail();
 
         $pickupPoints = $tour->pickupPoints->where('is_active', true)->isNotEmpty()
@@ -35,7 +35,7 @@ class TourPageController extends Controller
             ->merge($tour->itineraryDays->flatMap->items->flatMap->images)
             ->filter()->unique()->values();
 
-        $bookable = $tour->departures->first(fn ($departure) => in_array($departure->status, ['available', 'limited'], true) && $departure->available_seats > 0);
+        $bookable = $tour->departures->first(fn ($departure) => $departure->is_bookable);
 
         return view('front.pages.tour-detail', [
             'tour' => $tour,

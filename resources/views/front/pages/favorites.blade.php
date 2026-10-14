@@ -26,6 +26,7 @@
     @include('front.partials.header')
 
     <main id="main" x-data="favouritesPage">
+      @if($showSection('hero'))
       <section class="bg-ink-900 text-white">
         <div class="container-page py-14 lg:py-20">
           <nav aria-label="Breadcrumb" class="text-sm text-ink-300">
@@ -35,6 +36,7 @@
           <p class="mt-4 max-w-2xl text-ink-100">{{ $sections->get('hero')?->subtitle ?: 'The tours and cruises you saved with the heart button. They are kept in this browser on this device — they are not tied to an account.' }}</p>
         </div>
       </section>
+      @endif
 
       <section class="py-14 lg:py-20">
         <div class="container-page">

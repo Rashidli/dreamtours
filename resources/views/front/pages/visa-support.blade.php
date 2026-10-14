@@ -23,6 +23,7 @@
 
     <!-- Scripts: database-backed page data + Alpine components load before Alpine core -->
     @include('front.partials.data')
+    <script>window.DreamTourDialCodes = @json(\App\Support\CountryCodes::all());</script>
     <script defer src="/dreamtour/src/js/app.js?v={{ @filemtime(public_path('dreamtour/src/js/app.js')) }}"></script>
     <script defer src="/dreamtour/src/js/vendor/alpine.min.js"></script>
   </head>
@@ -36,6 +37,7 @@
       <!-- ==================================================================
            PAGE HERO + BREADCRUMB  (Visa Support — §17)
            ================================================================== -->
+      @if($showSection('hero'))
       <section class="relative isolate overflow-hidden bg-ink-900 text-white">
         <img
           src="{{ $sections->get('hero')?->background_image ?: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=1920&auto=format&fit=crop' }}"
@@ -67,6 +69,7 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- Short disclaimer strip -->
       <div class="bg-sand-100">
@@ -90,6 +93,7 @@
       <!-- ==================================================================
            WHAT'S INCLUDED
            ================================================================== -->
+      @if($showSection('benefits'))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -157,10 +161,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            HOW IT WORKS
            ================================================================== -->
+      @if($showSection('process') && filled($frontendData['visa']['steps']))
       <section class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -179,10 +185,12 @@
           </ol>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            COUNTRIES & FEES
            ================================================================== -->
+      @if($showSection('countries') && filled($frontendData['visa']['services']))
       <section id="countries" class="scroll-mt-24 bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="max-w-2xl">
@@ -196,18 +204,27 @@
               <article class="flex flex-col rounded-4xl bg-white p-6 ring-1 ring-ink-900/5">
                 <div class="flex items-center justify-between gap-3">
                   <h3 class="font-display text-lg font-bold text-ink-900">{{ $s['country'] }}</h3>
-                  <span class="rounded-full bg-sand-100 px-2.5 py-1 text-xs font-medium text-ink-600">{{ $s['region'] }}</span>
+                  @if($s['region'])<span class="rounded-full bg-sand-100 px-2.5 py-1 text-xs font-medium text-ink-600">{{ $s['region'] }}</span>@endif
                 </div>
+                @if($s['service'])<p class="mt-1 text-sm font-semibold text-brand-600">{{ $s['service'] }}</p>@endif
                 <p class="mt-2 flex-1 text-sm text-ink-500">{{ $s['summary'] }}</p>
                 <dl class="mt-4 grid grid-cols-2 gap-3 border-t border-ink-100 pt-4 text-sm">
                   <div>
-                    <dt class="text-xs text-ink-400">Processing</dt>
-                    <dd class="mt-0.5 font-medium text-ink-800">{{ $s['processing'] }}</dd>
+                    <dt class="text-xs text-ink-400">DreamTour assistance fee</dt>
+                    <dd class="mt-0.5 font-display font-extrabold text-ink-900">{{ $s['feeLabel'] ?? 'On request' }}</dd>
                   </div>
-                  <div>
-                    <dt class="text-xs text-ink-400">Service fee</dt>
-                    <dd class="mt-0.5 font-display font-extrabold text-ink-900">{{ '$' . $s['fee'] }}</dd>
-                  </div>
+                  @if($s['processing'])
+                    <div>
+                      <dt class="text-xs text-ink-400">Processing</dt>
+                      <dd class="mt-0.5 font-medium text-ink-800">{{ $s['processing'] }}</dd>
+                    </div>
+                  @endif
+                  @if($s['thirdPartyFee'] || $s['thirdPartyNote'])
+                    <div class="col-span-2">
+                      <dt class="text-xs text-ink-400">Government / third-party fee <span class="text-ink-300">(separate)</span></dt>
+                      <dd class="mt-0.5 font-medium text-ink-800">{{ $s['thirdPartyFee'] }}@if($s['thirdPartyFee'] && $s['thirdPartyNote']) · @endif<span class="text-ink-500">{{ $s['thirdPartyNote'] }}</span></dd>
+                    </div>
+                  @endif
                 </dl>
                 @if($s['documents'])
                   <details class="mt-4 rounded-2xl bg-sand-50 p-3">
@@ -233,16 +250,19 @@
             @endforeach
           </div>
           <p class="mt-6 text-xs text-ink-400">
-            Fees shown are per applicant and cover our service only. Government
-            consular fees, visa-centre (VAC) fees and courier charges are extra
-            and listed on your quote.
+            Fees shown are per applicant and are DreamTour assistance service fees:
+            help completing application forms, checking documents for completeness and
+            booking appointments. Government consular fees, visa-centre (VAC) fees and
+            courier charges are separate.
           </p>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            DOCUMENTS
            ================================================================== -->
+      @if($showSection('documents') && filled($frontendData['visa']['documents']))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page lg:grid lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div>
@@ -265,10 +285,12 @@
           </ul>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            FAQ
            ================================================================== -->
+      @if($showSection('faq') && filled($frontendData['visa']['faqs']))
       <section id="faq" class="scroll-mt-24 bg-sand-50 py-16 lg:py-24">
         <div class="container-page max-w-3xl">
           <div class="text-center">
@@ -297,6 +319,7 @@
           </dl>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            FULL DISCLAIMER
@@ -324,6 +347,7 @@
       <!-- ==================================================================
            APPLICATION FORM  (§17 — separate CRM request type)
            ================================================================== -->
+      @if($showSection('request_form'))
       <section id="request" class="scroll-mt-24 bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
@@ -371,49 +395,76 @@
               <svg class="mt-0.5 size-5 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
               </svg>
-              <p>Your visa support request has been received. A DreamTour advisor will contact you with your document list and a quote.</p>
+              <p>Your visa enquiry has been received<span x-show="reference"> — reference <strong x-text="reference"></strong></span>. A DreamTour advisor will contact you about forms, documents and appointments.</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label for="v-name" class="mb-1 block text-sm font-medium text-ink-700">Full name</label>
-                <input id="v-name" type="text" x-model="form.name" required class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+              <div class="sm:col-span-2">
+                <label for="v-name" class="mb-1 block text-sm font-medium text-ink-700">Full name *</label>
+                <input id="v-name" type="text" x-model="form.full_name" autocomplete="name" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
               </div>
               <div>
-                <label for="v-phone" class="mb-1 block text-sm font-medium text-ink-700">Phone / WhatsApp</label>
-                <input id="v-phone" type="tel" x-model="form.phone" required class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+                <label for="v-email" class="mb-1 block text-sm font-medium text-ink-700">Email *</label>
+                <input id="v-email" type="email" x-model="form.email" autocomplete="email" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
               </div>
               <div>
-                <label for="v-email" class="mb-1 block text-sm font-medium text-ink-700">Email</label>
-                <input id="v-email" type="email" x-model="form.email" required class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+                <label for="v-phone" class="mb-1 block text-sm font-medium text-ink-700">Phone / WhatsApp *</label>
+                <div class="flex gap-2" x-data="dialPicker" @click.outside="dialOpen = false" @keydown.escape.stop="dialOpen = false">
+                  <div class="relative shrink-0">
+                    <button type="button" @click="toggleDial()" class="flex h-full items-center gap-1 rounded-xl border border-ink-200 bg-white px-2.5 text-sm font-medium text-ink-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" :aria-expanded="dialOpen" aria-haspopup="listbox" :aria-label="'Country code: ' + (dialCountry?.name || '') + ' +' + (dialCountry?.dial || '')">
+                      <span class="text-xs font-semibold text-ink-500" x-text="form.phone_country"></span><span x-text="'+' + (dialCountry?.dial || '')"></span><span class="text-ink-400" aria-hidden="true">⌄</span>
+                    </button>
+                    <div x-cloak :class="dialOpen ? 'block' : 'hidden'" class="absolute left-0 z-30 mt-1 w-72 max-w-[calc(100vw-3rem)] overflow-hidden rounded-xl bg-white shadow-card ring-1 ring-ink-200">
+                      <input x-ref="dialSearch" x-model="dialQuery" @keydown.enter.prevent="chooseDial(filteredDials[0])" class="w-full border-0 border-b border-ink-100 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-0" placeholder="Search country or code" aria-label="Search country or code">
+                      <ul class="max-h-60 overflow-y-auto py-1" role="listbox">
+                        <template x-for="c in filteredDials" :key="c.iso">
+                          <li role="option" :aria-selected="c.iso === form.phone_country"><button type="button" @click="chooseDial(c)" class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none" :class="c.iso === form.phone_country ? 'font-semibold text-brand-700' : 'text-ink-800'"><span class="min-w-0 flex-1 truncate" x-text="c.name"></span><span class="text-ink-500" x-text="'+' + c.dial"></span></button></li>
+                        </template>
+                        <li x-show="!filteredDials.length" class="px-3.5 py-2 text-sm text-ink-500">No matching country</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <input id="v-phone" type="tel" x-model="form.phone" autocomplete="tel-national" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="Phone number" />
+                </div>
               </div>
               <div>
-                <label for="v-nat" class="mb-1 block text-sm font-medium text-ink-700">Passport country</label>
-                <input id="v-nat" type="text" x-model="form.nationality" required placeholder="e.g. Canada, Philippines" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
-              </div>
-              <div>
-                <label for="v-dest" class="mb-1 block text-sm font-medium text-ink-700">Destination</label>
-                <select id="v-dest" x-model="form.destination" required class="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                <label for="v-dest" class="mb-1 block text-sm font-medium text-ink-700">Country you need a visa for *</label>
+                <select id="v-dest" x-model="form.country" class="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
                   <option value="">Select a country</option>
                   <template x-for="c in countries" :key="c"><option :value="c" x-text="c"></option></template>
                   <option value="Other">Other / not listed</option>
                 </select>
+                <input x-show="form.country === 'Other'" x-cloak type="text" x-model="form.countryOther" aria-label="Country name" placeholder="Type the country" class="mt-2 w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
               </div>
               <div>
-                <label for="v-date" class="mb-1 block text-sm font-medium text-ink-700">Approx. travel date</label>
-                <input id="v-date" type="date" x-model="form.travelDate" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+                <label for="v-nat" class="mb-1 block text-sm font-medium text-ink-700">Passport country <span class="font-normal text-ink-400">(optional)</span></label>
+                <input id="v-nat" type="text" x-model="form.passport_country" placeholder="e.g. Philippines" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
               </div>
+              <fieldset class="sm:col-span-2">
+                <legend class="mb-1 block text-sm font-medium text-ink-700">What do you need help with? *</legend>
+                <div class="grid gap-2 sm:grid-cols-2">
+                  @foreach(\App\Models\VisaEnquiry::ASSISTANCE as $key => $text)
+                    <label class="flex items-start gap-2 rounded-xl px-3 py-2 text-sm ring-1 ring-ink-200 has-[:checked]:bg-brand-50 has-[:checked]:ring-brand-400">
+                      <input type="checkbox" value="{{ $key }}" x-model="form.assistance" class="mt-0.5 size-4 accent-brand-600"> <span>{{ $text }}</span>
+                    </label>
+                  @endforeach
+                </div>
+              </fieldset>
               <div>
                 <label for="v-app" class="mb-1 block text-sm font-medium text-ink-700">Applicants</label>
-                <input id="v-app" type="number" min="1" max="20" x-model="form.applicants" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+                <input id="v-app" type="number" min="1" max="50" x-model="form.applicants" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+              </div>
+              <div>
+                <label for="v-date" class="mb-1 block text-sm font-medium text-ink-700">Approx. travel date <span class="font-normal text-ink-400">(optional)</span></label>
+                <input id="v-date" type="date" min="{{ now()->toDateString() }}" x-model="form.travel_date" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
               </div>
               <div class="sm:col-span-2">
-                <label for="v-msg" class="mb-1 block text-sm font-medium text-ink-700">Anything we should know? <span class="font-normal text-ink-400">(optional)</span></label>
-                <textarea id="v-msg" rows="3" x-model="form.message" placeholder="Previous refusals, tight timeline, linked DreamTour booking…" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
+                <label for="v-msg" class="mb-1 block text-sm font-medium text-ink-700">Your question <span class="font-normal text-ink-400">(optional)</span></label>
+                <textarea id="v-msg" rows="3" x-model="form.message" placeholder="Previous refusals, tight timeline, anything we should know…" class="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
               </div>
             </div>
-
-            <button type="submit" class="btn btn-primary mt-5 w-full">Send Visa Request</button>
+            <p x-show="error" x-cloak x-text="error" role="alert" class="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200"></p>
+            <button type="submit" class="btn btn-primary mt-5 w-full" :disabled="sending" x-text="sending ? 'Sending…' : 'Send Visa Enquiry'">Send Visa Enquiry</button>
             <p class="mt-3 text-center text-xs text-ink-400">
               Submitting does not start an application or incur any fee. By sending
               this you agree we may contact you about your request.
@@ -421,10 +472,12 @@
           </form>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            HELP CTA BAND
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -444,6 +497,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

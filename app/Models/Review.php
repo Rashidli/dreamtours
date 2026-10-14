@@ -32,6 +32,12 @@ class Review extends Model
         return $query->where('status', 'approved');
     }
 
+    /** What visitors see: approved by staff and not unpublished afterwards. */
+    public function scopePublished($query)
+    {
+        return $query->approved()->where('is_active', true);
+    }
+
     public function tour()
     {
         return $this->belongsTo(Tour::class);

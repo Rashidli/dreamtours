@@ -41,185 +41,208 @@
 
     <main id="main">
       <!-- ==================================================================
-           SECTION 2 — HERO + TOUR SEARCH  (Home)
+           SECTION 2 — HERO CAROUSEL, THEN TOUR SEARCH  (Home)
            ================================================================== -->
       @php
         $heroSection = $sections->get('hero');
         $heroOptions = is_array($heroSection?->options) ? $heroSection->options : [];
         $heroBackground = $heroSection?->background_image ?: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=1920&auto=format&fit=crop';
-        $heroImage = $heroSection?->image ?: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=800&auto=format&fit=crop';
+        $heroTitle = $heroSection?->title ?: 'Find Your Next Adventure';
+        // Slides come from admin: Company content → hero_slide (order, active). Without any, the hero background is shown alone.
+        $slides = collect($frontendData['heroSlides'] ?? [])->filter(fn ($slide) => filled($slide['image']))->values();
+        if ($slides->isEmpty()) {
+          $slides = collect([['image' => $heroBackground, 'place' => '', 'caption' => '', 'url' => '']]);
+        }
       @endphp
-      <section class="relative isolate overflow-hidden bg-ink-900 text-white {{ $heroOptions['section_class'] ?? '' }}">
-        <!-- Background image + overlays -->
-        <img
-          src="{{ $heroBackground }}"
-          alt=""
-          aria-hidden="true"
-          class="absolute inset-0 -z-10 size-full object-cover"
-          loading="eager"
-        />
-        <div class="absolute inset-0 -z-10 bg-gradient-to-r from-ink-950 via-ink-950/92 to-ink-950/50"></div>
-        <div class="absolute inset-0 -z-10 bg-gradient-to-t from-ink-950/80 via-transparent to-ink-950/40"></div>
-
-        <div class="container-page grid items-center gap-12 py-14 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:py-24">
-          <!-- Copy + search -->
-          <div>
-            <p class="font-display text-sm font-semibold uppercase tracking-[0.16em] text-white/80 sm:text-base">
-              {{ $sections->get('hero')?->eyebrow }}
-            </p>
-            <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl text-white">
-              @php($heroTitle = $sections->get('hero')?->title ?: 'Find Your Next Adventure')
-              <span class="block text-white">{{ str($heroTitle)->beforeLast(' ') }}</span>
-              <span class="block text-brand-500">{{ str($heroTitle)->afterLast(' ') }}</span>
-            </h1>
-            <p class="mt-5 max-w-md text-base text-ink-100 sm:text-lg">
-              {{ $sections->get('hero')?->subtitle }}
-            </p>
-
-            <!-- Search bar -->
-            <form
-              x-data="heroSearch"
-              @submit.prevent="submit"
-              @keydown.escape="typeOpen = false"
-              class="mt-8 max-w-2xl divide-y divide-ink-100 rounded-2xl bg-white p-2 text-ink-800 shadow-card sm:flex sm:items-stretch sm:divide-x sm:divide-y-0"
-            >
-              <!-- Destination -->
-              <div class="flex flex-1 items-center gap-2.5 px-3 py-2.5">
-                <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                </svg>
-                <label class="sr-only" for="hero-destination">Where to?</label>
-                <input
-                  id="hero-destination"
-                  type="text"
-                  x-model="destination"
-                  placeholder="Where to?"
-                  class="w-full bg-transparent text-sm placeholder:text-ink-400 focus:outline-none"
-                />
+      @if($showSection('hero'))
+      <section
+        x-data="carousel({ count: {{ $slides->count() }}, interval: 6500 })"
+        @mouseenter="pause()" @mouseleave="resume()" @focusin="pause()" @focusout="resume()"
+        @keydown.left="prev()" @keydown.right="next()"
+        @touchstart.passive="touchStart($event)" @touchend.passive="touchEnd($event)"
+        class="relative isolate overflow-hidden bg-ink-950 text-white {{ $heroOptions['section_class'] ?? '' }}"
+        aria-roledescription="carousel" aria-label="Featured trips"
+      >
+        <div class="relative h-[72svh] max-h-[640px] min-h-[460px] sm:h-[78vh] sm:max-h-[780px] sm:min-h-[540px]">
+          <!-- Slides -->
+          <div class="absolute inset-0 -z-10" :aria-live="stopped ? 'polite' : 'off'">
+            @foreach($slides as $i => $slide)
+              <div x-show="index === {{ $i }}" @if($i > 0) x-cloak @endif
+                   x-transition:enter="transition-opacity duration-700" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                   x-transition:leave="transition-opacity duration-700" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                   class="absolute inset-0" role="group" aria-roledescription="slide" aria-label="{{ $i + 1 }} of {{ $slides->count() }}{{ $slide['place'] ? ': '.$slide['place'] : '' }}">
+                <img src="{{ $slide['image'] }}" alt="{{ ($slide['alt'] ?? '') ?: collect([$slide['place'], $slide['caption']])->filter()->implode(' — ') }}"
+                     class="size-full object-cover" @if($i === 0) fetchpriority="high" @else loading="lazy" @endif>
               </div>
-
-              <!-- Date -->
-              <div class="flex flex-1 items-center gap-2.5 px-3 py-2.5">
-                <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                </svg>
-                <label class="sr-only" for="hero-date">Any date</label>
-                <input
-                  id="hero-date"
-                  type="date"
-                  x-model="date"
-                  class="w-full bg-transparent text-sm text-ink-600 focus:outline-none"
-                />
-              </div>
-
-              <!-- Tour type -->
-              <div class="relative flex flex-1 items-center px-1 py-1 sm:py-0" @click.outside="typeOpen = false">
-                <button
-                  type="button"
-                  @click="typeOpen = !typeOpen"
-                  :aria-expanded="typeOpen"
-                  class="flex w-full items-center gap-2.5 rounded-xl px-2 py-2.5 text-left text-sm hover:bg-ink-50"
-                >
-                  <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                  </svg>
-                  <span class="flex-1 truncate" :class="!type && 'text-ink-400'" x-text="typeLabel"></span>
-                  <svg class="size-4 shrink-0 text-ink-400 transition-transform" :class="typeOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
-                <div
-                  x-show="typeOpen"
-                  x-cloak
-                  x-transition
-                  class="absolute left-0 top-full z-20 mt-2 w-56 rounded-xl bg-white p-1 shadow-xl ring-1 ring-ink-900/10"
-                >
-                  <template x-for="t in types" :key="t">
-                    <button
-                      type="button"
-                      @click="pickType(t)"
-                      class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-ink-50"
-                      :class="typeLabel === t && 'font-semibold text-brand-600'"
-                      x-text="t"
-                    ></button>
-                  </template>
-                </div>
-              </div>
-
-              <!-- Submit -->
-              <div class="pt-2 sm:flex sm:items-center sm:pl-2 sm:pt-0">
-                <button type="submit" class="btn btn-primary w-full sm:w-auto">
-                  <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                  </svg>
-                  {{ $sections->get('hero')?->button_text ?: 'Find Tours' }}
-                </button>
-              </div>
-            </form>
-
-            <!-- Trust badges -->
-            <ul class="mt-7 flex flex-wrap gap-x-7 gap-y-3 text-sm">
-              <li class="flex items-center gap-2 text-ink-100">
-                <svg class="size-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-6m6-13.5v13.5m-6-13.5V18.75m0-13.5H5.625c-.621 0-1.125.504-1.125 1.125v9m0 0h6" />
-                </svg>
-                Comfortable Travel
-              </li>
-              <li class="flex items-center gap-2 text-ink-100">
-                <svg class="size-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
-                </svg>
-                Expertly Planned
-              </li>
-              <li class="flex items-center gap-2 text-ink-100">
-                <svg class="size-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                </svg>
-                Best Price Guarantee
-              </li>
-            </ul>
+            @endforeach
+            <!-- Shade only the bottom and left edges so the copy reads without darkening the subject -->
+            <div class="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/25 to-ink-950/10"></div>
+            <div class="absolute inset-0 hidden bg-gradient-to-r from-ink-950/65 via-ink-950/10 to-transparent lg:block"></div>
           </div>
 
-          <!-- Destination slider (admin: Company content → Hero slide) -->
-          @php($slides = collect($frontendData['heroSlides'] ?? [])->filter(fn ($slide) => filled($slide['image']))->values())
-          @if($slides->isNotEmpty())
-            <div x-data="carousel({ count: {{ $slides->count() }}, interval: 5500 })" @mouseenter="pause()" @mouseleave="play()"
-                 @touchstart.passive="touchStart($event)" @touchend.passive="touchEnd($event)"
-                 class="relative overflow-hidden rounded-4xl shadow-2xl ring-4 ring-white/10" aria-roledescription="carousel" aria-label="Destinations">
-              <div class="relative aspect-[4/3] lg:aspect-[4/5] xl:aspect-[5/5]">
-                @foreach($slides as $i => $slide)
-                  <a href="{{ $slide['url'] ?: '#' }}" x-show="index === {{ $i }}" @if($i > 0) x-cloak @endif
-                     x-transition:enter="transition duration-700" x-transition:enter-start="opacity-0 scale-105" x-transition:enter-end="opacity-100 scale-100"
-                     x-transition:leave="transition duration-500 absolute inset-0" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                     class="absolute inset-0 block" aria-roledescription="slide" aria-label="{{ $slide['place'] }}">
-                    <img src="{{ $slide['image'] }}" alt="{{ $slide['place'] }}" class="size-full object-cover" @if($i > 0) loading="lazy" @endif>
-                    <span class="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent"></span>
-                    <span class="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                      <span class="flex items-center gap-1.5 font-display text-2xl font-extrabold text-white sm:text-3xl"><span aria-hidden="true">📍</span>{{ $slide['place'] }}</span>
-                      @if($slide['caption'])<span class="mt-1 block text-sm text-ink-100">{{ $slide['caption'] }}</span>@endif
-                      @if($slide['url'])<span class="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">View tour →</span>@endif
-                    </span>
-                  </a>
-                @endforeach
-              </div>
-              @if($slides->count() > 1)
-                <button type="button" @click="prev(); play()" class="absolute left-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-xl text-ink-900 shadow hover:bg-white" aria-label="Previous destination">‹</button>
-                <button type="button" @click="next(); play()" class="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-xl text-ink-900 shadow hover:bg-white" aria-label="Next destination">›</button>
-                <div class="absolute right-5 top-5 flex gap-1.5">
+          <!-- Copy -->
+          <div class="container-page flex h-full flex-col justify-end pb-24 sm:pb-24">
+            <div class="max-w-2xl">
+              @if($heroSection?->eyebrow)
+                <p class="font-display text-sm font-semibold uppercase tracking-[0.16em] text-white/85 sm:text-base">{{ $heroSection->eyebrow }}</p>
+              @endif
+              <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-sm sm:text-5xl lg:text-6xl">
+                <span class="block">{{ str($heroTitle)->beforeLast(' ') }}</span>
+                <span class="block text-brand-500">{{ str($heroTitle)->afterLast(' ') }}</span>
+              </h1>
+              @if($heroSection?->subtitle)
+                <p class="mt-4 max-w-xl text-base text-ink-100 sm:text-lg">{{ $heroSection->subtitle }}</p>
+              @endif
+              @foreach($slides as $i => $slide)
+                @if($slide['place'])
+                  <p x-show="index === {{ $i }}" @if($i > 0) x-cloak @endif class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                    <span class="inline-flex items-center gap-1.5 font-semibold text-white"><svg class="size-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>{{ $slide['place'] }}</span>
+                    @if($slide['caption'])<span class="text-ink-100">{{ $slide['caption'] }}</span>@endif
+                    @if($slide['url'])<a href="{{ $slide['url'] }}" class="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-white/25">View tour →</a>@endif
+                  </p>
+                @endif
+              @endforeach
+            </div>
+          </div>
+
+          <!-- Controls -->
+          @if($slides->count() > 1)
+            <div class="absolute inset-x-0 bottom-6">
+              <div class="container-page flex items-center justify-center gap-3 sm:justify-end">
+                <button type="button" @click="prev()" class="grid size-10 place-items-center rounded-full bg-white/85 text-xl text-ink-900 shadow hover:bg-white" aria-label="Previous slide">‹</button>
+                <div class="flex items-center gap-1.5">
                   @foreach($slides as $i => $slide)
-                    <button type="button" @click="go({{ $i }}); play()" class="h-2 rounded-full transition-all" :class="index === {{ $i }} ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'" aria-label="Show {{ $slide['place'] }}"></button>
+                    <button type="button" @click="go({{ $i }})" class="grid h-6 place-items-center" :aria-current="index === {{ $i }}" aria-label="Show slide {{ $i + 1 }}{{ $slide['place'] ? ': '.$slide['place'] : '' }}">
+                      <span class="block h-2 rounded-full transition-all" :class="index === {{ $i }} ? 'w-6 bg-white' : 'w-2 bg-white/55 hover:bg-white/85'"></span>
+                    </button>
                   @endforeach
                 </div>
-              @endif
+                <button type="button" @click="next()" class="grid size-10 place-items-center rounded-full bg-white/85 text-xl text-ink-900 shadow hover:bg-white" aria-label="Next slide">›</button>
+                <button type="button" @click="toggle()" class="grid size-10 place-items-center rounded-full bg-ink-950/50 text-white ring-1 ring-white/40 hover:bg-ink-950/70" :aria-label="stopped ? 'Play slideshow' : 'Pause slideshow'">
+                  <svg x-show="!stopped" class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>
+                  <svg x-show="stopped" x-cloak class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+              </div>
             </div>
           @endif
+        </div>
+      </section>
+      @endif
+
+      <!-- Trip search — its own band below the carousel so it never covers the image -->
+      <section class="bg-ink-950 pb-10 pt-6 text-white sm:pb-12 sm:pt-8" aria-labelledby="hero-search-title">
+        <div class="container-page">
+          <h2 id="hero-search-title" class="sr-only">Search tours</h2>
+          <!-- Search bar -->
+          <form
+            data-hide-wa-float
+            x-data="heroSearch"
+            @submit.prevent="submit"
+            @keydown.escape="typeOpen = false"
+            class="mx-auto max-w-5xl divide-y divide-ink-100 rounded-2xl bg-white p-2 text-ink-800 shadow-card sm:flex sm:items-stretch sm:divide-x sm:divide-y-0"
+          >
+            <!-- Destination -->
+            <div class="flex flex-1 items-center gap-2.5 px-3 py-2.5">
+              <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+              <label class="sr-only" for="hero-destination">Where to?</label>
+              <input
+                id="hero-destination"
+                type="text"
+                x-model="destination"
+                placeholder="Where to?"
+                class="w-full bg-transparent text-sm placeholder:text-ink-400 focus:outline-none"
+              />
+            </div>
+
+            <!-- Date -->
+            <div class="flex flex-1 items-center gap-2.5 px-3 py-2.5">
+              <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+              </svg>
+              <label class="sr-only" for="hero-date">Any date</label>
+              <input
+                id="hero-date"
+                type="date"
+                x-model="date"
+                class="w-full bg-transparent text-sm text-ink-600 focus:outline-none"
+              />
+            </div>
+
+            <!-- Tour type -->
+            <div class="relative flex flex-1 items-center px-1 py-1 sm:py-0" @click.outside="typeOpen = false">
+              <button
+                type="button"
+                @click="typeOpen = !typeOpen"
+                :aria-expanded="typeOpen"
+                class="flex w-full items-center gap-2.5 rounded-xl px-2 py-2.5 text-left text-sm hover:bg-ink-50"
+              >
+                <svg class="size-5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+                <span class="flex-1 truncate" :class="!type && 'text-ink-400'" x-text="typeLabel"></span>
+                <svg class="size-4 shrink-0 text-ink-400 transition-transform" :class="typeOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+              <div
+                x-show="typeOpen"
+                x-cloak
+                x-transition
+                class="absolute left-0 top-full z-20 mt-2 w-56 rounded-xl bg-white p-1 shadow-xl ring-1 ring-ink-900/10"
+              >
+                <template x-for="t in types" :key="t">
+                  <button
+                    type="button"
+                    @click="pickType(t)"
+                    class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-ink-50"
+                    :class="typeLabel === t && 'font-semibold text-brand-600'"
+                    x-text="t"
+                  ></button>
+                </template>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="pt-2 sm:flex sm:items-center sm:pl-2 sm:pt-0">
+              <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                {{ $sections->get('hero')?->button_text ?: 'Find Tours' }}
+              </button>
+            </div>
+          </form>
+          <!-- Trust badges -->
+          <ul class="mt-6 flex flex-wrap justify-center gap-x-7 gap-y-3 text-sm">
+            <li class="flex items-center gap-2 text-ink-100">
+              <svg class="size-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-6m6-13.5v13.5m-6-13.5V18.75m0-13.5H5.625c-.621 0-1.125.504-1.125 1.125v9m0 0h6" />
+              </svg>
+              Comfortable Travel
+            </li>
+            <li class="flex items-center gap-2 text-ink-100">
+              <svg class="size-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+              </svg>
+              Expertly Planned
+            </li>
+            <li class="flex items-center gap-2 text-ink-100">
+              <svg class="size-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+              Best Price Guarantee
+            </li>
+          </ul>
         </div>
       </section>
 
       <!-- ==================================================================
            SECTION 3 — UPCOMING TOURS  (Home §3)
            ================================================================== -->
+      @if($showSection('featured_tours'))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
@@ -249,11 +272,13 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
       <!-- ==================================================================
            SECTION 4 — TOUR CATEGORIES  (Home §3 / §4)
            ================================================================== -->
+      @if($showSection('tour_types'))
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -276,10 +301,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 5 — POPULAR DESTINATIONS  (Home §5)
            ================================================================== -->
+      @if($showSection('destinations') && filled($frontendData['destinations']))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
@@ -349,10 +376,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 6 — WHY DREAMTOUR  (Home §5 — advantages)
            ================================================================== -->
+      @if($showSection('why_choose_us'))
       <section class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -414,10 +443,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 7 — UPCOMING DATES  (Home §5)
            ================================================================== -->
+      @if($showSection('departures'))
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
@@ -434,7 +465,7 @@
           <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             @foreach(collect($frontendData['tours'])->where('home', true)->sortBy('dateValue') as $t)
               @php($departsAt = $t['dateValue'] ? \Carbon\Carbon::parse($t['dateValue']) : null)
-              <li>
+              <li class="min-w-0">
                 <a href="/tours/{{ $t['slug'] }}" class="group flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-900/5 transition hover:-translate-y-0.5 hover:shadow-card">
                   <span class="grid size-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-center text-brand-700">
                     <span class="block font-display text-lg font-extrabold leading-none">{{ $departsAt?->format('j') }}</span>
@@ -456,10 +487,12 @@
           </ul>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 8 — CUSTOMER REVIEWS  (Home §5)
            ================================================================== -->
+      @if($showSection('reviews') && filled($frontendData['reviews']))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
@@ -508,10 +541,12 @@
           </div>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 9 — FROM PREVIOUS TOURS  (Home §5 — gallery preview)
            ================================================================== -->
+      @if($showSection('gallery_preview'))
       <section class="bg-sand-50 py-16 lg:py-24">
         <div class="container-page">
           <div class="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
@@ -549,10 +584,34 @@
           </div>
         </div>
       </section>
+      @endif
+
+      <!-- ==================================================================
+           VISA SUPPORT INTRODUCTION  (admin: Page sections → home / visa_intro)
+           ================================================================== -->
+      @if($showSection('visa_intro'))
+      @php($visaIntro = $sections->get('visa_intro'))
+      <section class="bg-white py-14 lg:py-20">
+        <div class="container-page">
+          <div class="grid items-center gap-8 overflow-hidden rounded-4xl bg-sand-50 p-7 ring-1 ring-ink-900/5 sm:p-10 lg:grid-cols-[auto_1fr_auto] lg:gap-10 lg:p-12">
+            <span class="grid size-16 place-items-center rounded-2xl bg-brand-600 text-white shadow-card" aria-hidden="true">
+              <svg class="size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+            </span>
+            <div class="max-w-2xl">
+              <p class="font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-600">{{ $visaIntro?->eyebrow ?: 'Visa Support' }}</p>
+              <h2 class="mt-2 font-display text-2xl font-extrabold text-ink-900 sm:text-3xl">{{ $visaIntro?->title ?: 'Need help with your visa?' }}</h2>
+              <p class="mt-3 text-ink-600">{{ $visaIntro?->subtitle ?: 'We help you complete application forms, check your documents for completeness and book visa appointments.' }}</p>
+            </div>
+            <a href="{{ $visaIntro?->button_url ?: '/visa-support' }}" class="btn btn-primary btn-lg justify-self-start lg:justify-self-end">{{ $visaIntro?->button_text ?: 'More Information' }} →</a>
+          </div>
+        </div>
+      </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 10 — QUICK BOOKING REQUEST + CONTACT  (Home §5)
            ================================================================== -->
+      @if($showSection('request_form'))
       <section id="request" class="bg-ink-900 py-16 text-white lg:py-24">
         <div class="container-page grid gap-12 lg:grid-cols-2 lg:gap-16">
           <!-- Contact info + social links -->
@@ -668,10 +727,12 @@
           </form>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 11 — PICK-UP POINTS  (Home §5)
            ================================================================== -->
+      @if($showSection('pickup_points'))
       <section class="bg-white py-16 lg:py-24">
         <div class="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
           <div>
@@ -702,10 +763,12 @@
           </ul>
         </div>
       </section>
+      @endif
 
       <!-- ==================================================================
            SECTION 12 — HELP CTA BAND  (Home §5)
            ================================================================== -->
+      @if($showSection('cta'))
       <section class="bg-brand-600 py-14 text-white">
         <div class="container-page flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
           <div class="flex items-center gap-4">
@@ -725,6 +788,7 @@
           </div>
         </div>
       </section>
+      @endif
     </main>
 
     <!-- ====================================================================

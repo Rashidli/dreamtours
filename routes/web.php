@@ -41,6 +41,8 @@ $frontPages = [
     'one-day-tours' => 'one-day-tours',
     'private-tours' => 'private-tours',
     'visa-support' => 'visa-support',
+    'privacy-policy' => 'privacy-policy',
+    'terms-and-conditions' => 'terms-and-conditions',
 ];
 
 foreach ($frontPages as $uri => $view) {
@@ -50,6 +52,7 @@ foreach ($frontPages as $uri => $view) {
         ->name("front.{$view}");
 }
 Route::post('booking-requests', [FrontBookingController::class,'store'])->name('front.bookings.store');
+Route::post('visa-enquiries', [\App\Http\Controllers\VisaEnquiryController::class, 'store'])->middleware('throttle:10,1')->name('front.visa-enquiries.store');
 Route::get('tours/{slug}', [TourPageController::class,'show'])->middleware('frontend.copy')->name('front.tours.show');
 Route::get('tours/{slug}/book', [BookingPageController::class, 'create'])->middleware('frontend.copy')->name('front.tours.book');
 Route::post('tours/{slug}/book', [BookingPageController::class, 'store'])->middleware('throttle:10,1')->name('front.tours.book.store');
@@ -84,7 +87,16 @@ Route::prefix('admin')->group(function () {
         Route::resource('page-sections', PageSectionController::class)->only(['index', 'edit', 'update']);
         Route::resource('navigation-items', NavigationItemController::class)->except('show');
         Route::resource('tours', TourController::class)->except('show');
+        Route::get('tour-filters', [\App\Http\Controllers\Admin\TourFilterController::class, 'index'])->name('tour-filters.index');
+        Route::post('tour-filters', [\App\Http\Controllers\Admin\TourFilterController::class, 'store'])->name('tour-filters.store');
+        Route::put('tour-filters/{tour_filter}', [\App\Http\Controllers\Admin\TourFilterController::class, 'update'])->name('tour-filters.update');
+        Route::delete('tour-filters/{tour_filter}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroy'])->name('tour-filters.destroy');
+        Route::post('tour-filters/{tour_filter}/options', [\App\Http\Controllers\Admin\TourFilterController::class, 'storeOption'])->name('tour-filter-options.store');
+        Route::put('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'updateOption'])->name('tour-filter-options.update');
+        Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
+        Route::resource('visa-enquiries', \App\Http\Controllers\Admin\VisaEnquiryController::class)->only(['index', 'show', 'update', 'destroy']);
+        Route::put('bookings/{booking}/details', [AdminBookingController::class, 'updateDetails'])->name('bookings.details');
         Route::put('bookings/{booking}/seats', [AdminBookingController::class, 'updateSeats'])->name('bookings.seats');
         Route::post('bookings/{booking}/seat-notice', [AdminBookingController::class, 'sendSeatNotice'])->name('bookings.seat-notice');
         Route::get('bookings/{booking}/payment-proof', [AdminBookingController::class, 'paymentProof'])->name('bookings.payment-proof');
@@ -98,10 +110,11 @@ Route::prefix('admin')->group(function () {
         Route::get('gallery-albums/{album}/media/{medium}/edit',[DomainContentController::class,'editMedia'])->name('gallery-media.edit');
         Route::put('gallery-albums/{album}/media/{medium}',[DomainContentController::class,'updateMedia'])->name('gallery-media.update');
         Route::delete('gallery-albums/{album}/media/{medium}',[DomainContentController::class,'destroyMedia'])->name('gallery-media.destroy');
-        Route::post('tours/{tour}/departures', [TourStructureController::class,'storeDeparture'])->name('tour-departures.store');
+        Route::post('tours/{tour}/departures', [\App\Http\Controllers\Admin\TourDepartureController::class,'store'])->name('tour-departures.store');
         Route::get('tours/{tour}/structure/{section}', [TourStructureController::class,'index'])->name('tour-structure.index');
-        Route::put('tours/{tour}/departures/{departure}', [TourStructureController::class,'updateDeparture'])->name('tour-departures.update');
-        Route::delete('tours/{tour}/departures/{departure}', [TourStructureController::class,'destroyDeparture'])->name('tour-departures.destroy');
+        Route::put('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'update'])->name('tour-departures.update');
+        Route::get('departures/{departure}/passengers', [\App\Http\Controllers\Admin\TourDepartureController::class,'passengers'])->name('tour-departures.passengers');
+        Route::delete('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'destroy'])->name('tour-departures.destroy');
         Route::post('tours/{tour}/itinerary-days', [TourStructureController::class,'storeDay'])->name('tour-itinerary-days.store');
         Route::put('tours/{tour}/itinerary-days/{day}', [TourStructureController::class,'updateDay'])->name('tour-itinerary-days.update');
         Route::delete('tours/{tour}/itinerary-days/{day}', [TourStructureController::class,'destroyDay'])->name('tour-itinerary-days.destroy');

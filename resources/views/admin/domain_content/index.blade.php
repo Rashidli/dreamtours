@@ -1,5 +1,5 @@
 @include('admin.includes.header')
-@php($labels = ['visa-services' => 'Visa services', 'gallery-albums' => 'Gallery albums', 'gallery-categories' => 'Gallery categories'])
+@php($labels = ['visa-services' => 'Visa Support Pricing', 'gallery-albums' => 'Gallery albums', 'gallery-categories' => 'Gallery categories'])
 @php($title = $labels[$resource] ?? str($resource)->replace('-', ' ')->title())
 <div class="main-content">
     <div class="page-content">
@@ -62,7 +62,7 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Name</th>
-                                            @if($resource === 'visa-services')<th>Price</th><th>Duration</th>@endif
+                                            @if($resource === 'visa-services')<th>Service fee</th><th>Processing</th>@endif
                                             @if($resource === 'gallery-albums')<th>Media</th>@endif
                                             <th>Status</th>
                                             <th>Actions</th>
@@ -72,9 +72,9 @@
                                     @forelse($items as $key => $item)
                                         <tr>
                                             <td>{{ $items->firstItem() + $key }}</td>
-                                            <td>{{ data_get($item, $label) }}</td>
+                                            <td>@if($resource === 'visa-services' && ($item->country || $item->destination))<strong>{{ $item->country ?: $item->destination?->name }}</strong><br><small class="text-muted">{{ data_get($item, $label) }}</small>@else{{ data_get($item, $label) }}@endif</td>
                                             @if($resource === 'visa-services')
-                                                <td>{{ $item->price ? $item->price.' '.$item->currency : '—' }}</td>
+                                                <td>{{ $item->price !== null ? money($item->price, $item->currency) : '—' }}@if($item->third_party_fee !== null)<br><small class="text-muted">+ {{ money($item->third_party_fee, $item->currency) }} third-party</small>@endif</td>
                                                 <td>{{ $item->processing_time ?: '—' }}</td>
                                             @endif
                                             @if($resource === 'gallery-albums')

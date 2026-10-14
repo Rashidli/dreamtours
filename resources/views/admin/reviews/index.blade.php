@@ -26,11 +26,12 @@
   <td>{{$review->tour?->name?:'General'}}@if($review->travel_date)<br><small class="text-muted">Travelled {{$review->travel_date->format('M Y')}}</small>@endif</td>
   <td><small>{{str($review->content)->limit(220)}}</small></td>
   <td class="text-nowrap">{{str_repeat('★',$review->rating)}}<span class="text-muted">{{str_repeat('★',5-$review->rating)}}</span></td>
-  <td><span class="badge bg-{{$badge}}">{{\App\Models\Review::STATUSES[$review->status]??$review->status}}</span>@if($review->is_active)<br><small class="text-muted">Featured</small>@endif</td>
+  <td><span class="badge bg-{{$badge}}">{{\App\Models\Review::STATUSES[$review->status]??$review->status}}</span>@if($review->status==='approved')<br><small class="{{$review->is_active?'text-success':'text-muted'}}">{{$review->is_active?'Published':'Unpublished'}}</small>@endif</td>
   <td class="text-nowrap">
    @can('edit-reviews')
-    @if($review->status!=='approved')<form class="d-inline" method="post" action="{{route('reviews.moderate',$review)}}">@csrf @method('PUT')<input type="hidden" name="status" value="approved"><button class="btn btn-sm btn-success" title="Approve"><i class="ri-check-line"></i></button></form>@endif
-    @if($review->status!=='rejected')<form class="d-inline" method="post" action="{{route('reviews.moderate',$review)}}">@csrf @method('PUT')<input type="hidden" name="status" value="rejected"><button class="btn btn-sm btn-outline-secondary" title="Reject"><i class="ri-close-line"></i></button></form>@endif
+    @if($review->status!=='approved'||!$review->is_active)<form class="d-inline" method="post" action="{{route('reviews.moderate',$review)}}">@csrf @method('PUT')<input type="hidden" name="action" value="approve"><button class="btn btn-sm btn-success" title="{{$review->status==='approved'?'Publish again':'Approve and publish'}}"><i class="ri-check-line"></i></button></form>@endif
+    @if($review->status!=='rejected')<form class="d-inline" method="post" action="{{route('reviews.moderate',$review)}}">@csrf @method('PUT')<input type="hidden" name="action" value="reject"><button class="btn btn-sm btn-outline-secondary" title="Reject"><i class="ri-close-line"></i></button></form>@endif
+    @if($review->status==='approved'&&$review->is_active)<form class="d-inline" method="post" action="{{route('reviews.moderate',$review)}}">@csrf @method('PUT')<input type="hidden" name="action" value="unpublish"><button class="btn btn-sm btn-outline-warning" title="Unpublish"><i class="ri-eye-off-line"></i></button></form>@endif
     <a class="btn btn-sm btn-primary" title="Edit" href="{{route('reviews.edit',$review)}}"><i class="ri-pencil-line"></i></a>
    @endcan
    @can('delete-reviews')<form class="d-inline" method="post" action="{{route('reviews.destroy',$review)}}">@csrf @method('DELETE')<button class="btn btn-sm btn-danger" onclick="return confirm('Delete this item?')"><i class="ri-delete-bin-line"></i></button></form>@endcan

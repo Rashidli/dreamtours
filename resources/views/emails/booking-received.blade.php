@@ -10,20 +10,20 @@
   <table cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
     <tr><td style="color:#6b7280;width:40%">Booking reference</td><td><strong>{{ $booking->reference }}</strong></td></tr>
     <tr><td style="color:#6b7280">Tour</td><td>{{ $booking->tour?->name }}</td></tr>
-    <tr><td style="color:#6b7280">Departure</td><td>{{ $departure?->departs_at?->format('l, F j, Y g:i A') }}</td></tr>
-    <tr><td style="color:#6b7280">Pickup point</td><td>{{ $booking->pickupPoint?->name }}</td></tr>
+    <tr><td style="color:#6b7280">Departure</td><td>{{ $departure ? \App\Support\DepartureCalendar::range($departure).' · '.$departure->departs_at->format('g:i A') : '' }}</td></tr>
+    <tr><td style="color:#6b7280">Pickup point</td><td>{{ $booking->hasMixedPickups() ? 'Per passenger, see below' : $booking->pickupPoint?->name }}</td></tr>
     <tr><td style="color:#6b7280">Passengers</td><td>{{ $booking->participant_count }}</td></tr>
     <tr><td style="color:#6b7280">Total</td><td>{{ money($booking->total_amount, $booking->currency) }} {{ setting('price_tax_note') }}</td></tr>
     <tr><td style="color:#6b7280">Deposit due now</td><td><strong>{{ money($booking->deposit_amount, $booking->currency) }}</strong></td></tr>
     @if($forAdmin)
-      <tr><td style="color:#6b7280">Customer</td><td>{{ $booking->first_name }} {{ $booking->last_name }} · {{ $booking->phone }} · {{ $booking->email }}</td></tr>
+      <tr><td style="color:#6b7280">Customer</td><td>{{ $booking->first_name }} {{ $booking->last_name }} · {{ $booking->phone }} · {{ $booking->email }}@if($booking->whatsapp) · WhatsApp {{ $booking->whatsapp }}@endif</td></tr>
       <tr><td style="color:#6b7280">Emergency contact</td><td>{{ $booking->emergency_contact_name }} · {{ $booking->emergency_contact_phone }}</td></tr>
     @endif
   </table>
   <p style="margin-bottom:4px"><strong>Passengers</strong></p>
   <ul style="margin-top:0;padding-left:18px">
     @foreach($booking->passengers as $passenger)
-      <li>{{ $passenger->first_name }} {{ $passenger->last_name }} — {{ \App\Models\TourDeparturePrice::CODES[$passenger->price_code][0] ?? $passenger->price_code }}@if($passenger->room_number), room {{ $passenger->room_number }}@endif</li>
+      <li>{{ $passenger->first_name }} {{ $passenger->last_name }} — {{ \App\Models\TourDeparturePrice::CODES[$passenger->price_code][0] ?? $passenger->price_code }}@if($passenger->room_number), room {{ $passenger->room_number }}@endif @if($passenger->pickupPoint)· pickup: {{ $passenger->pickupPoint->name }}@endif @if($passenger->meal_selection)· meal: {{ $passenger->meal_selection }}@endif</li>
     @endforeach
   </ul>
   @unless($forAdmin)

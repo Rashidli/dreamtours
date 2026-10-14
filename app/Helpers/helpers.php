@@ -97,3 +97,22 @@ if (!function_exists('canadian_phone')) {
             : null;
     }
 }
+
+if (!function_exists('international_phone')) {
+    /**
+     * Combine a dialling code and a local number into "+63 9171234567" ("+1 416-555-0100" for
+     * North America), or null when the number cannot be valid. A leading trunk "0" is dropped.
+     */
+    function international_phone(?string $dial, ?string $number): ?string
+    {
+        $dial = preg_replace('/\D+/', '', (string) $dial);
+        $digits = preg_replace('/\D+/', '', (string) $number);
+        if ($dial === '1') {
+            return canadian_phone($digits);
+        }
+        $digits = ltrim($digits, '0');
+        $length = strlen($dial) + strlen($digits);
+
+        return $dial !== '' && strlen($digits) >= 4 && $length >= 8 && $length <= 15 ? "+$dial $digits" : null;
+    }
+}
