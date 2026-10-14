@@ -52,6 +52,12 @@ foreach ($frontPages as $uri => $view) {
         ->name("front.{$view}");
 }
 Route::post('booking-requests', [FrontBookingController::class,'store'])->name('front.bookings.store');
+// Project reports kept in docs/ (Markdown), shown in the browser as plain UTF-8 text.
+Route::get('docs/{name}.md', function (string $name) {
+    $path = base_path('docs/'.$name.'.md');
+    abort_unless(preg_match('/^[A-Za-z0-9-]+$/', $name) && is_file($path), 404);
+    return response()->file($path, ['Content-Type' => 'text/plain; charset=utf-8', 'X-Robots-Tag' => 'noindex']);
+})->name('docs.markdown');
 Route::post('visa-enquiries', [\App\Http\Controllers\VisaEnquiryController::class, 'store'])->middleware('throttle:10,1')->name('front.visa-enquiries.store');
 Route::get('tours/{slug}', [TourPageController::class,'show'])->middleware('frontend.copy')->name('front.tours.show');
 Route::get('tours/{slug}/book', [BookingPageController::class, 'create'])->middleware('frontend.copy')->name('front.tours.book');
