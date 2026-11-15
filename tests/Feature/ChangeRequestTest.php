@@ -348,6 +348,54 @@ class ChangeRequestTest extends TestCase
         Mail::assertNothingOutgoing();
     }
 
+    private function ogTags(string $uri): array
+    {
+        preg_match_all('/<meta (?:property|name)="((?:og|twitter):[a-z:]+)" content="([^"]*)"/', $this->get($uri)->assertOk()->getContent(), $m);
+
+        return array_combine($m[1], array_map('html_entity_decode', $m[2]));
+    }
+
+    // Link previews — pages show the logo card (a 1200×630 JPEG), not the favicon.
+    public function test_pages_share_a_logo_card_as_link_preview(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        Storage::fake('public');
+        Storage::disk('public')->put('logo.webp', (string) UploadedFile::fake()->image('logo.webp', 2361, 410)->getContent());
+        $this->settings(['logo' => 'logo.webp', 'site_name' => 'DreamTour']);
+
+        $og = $this->ogTags('/');
+        $this->assertMatchesRegularExpression('#/storage/social/brand-[a-f0-9]{16}\.jpg$#', $og['og:image']);
+        $this->assertSame(['1200', '630', 'image/jpeg'], [$og['og:image:width'], $og['og:image:height'], $og['og:image:type']]);
+        $this->assertSame($og['og:image'], $og['twitter:image']);
+        $this->assertSame('summary_large_image', $og['twitter:card']);
+        $this->assertNotEmpty($og['og:title']);
+        [$width, $height, $type] = getimagesizefromstring(Storage::disk('public')->get(str($og['og:image'])->after('/storage/')));
+        $this->assertSame([1200, 630, IMAGETYPE_JPEG], [$width, $height, $type]);
+
+        // A new logo makes a new card.
+        Storage::disk('public')->put('logo-2.png', (string) UploadedFile::fake()->image('logo-2.png', 800, 200)->getContent());
+        $this->settings(['logo' => 'logo-2.png']);
+        $this->assertNotSame($og['og:image'], $this->ogTags('/')['og:image']);
+    }
+
+    // Link previews — a tour shares its own photo as a JPEG; tours without a photo share the logo card.
+    public function test_tour_pages_share_their_photo_as_a_jpeg(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('cover.webp', (string) UploadedFile::fake()->image('cover.webp', 2400, 1600)->getContent());
+        Storage::disk('public')->put('logo.webp', (string) UploadedFile::fake()->image('logo.webp', 1200, 200)->getContent());
+        $this->settings(['logo' => 'logo.webp']);
+        [$tour] = $this->bookableTour(['main_image' => 'cover.webp']);
+
+        $og = $this->ogTags('/tours/niagara-day-trip');
+        $this->assertSame('Niagara Day Trip', $og['og:title']);
+        $this->assertMatchesRegularExpression('#/storage/social/photo-[a-f0-9]{16}\.jpg$#', $og['og:image']);
+        $this->assertSame(1, substr_count($this->get('/tours/niagara-day-trip')->getContent(), 'property="og:image"'));
+
+        $tour->forceFill(['main_image' => null])->save();
+        $this->assertMatchesRegularExpression('#/storage/social/brand-#', $this->ogTags('/tours/niagara-day-trip')['og:image']);
+    }
+
     // Security — nobody can open an admin account from the website; admins add users in Admin > Users.
     public function test_admin_registration_is_closed(): void
     {

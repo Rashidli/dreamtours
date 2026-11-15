@@ -1,12 +1,16 @@
 <!doctype html>
 <html lang="en" class="scroll-smooth">
 <head>
+  @php
+    // Link previews show the tour photo (as a JPEG — WebP falls back to the favicon in Instagram and WhatsApp), else the logo.
+    $ogTitle = $tour->name;
+    $ogDescription = $tour->short_description;
+    $coverImage = $tour->getRawOriginal('main_image');
+    $ogImage = \App\Support\SocialImage::photo($coverImage) ?: (str_starts_with((string) $coverImage, 'https://') ? $coverImage : null);
+  @endphp
   @include('front.partials.head_assets')
   <title>{{ $tour->name }} | {{ $siteSettings->get('site_name', 'DreamTour') }}</title>
   <meta name="description" content="{{ $tour->short_description }}">
-  <meta property="og:title" content="{{ $tour->name }}">
-  <meta property="og:description" content="{{ $tour->short_description }}">
-  @if($tour->main_image)<meta property="og:image" content="{{ $tour->main_image }}">@endif
 </head>
 @php
   $currency = $nextDeparture?->currency ?: 'CAD';
