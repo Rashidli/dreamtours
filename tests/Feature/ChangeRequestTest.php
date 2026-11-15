@@ -4,7 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Tour;
 use App\Models\TourDeparture;
+use App\Models\User;
+use Database\Seeders\CmsPermissionSeeder;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 /** DreamTour Website Developer Change Request (11 Nov 2026). */
@@ -43,5 +47,42 @@ class ChangeRequestTest extends TestCase
         $this->get('/tours/niagara-day-trip')
             ->assertOk()
             ->assertSeeInOrder(['Per <b class="text-ink-900">adult (12+)</b>', 'CA$105', 'Per <b class="text-ink-900">child (2–11)</b>', 'CA$95', 'Per <b class="text-ink-900">infant (0–1)</b>', 'CA$0'], false);
+    }
+
+    // 03 — "Show in homepage carousel" is its own switch, saved and editable later.
+    public function test_admin_toggles_homepage_carousel_independently_of_show_on_home(): void
+    {
+        $this->seed(CmsPermissionSeeder::class);
+        Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+        $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
+        $payload = ['duration_days' => 1, 'duration_nights' => 0, 'status' => 'published', 'show_on_home' => 1, 'show_in_carousel' => 1, 'en' => ['name' => 'Carousel Tour', 'slug' => 'carousel-tour']];
+
+        $this->post(route('tours.store'), $payload)->assertRedirect();
+        $tour = Tour::first();
+        $this->assertTrue($tour->show_in_carousel);
+        $this->assertTrue($tour->show_on_home);
+
+        $this->put(route('tours.update', $tour), array_diff_key($payload, ['show_in_carousel' => 1]))->assertRedirect();
+        $this->assertFalse($tour->fresh()->show_in_carousel);
+        $this->assertTrue($tour->fresh()->show_on_home);
+    }
+
+    // 03 — flagged published tours lead the hero carousel with their cover image and link.
+    public function test_homepage_carousel_shows_flagged_published_tours_first(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        [$flagged] = $this->bookableTour(['main_image' => 'tours/flagged.jpg', 'show_in_carousel' => true]);
+        Tour::create(['main_image' => 'tours/off.jpg', 'duration_days' => 1, 'duration_nights' => 0, 'status' => 'published', 'show_on_home' => true, 'en' => ['name' => 'Not In Carousel', 'slug' => 'not-in-carousel']]);
+        Tour::create(['main_image' => 'tours/draft.jpg', 'show_in_carousel' => true, 'duration_days' => 1, 'duration_nights' => 0, 'status' => 'draft', 'en' => ['name' => 'Draft Carousel Tour', 'slug' => 'draft-carousel-tour']]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('aria-label="1 of', false)
+            ->assertSee(': Niagara Day Trip"', false)
+            ->assertSee($flagged->main_image, false)
+            ->assertSee('href="/tours/niagara-day-trip" class="inline-flex', false)
+            ->assertDontSee(': Not In Carousel"', false)
+            ->assertDontSee(': Draft Carousel Tour"', false);
+        $this->assertMatchesRegularExpression('/aria-label="1 of \d+: Niagara Day Trip"/', $this->get('/')->getContent());
     }
 }
