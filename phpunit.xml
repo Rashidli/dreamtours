@@ -18,6 +18,8 @@
     <!-- Never the live or staging database: RefreshDatabase wipes whatever it connects to. -->
     <env name="DB_DATABASE" value="websites_tours_test" force="true"/>
     <env name="MAIL_MAILER" value="array"/>
+    <!-- Staging redirects all email to one address; tests check the real recipients. -->
+    <env name="MAIL_REDIRECT_TO" value="" force="true"/>
     <env name="QUEUE_CONNECTION" value="sync"/>
     <env name="SESSION_DRIVER" value="array"/>
     <env name="TELESCOPE_ENABLED" value="false"/>

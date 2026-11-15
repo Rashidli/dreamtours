@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tour extends Model implements Contract
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use Translatable, SoftDeletes, ResolvesMediaUrls;
 
     public array $translatedAttributes = ['name', 'slug', 'short_description', 'description', 'cancellation_policy', 'refund_policy', 'deposit_policy', 'boarding_rules', 'baggage_rules', 'important_notes', 'meal_options', 'waiver_title', 'waiver'];

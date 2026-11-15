@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Activity;
 use App\Mail\VisaEnquiryReceived;
 use App\Models\VisaEnquiry;
 use App\Support\CountryCodes;
@@ -43,6 +44,7 @@ class VisaEnquiryController extends Controller
         if ($to = setting('visa_email') ?: setting('email')) {
             try {
                 Mail::to($to)->send(new VisaEnquiryReceived($enquiry));
+                Activity::record('email_queued', $enquiry, ['to' => $to, 'email' => 'VisaEnquiryReceived']);
             } catch (\Throwable $e) {
                 // The enquiry is saved; a mail outage must not lose it.
                 Log::error('Visa enquiry email failed', ['reference' => $enquiry->reference, 'error' => $e->getMessage()]);

@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Review extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use HasFactory, Translatable, SoftDeletes, ResolvesMediaUrls;
 
     public $translatedAttributes = ['name', 'position', 'content'];

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /** A frozen copy of a legal document's wording; never edited after it is created. */
 class LegalDocumentVersion extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     public const UPDATED_AT = null;
 
     protected $fillable = ['version', 'title', 'heading', 'body', 'created_by'];

@@ -6,7 +6,7 @@ class PermissionGroups
 {
     /** Section title => resource slugs, mirroring the admin sidebar. */
     public const SECTIONS = [
-        'Access control' => ['users', 'roles', 'permissions'],
+        'Access control' => ['users', 'roles', 'permissions', 'activity-log'],
         'Website CMS' => ['pages', 'page-sections', 'navigation', 'settings', 'words', 'images', 'sliders', 'singles'],
         'Tours & CRM' => ['tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
         'Content' => ['company-content', 'abouts', 'reviews', 'faqs', 'gallery-albums', 'gallery-categories', 'gallery-media', 'contact_items', 'socials', 'contacts', 'blogs', 'portfolios', 'services', 'tags'],

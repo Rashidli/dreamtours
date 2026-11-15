@@ -64,6 +64,7 @@ class BookingMail
         }
         try {
             Mail::to($to)->queue($mail);
+            Activity::record('email_queued', $booking, ['to' => implode(', ', (array) $to), 'email' => class_basename($mail)]);
 
             return true;
         } catch (\Throwable $e) {

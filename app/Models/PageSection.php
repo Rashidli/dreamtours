@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PageSection extends Model implements TranslatableContract
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use SoftDeletes, Translatable, ResolvesMediaUrls;
 
     public array $translatedAttributes = ['eyebrow', 'title', 'subtitle', 'body', 'button_text'];

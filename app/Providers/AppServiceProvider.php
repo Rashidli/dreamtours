@@ -26,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Carbon::setLocale(config('app.locale'));
 
+        // Lets the activity history tell staff and visitors (HTTP) apart from the system (queue, artisan).
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Routing\Events\RouteMatched::class, fn () => app()->instance('activity.http', true));
+
         if ($redirect = config('mail.redirect_to')) {
             Mail::alwaysTo($redirect);
         }

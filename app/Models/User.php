@@ -10,6 +10,8 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use HasFactory, Notifiable, HasRoles;
 
     /**

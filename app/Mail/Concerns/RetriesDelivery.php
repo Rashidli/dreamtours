@@ -2,6 +2,7 @@
 
 namespace App\Mail\Concerns;
 
+use App\Support\Activity;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -22,6 +23,11 @@ trait RetriesDelivery
 
     public function failed(Throwable $e): void
     {
+        Activity::record('email_failed', $this->booking ?? $this->enquiry ?? null, [
+            'to' => collect($this->to)->pluck('address')->implode(', '),
+            'email' => class_basename($this),
+            'error' => $e->getMessage(),
+        ]);
         Log::error('Email could not be delivered', [
             'mail' => static::class,
             'to' => collect($this->to)->pluck('address')->all(),

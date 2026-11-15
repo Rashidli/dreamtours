@@ -39,6 +39,9 @@ class CmsPermissionSeeder extends Seeder
             );
         }
 
+        // Sensitive: the activity history is for Super Admin unless granted to a role on purpose.
+        Permission::updateOrCreate(['name' => 'list-activity-log', 'guard_name' => 'web'], ['group_name' => PermissionGroups::sectionFor('list-activity-log')]);
+
         // Anything seeded elsewhere (or created by hand) still needs a section to sit under.
         Permission::whereNull('group_name')->orWhere('group_name', '')->get()
             ->each(fn (Permission $permission) => $permission->update(['group_name' => PermissionGroups::sectionFor($permission->name)]));

@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /** A shared "included" / "not included" line, ticked on every tour it applies to. */
 class Inclusion extends Model implements Contract
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use Translatable;
 
     public const TYPES = ['included' => 'Included', 'excluded' => 'Not included'];

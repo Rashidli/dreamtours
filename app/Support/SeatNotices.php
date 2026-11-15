@@ -25,6 +25,7 @@ class SeatNotices
     {
         $booking->loadMissing(['tour.translations', 'tour.contentItems.translations', 'departure', 'pickupPoint.translations', 'passengers.pickupPoint.translations']);
         Mail::to($booking->email)->send(new SeatAssignment($booking));
+        Activity::record('email_queued', $booking, ['to' => $booking->email, 'email' => 'SeatAssignment']);
         $booking->forceFill(['seat_notice_sent_at' => now()])->save();
     }
 }

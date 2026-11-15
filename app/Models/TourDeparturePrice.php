@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TourDeparturePrice extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
+    public function activityLabel(): string { return ($this->departure?->activityLabel() ?? 'Departure').' · '.$this->label; }
+
     /** code => [label, occupancy (null for a per-person price)] */
     public const CODES = [
         'adult' => ['Adult', null],

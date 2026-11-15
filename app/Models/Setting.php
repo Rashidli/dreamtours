@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use HasFactory;
 
     protected $fillable = ['key', 'value'];

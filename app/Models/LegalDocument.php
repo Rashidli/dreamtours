@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class LegalDocument extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     protected $fillable = ['title', 'heading', 'body', 'is_published', 'show_on_tours', 'require_acceptance'];
 
     protected $casts = ['is_published' => 'boolean', 'show_on_tours' => 'boolean', 'require_acceptance' => 'boolean'];

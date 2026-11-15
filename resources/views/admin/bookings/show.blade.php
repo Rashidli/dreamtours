@@ -161,5 +161,19 @@
       </div></div>
     </div>
   </div>
+  <div class="card"><div class="card-body">
+    <h5 class="card-title">Activity history <small class="text-muted fw-normal">({{ $activity->count() }}{{ $activity->count() === 100 ? '+' : '' }})</small></h5>
+    @forelse($activity as $log)
+      <div class="d-flex gap-3 py-2 border-top">
+        <div class="small text-muted text-nowrap" style="width:150px" title="{{ $log->created_at->utc()->format('Y-m-d H:i:s') }} UTC">{{ $log->created_at->timezone(\App\Http\Controllers\Admin\ActivityLogController::DISPLAY_TIMEZONE)->format('M j, Y g:i A') }}</div>
+        <div class="flex-grow-1">
+          <div class="small"><strong>{{ $log->actor_name }}</strong> · {{ str($log->action)->replace('_', ' ') }}@if($log->subject_type !== \App\Models\Booking::class) · <span class="text-muted">{{ $log->subject_label }}</span>@endif</div>
+          @include('admin.activity_log.entry')
+        </div>
+      </div>
+    @empty
+      <p class="text-muted small mb-0">No recorded activity yet. Changes made from now on appear here.</p>
+    @endforelse
+  </div></div>
 </div></div></div>
 @include('admin.includes.footer')

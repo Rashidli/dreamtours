@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     use HasFactory, SoftDeletes;
 
     protected $fillable = ['name', 'phone', 'message', 'service_id', 'is_read'];

@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class VisaEnquiry extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
     protected $fillable = ['reference', 'full_name', 'email', 'phone', 'country', 'passport_country', 'assistance', 'applicants', 'travel_date', 'message', 'status', 'internal_notes'];
 
     protected $casts = ['assistance' => 'array', 'travel_date' => 'date', 'applicants' => 'integer'];

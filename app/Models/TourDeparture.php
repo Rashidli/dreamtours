@@ -9,6 +9,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TourDeparture extends Model
 {
+    use \App\Models\Concerns\RecordsActivity;
+
+    /** Kept in step by recountSeats(); not worth a history entry of its own. */
+    protected array $activityIgnore = ['reserved_seats'];
+
+    public function activityLabel(): string { return trim(($this->tour?->name ?? 'Tour').' — '.$this->departs_at?->format('M j, Y g:i A')); }
+
     /** status => [admin label, shown to visitors, bookable] */
     public const STATUSES = [
         'available' => ['Open for booking', true, true],

@@ -63,6 +63,10 @@ class BookingController extends Controller
             'seatBlocker' => SeatNotices::blocker($booking),
             'pickupOptions' => $booking->departure?->availablePickupPoints() ?? PickupPoint::where('is_active', true)->withTranslation()->orderBy('sort_order')->get(),
             'mealOptions' => $booking->tour?->mealChoices() ?? [],
+            // This booking's own history, including its passengers (their labels end with the booking reference).
+            'activity' => \App\Models\ActivityLog::where(fn ($q) => $q->where(['subject_type' => Booking::class, 'subject_id' => $booking->id])
+                ->orWhere(fn ($x) => $x->where('subject_type', \App\Models\BookingPassenger::class)->where('subject_label', 'like', '% · '.$booking->reference)))
+                ->latest('id')->limit(100)->get(),
         ]);
     }
 

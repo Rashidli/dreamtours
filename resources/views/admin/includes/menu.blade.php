@@ -2,11 +2,12 @@
     <li class="menu-title">DreamTour</li>
     <li><a href="{{route('home')}}"><i class="ri-dashboard-line"></i><span>Dashboard</span></a></li>
 
-    @canany(['list-users','list-roles','list-permissions'])
+    @canany(['list-users','list-roles','list-permissions','list-activity-log'])
     <li><a href="javascript:void(0)" class="has-arrow"><i class="ri-shield-user-line"></i><span>Access control</span></a><ul class="sub-menu">
         @can('list-users')<li><a href="{{route('users.index')}}">Users</a></li>@endcan
         @can('list-roles')<li><a href="{{route('roles.index')}}">Roles</a></li>@endcan
         @can('list-permissions')<li><a href="{{route('permissions.index')}}">Permissions</a></li>@endcan
+        @can('list-activity-log')<li><a href="{{route('activity-log.index')}}">Activity history</a></li>@endcan
     </ul></li>
     @endcanany
 
