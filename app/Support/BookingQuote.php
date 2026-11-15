@@ -65,7 +65,7 @@ class BookingQuote
         $quote->total = round(array_sum(array_column($quote->slots, 'price')), 2);
         // The per-person deposit applies to paying passengers only (a free infant pays none).
         $paying = count(array_filter($quote->slots, fn ($slot) => $slot['price'] > 0));
-        // Without one, the default deposit percentage applies (setting; 100 = full price).
+        // Without one, the default deposit percentage applies (setting, §7 default 50; 100 = full price).
         $quote->deposit = $tour->deposit_per_person
             ? min($quote->total, round((float) $tour->deposit_per_person * $paying, 2))
             : (float) \App\Support\BookingMoney::defaultDeposit($quote->total);

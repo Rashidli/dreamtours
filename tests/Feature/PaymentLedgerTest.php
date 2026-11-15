@@ -199,10 +199,12 @@ class PaymentLedgerTest extends TestCase
 
     public function test_default_deposit_percentage_applies_when_a_tour_has_no_per_person_deposit(): void
     {
-        $this->assertSame('210.00', BookingMoney::defaultDeposit('210.00'), 'default 100% keeps today\'s behaviour');
+        $this->assertSame('105.00', BookingMoney::defaultDeposit('210.00'), '§7 default: 50 %');
+        Setting::updateOrCreate(['key' => 'default_deposit_percent'], ['value' => '100']);
+        Cache::forget('settings');
+        $this->assertSame('210.00', BookingMoney::defaultDeposit('210.00'), '100 % = full price at booking');
         Setting::updateOrCreate(['key' => 'default_deposit_percent'], ['value' => '50']);
         Cache::forget('settings');
-        $this->assertSame('105.00', BookingMoney::defaultDeposit('210.00'));
         $this->assertSame('166.67', BookingMoney::defaultDeposit('333.33'), 'half a cent rounds up');
     }
 

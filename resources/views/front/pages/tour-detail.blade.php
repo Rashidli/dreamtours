@@ -211,6 +211,8 @@
               </div>
               @if($tour->deposit_per_person)
                 <p class="mt-3 text-sm text-ink-500">Reserve with a deposit of <b class="text-ink-800">{{ money($tour->deposit_per_person, $currency) }} per person</b>. <a href="#policies" class="text-brand-600 hover:underline">Deposit policy</a></p>
+              @elseif(($depositPercent = (int) setting('default_deposit_percent', 50)) > 0 && $depositPercent < 100)
+                <p class="mt-3 text-sm text-ink-500">Reserve with a deposit of <b class="text-ink-800">{{ $depositPercent }}% of the price</b>; the rest is due before departure. <a href="#policies" class="text-brand-600 hover:underline">Deposit policy</a></p>
               @endif
             </div>
           @endif

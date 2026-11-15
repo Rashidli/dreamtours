@@ -116,7 +116,7 @@ class BookingMoney
     /** Deposit for a price when the tour has no per-person deposit: the default percentage (setting). */
     public static function defaultDeposit(string|float $price): string
     {
-        return Money::mul($price, bcdiv((string) min(100, max(0, (int) setting('default_deposit_percent', 100))), '100', 4));
+        return Money::mul($price, bcdiv((string) min(100, max(0, (int) setting('default_deposit_percent', 50))), '100', 4));
     }
 
     /** Record money received. Staff who may confirm can record it as already confirmed. */

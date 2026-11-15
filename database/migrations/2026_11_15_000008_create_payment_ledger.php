@@ -69,9 +69,9 @@ return new class extends Migration
         Schema::table('tours', fn (Blueprint $table) => $table->unsignedSmallInteger('balance_due_days')->nullable()->after('deposit_per_person'));
 
         $now = now();
-        // 100% keeps today's behaviour (tours without a per-person deposit ask for the full price); §7 suggests 50.
+        // §7 business default: 50 % deposit, balance 7 days before departure (both editable in Settings).
         DB::table('settings')->insertOrIgnore([
-            ['key' => 'default_deposit_percent', 'value' => '100', 'created_at' => $now, 'updated_at' => $now],
+            ['key' => 'default_deposit_percent', 'value' => '50', 'created_at' => $now, 'updated_at' => $now],
             ['key' => 'balance_due_days', 'value' => '7', 'created_at' => $now, 'updated_at' => $now],
         ]);
 

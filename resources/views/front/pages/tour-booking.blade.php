@@ -15,6 +15,7 @@
     'old' => array_merge(session()->getOldInput(), ['tour_departure_id' => old('tour_departure_id', $selectedDepartureId)]),
     'errors' => $errors->getMessages(),
     'depositPerPerson' => $tour->deposit_per_person ? (float) $tour->deposit_per_person : null,
+    'depositPercent' => min(100, max(0, (int) setting('default_deposit_percent', 50))),
     'taxNote' => $taxNote,
     'countries' => $countries,
     'pickups' => $pickupPoints->map(fn ($p) => ['id' => (string) $p->id, 'name' => $p->name, 'address' => $p->address])->values(),

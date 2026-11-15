@@ -1214,7 +1214,7 @@ document.addEventListener("alpine:init", () => {
      Step-by-step tour booking (tour-booking.blade.php). Mirrors the server-side
      App\Support\BookingQuote arithmetic for the live price; the server recalculates.
      ------------------------------------------------------------------------ */
-  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, taxNote = "", countries = [], pickups = [], meals = [], hasWaiver = false, needTerms = true, needPrivacy = true, infantNeedsSeat = false }) => ({
+  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, depositPercent = 100, taxNote = "", countries = [], pickups = [], meals = [], hasWaiver = false, needTerms = true, needPrivacy = true, infantNeedsSeat = false }) => ({
     departures,
     countries,
     pickups,
@@ -1381,7 +1381,9 @@ document.addEventListener("alpine:init", () => {
     get deposit() {
       // The per-person deposit applies to paying passengers only (a free infant pays none).
       const paying = this.slots.filter((_s, i) => this.priceOf(i) > 0).length;
-      return depositPerPerson ? Math.min(this.total, depositPerPerson * paying) : this.total;
+      if (depositPerPerson) return Math.min(this.total, depositPerPerson * paying);
+      // Otherwise the default percentage, rounded to the cent like the server (half up).
+      return Math.round((this.total * depositPercent / 100 + Number.EPSILON) * 100) / 100;
     },
     money(value) {
       const currency = this.departure?.currency || "CAD";
