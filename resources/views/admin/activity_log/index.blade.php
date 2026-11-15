@@ -26,7 +26,7 @@
     <div class="col-12 d-flex gap-2"><button class="btn btn-outline-primary">Filter</button>@if(collect(request()->except('page'))->filter()->isNotEmpty())<a class="btn btn-light" href="{{ route('activity-log.index') }}">Reset</a>@endif</div>
 </form>
 <div class="table-responsive"><table class="table table-sm align-top">
-    <thead><tr><th style="width:130px">When</th><th style="width:170px">Who</th><th style="width:120px">Action</th><th style="width:220px">Record</th><th>Details</th><th style="width:110px">From</th></tr></thead>
+    <thead><tr><th style="width:130px">When</th><th style="width:170px">Who</th><th style="width:120px">Action</th><th style="width:220px">Record</th><th>Summary</th><th style="width:110px">From</th></tr></thead>
     <tbody>
     @forelse($logs as $log)
         <tr>
@@ -34,7 +34,19 @@
             <td class="small">{{ $log->actor_name }}@if($log->actor_role)<br><span class="badge bg-light text-body">{{ $log->actor_role }}</span>@endif</td>
             <td><span class="badge {{ match(true) { str_contains($log->action, 'deleted') || str_contains($log->action, 'failed') => 'bg-danger-subtle text-danger', $log->action === 'created' => 'bg-success-subtle text-success', str_starts_with($log->action, 'email') => 'bg-info-subtle text-info', default => 'bg-secondary-subtle text-secondary' } }}">{{ str($log->action)->replace('_', ' ') }}</span></td>
             <td class="small"><span class="text-muted">{{ $log->moduleLabel() }}</span><br>@if($url = $log->subjectUrl())<a href="{{ $url }}">{{ $log->subject_label }}</a>@else{{ $log->subject_label }}@endif @if($log->subject_id)<span class="text-muted">#{{ $log->subject_id }}</span>@endif</td>
-            <td>@include('admin.activity_log.entry')</td>
+            <td class="small">
+                @php($fields = collect($log->changes ?? []))
+                @php($isEdit = $fields->isNotEmpty() && $fields->every(fn ($v) => is_array($v) && array_is_list($v) && count($v) === 2))
+                <span class="text-muted">{{ $isEdit ? str($fields->keys()->map(fn ($k) => str($k)->replace('_', ' '))->take(4)->implode(', '))->limit(80).($fields->count() > 4 ? ' +'.($fields->count() - 4).' more' : '') : str($fields->map(fn ($v) => is_array($v) ? null : $v)->filter()->first() ?? '')->limit(60) }}</span>
+                @if($fields->isNotEmpty() || $log->reason)
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 ms-1" data-bs-toggle="modal" data-bs-target="#activityDetails" data-log="{{ $log->id }}">Details</button>
+                    <template id="activity-{{ $log->id }}">
+                        <p class="small text-muted mb-2">{{ $log->created_at->timezone($timezone)->format('M j, Y g:i:s A') }} · {{ $log->actor_name }}{{ $log->actor_role ? ' ('.$log->actor_role.')' : '' }} · {{ str($log->action)->replace('_', ' ') }} · {{ $log->moduleLabel() }}: {{ $log->subject_label }}</p>
+                        @include('admin.activity_log.entry')
+                        @if($log->user_agent)<p class="small text-muted mt-3 mb-0 text-break">{{ $log->origin }} · {{ $log->ip }} · {{ $log->user_agent }}</p>@endif
+                    </template>
+                @endif
+            </td>
             <td class="small text-muted">{{ $log->origin }}@if($log->ip)<br>{{ $log->ip }}@endif</td>
         </tr>
     @empty
@@ -44,4 +56,18 @@
 </table></div>
 {{ $logs->links('admin.vendor.pagination.bootstrap-5') }}
 </div></div>
+
+<div class="modal fade" id="activityDetails" tabindex="-1" aria-labelledby="activityDetailsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="activityDetailsTitle">Activity details</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body"></div>
+    </div></div>
+</div>
+<script>
+    // One shared dialog: each row's details sit in a <template> and are copied in when its button is pressed.
+    document.getElementById('activityDetails').addEventListener('show.bs.modal', function (event) {
+        const source = document.getElementById('activity-' + event.relatedTarget.dataset.log);
+        this.querySelector('.modal-body').replaceChildren(source.content.cloneNode(true));
+    });
+</script>
 </div></div></div>@include('admin.includes.footer')
