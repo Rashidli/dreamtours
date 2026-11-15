@@ -175,9 +175,9 @@
                           <li class="flex items-center justify-between gap-4 px-5 py-3.5">
                             <span class="text-sm text-ink-600">
                               @if($price->is_room) Per person in a <b class="text-ink-900">{{ str($price->label)->replace(' room', '') }} room</b>
-                              @elseif($price->code === 'child') Per <b class="text-ink-900">child under 12</b>
+                              @elseif(in_array($price->code, ['adult', 'child', 'infant'], true)) Per <b class="text-ink-900">{{ lcfirst($tour->priceLabel($price->code)) }}</b>
                               @elseif($price->code === 'senior') Per <b class="text-ink-900">senior (65+)</b>
-                              @else Per <b class="text-ink-900">adult</b> @endif
+                              @else Per <b class="text-ink-900">{{ lcfirst($price->label) }}</b> @endif
                             </span>
                             <span class="whitespace-nowrap font-display text-lg font-extrabold text-ink-900">{{ money($price->price, $departure->currency) }} <small class="text-xs font-medium text-ink-400">{{ $taxNote }}</small></span>
                           </li>

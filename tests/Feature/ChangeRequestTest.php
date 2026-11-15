@@ -31,4 +31,17 @@ class ChangeRequestTest extends TestCase
             ->assertDontSee('Invoice Request')
             ->assertDontSee("show('invoice')", false);
     }
+
+    // 02 — each fare row is labelled by its own code and the tour's age limits.
+    public function test_departure_pricing_labels_infant_child_and_adult_rows(): void
+    {
+        [, $departure] = $this->bookableTour(['infant_max_age' => 1, 'child_max_age' => 11]);
+        foreach ([['adult', 105], ['child', 95], ['infant', 0]] as $i => [$code, $price]) {
+            $departure->prices()->create(['code' => $code, 'price' => $price, 'sort_order' => $i]);
+        }
+
+        $this->get('/tours/niagara-day-trip')
+            ->assertOk()
+            ->assertSeeInOrder(['Per <b class="text-ink-900">adult (12+)</b>', 'CA$105', 'Per <b class="text-ink-900">child (2–11)</b>', 'CA$95', 'Per <b class="text-ink-900">infant (0–1)</b>', 'CA$0'], false);
+    }
 }
