@@ -30,7 +30,7 @@
     @if($errors->has('departure'))<div class="alert alert-danger">{{ $errors->first('departure') }}</div>@endif
 
     @forelse($tour->departures as $departure)
-      @php($booked = $departure->bookedPassengers())
+      @php($booked = $departure->bookedSeats())
       <div class="border rounded p-3 mb-3" id="departure-{{ $departure->id }}">
         <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
           <div>
@@ -58,7 +58,7 @@
           @endforelse
           @can('edit-tour-departures')
             <form class="d-inline-flex gap-1 mt-1" method="post" action="{{ route('tour-departure-prices.store', $departure) }}">@csrf
-              <select class="form-select form-select-sm" name="code" style="width:150px">@foreach(\App\Models\TourDeparturePrice::CODES as $code => [$label])<option value="{{ $code }}">{{ $label }}</option>@endforeach</select>
+              <select class="form-select form-select-sm" name="code" style="width:150px">@foreach(\App\Models\TourDeparturePrice::CODES as $code => [$label])<option value="{{ $code }}">{{ $tour->priceLabel($code) }}</option>@endforeach</select>
               <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width:90px" name="price" placeholder="Price" required>
               <label class="small text-nowrap align-self-center"><input type="checkbox" name="apply_to_all" value="1"> all dates</label>
               <button class="btn btn-sm btn-outline-primary">Add price</button>
@@ -113,7 +113,7 @@
           </div>
           <button type="button" class="btn btn-outline-primary btn-sm" data-add-date="#more-dates"><i class="ri-add-line"></i> Another date</button>
           <button class="btn btn-primary btn-sm ms-2"><i class="ri-calendar-check-line"></i> Save dates</button>
-          <p class="text-muted small mt-2 mb-0">Adult / child / room prices can be added to each date after saving (use “all dates” to copy a price to every date).</p>
+          <p class="text-muted small mt-2 mb-0">Adult / child / infant / room prices can be added to each date after saving (an infant price of 0 = free) (use “all dates” to copy a price to every date).</p>
         </form>
       </div>
     @endcan

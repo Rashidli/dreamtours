@@ -41,7 +41,32 @@ class TourDeparture extends Model
         return array_keys(array_filter(self::STATUSES, fn ($s) => $s[$flag]));
     }
 
-    public function getFromPriceAttribute(): float { return (float) ($this->relationLoaded('prices') && $this->prices->isNotEmpty() ? $this->prices->min('price') : $this->price); }
+    /** Child and infant fares never count as the advertised "from" price. */
+    public const REDUCED_FARES = ['child', 'infant'];
+
+    /**
+     * The fares customers choose from. A date priced only by its base price, or whose
+     * list holds only child / infant fares, still offers an adult fare at the base price.
+     */
+    public function fares(): \Illuminate\Support\Collection
+    {
+        $fares = $this->prices->sortBy('sort_order')->values();
+        if ($fares->whereNotIn('code', self::REDUCED_FARES)->isEmpty()) {
+            $adult = new TourDeparturePrice(['code' => 'adult', 'price' => $this->price, 'sort_order' => -1]);
+            $adult->setRelation('departure', $this);
+            $fares->prepend($adult);
+        }
+
+        return $fares;
+    }
+
+    public function getFromPriceAttribute(): float
+    {
+        if (!$this->relationLoaded('prices') || $this->prices->isEmpty()) return (float) $this->price;
+        $full = $this->prices->whereNotIn('code', self::REDUCED_FARES);
+
+        return (float) ($full->isNotEmpty() ? $full->min('price') : $this->price);
+    }
     public function getHasRoomPricingAttribute(): bool { return $this->prices->contains(fn ($p) => $p->is_room); }
     public function getAvailableSeatsAttribute(): int { return max(0, $this->capacity - $this->reserved_seats); }
 
@@ -67,14 +92,15 @@ class TourDeparture extends Model
         return $tour->isNotEmpty() ? $tour->values() : PickupPoint::where('is_active', true)->with('translations')->orderBy('sort_order')->get();
     }
 
-    public function bookedPassengers(): int
+    /** Seats taken by live bookings (a lap infant is a passenger without a seat). */
+    public function bookedSeats(): int
     {
-        return (int) $this->bookings()->where('status', '!=', 'cancelled')->sum('participant_count');
+        return (int) $this->bookings()->where('status', '!=', 'cancelled')->sum('seat_count');
     }
 
     /** Recompute reserved seats from live bookings; call after any booking change on this date. */
     public function recountSeats(): void
     {
-        $this->forceFill(['reserved_seats' => $this->held_seats + $this->bookedPassengers()])->saveQuietly();
+        $this->forceFill(['reserved_seats' => $this->held_seats + $this->bookedSeats()])->saveQuietly();
     }
 }

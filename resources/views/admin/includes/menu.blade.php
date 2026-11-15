@@ -14,6 +14,7 @@
     @can('list-pages')<li><a href="{{route('cms-pages.index')}}"><i class="ri-pages-line"></i><span>Pages & SEO</span></a></li>@endcan
     @can('list-page-sections')<li><a href="{{route('page-sections.index')}}"><i class="ri-layout-grid-line"></i><span>Page sections</span></a></li>@endcan
     @can('list-navigation')<li><a href="{{route('navigation-items.index')}}"><i class="ri-menu-line"></i><span>Navigation & footer</span></a></li>@endcan
+    @can('list-legal-documents')<li><a href="{{route('legal-documents.index')}}"><i class="ri-file-shield-2-line"></i><span>Legal documents</span></a></li>@endcan
     @can('list-settings')<li><a href="{{route('settings.index')}}"><i class="ri-settings-3-line"></i><span>Global settings</span></a></li>@endcan
     @can('list-words')<li><a href="{{route('words.index')}}"><i class="ri-translate-2"></i><span>UI copy</span></a></li>@endcan
 
@@ -21,6 +22,7 @@
     @can('list-tours')<li><a href="{{route('tours.index')}}"><i class="ri-suitcase-line"></i><span>Tours & cruises</span></a></li>@endcan
     @can('list-tour-categories')<li><a href="{{route('tour-catalogue.index','categories')}}"><i class="ri-price-tag-3-line"></i><span>Tour categories</span></a></li>@endcan
     @can('list-tour-filters')<li><a href="{{route('tour-filters.index')}}"><i class="ri-filter-3-line"></i><span>Tour filters</span></a></li>@endcan
+    @can('list-inclusions')<li><a href="{{route('inclusions.index')}}"><i class="ri-checkbox-multiple-line"></i><span>Inclusions</span></a></li>@endcan
     @can('list-destinations')<li><a href="{{route('tour-catalogue.index','destinations')}}"><i class="ri-map-pin-line"></i><span>Destinations</span></a></li>@endcan
     @can('list-transportations')<li><a href="{{route('tour-catalogue.index','transportations')}}"><i class="ri-bus-line"></i><span>Transportation</span></a></li>@endcan
     @can('list-pickup-points')<li><a href="{{route('tour-catalogue.index','pickup-points')}}"><i class="ri-map-pin-2-line"></i><span>Pickup points</span></a></li>@endcan

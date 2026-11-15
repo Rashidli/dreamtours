@@ -52,10 +52,10 @@
           class="absolute inset-0 -z-10 size-full object-cover"
           loading="eager"
         />
-        <div class="absolute inset-0 -z-10 bg-linear-to-r from-ink-950 via-ink-950/92 to-ink-950/55"></div>
-        <div class="absolute inset-0 -z-10 bg-linear-to-t from-ink-950/80 via-transparent to-ink-950/40"></div>
+        <div class="absolute inset-0 -z-10 bg-linear-to-r from-ink-950/70 via-ink-950/35 via-45% to-transparent"></div>
+        <div class="absolute inset-0 -z-10 bg-linear-to-t from-ink-950/65 via-ink-950/5 via-40% to-ink-950/15"></div>
 
-        <div class="container-page py-10 sm:py-12 lg:py-16">
+        <div class="container-page py-10 [text-shadow:0_1px_12px_rgb(0_0_0/0.4)] sm:py-12 lg:py-16">
           <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-ink-200">
             <a href="/" class="hover:text-white">Home</a>
             <svg class="size-4 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">

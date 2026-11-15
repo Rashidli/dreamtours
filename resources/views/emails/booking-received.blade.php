@@ -13,7 +13,7 @@
     <tr><td style="color:#6b7280">Departure</td><td>{{ $departure ? \App\Support\DepartureCalendar::range($departure).' · '.$departure->departs_at->format('g:i A') : '' }}</td></tr>
     <tr><td style="color:#6b7280">Pickup point</td><td>{{ $booking->hasMixedPickups() ? 'Per passenger, see below' : $booking->pickupPoint?->name }}</td></tr>
     <tr><td style="color:#6b7280">Passengers</td><td>{{ $booking->participant_count }}</td></tr>
-    <tr><td style="color:#6b7280">Total</td><td>{{ money($booking->total_amount, $booking->currency) }} {{ setting('price_tax_note') }}</td></tr>
+    <tr><td style="color:#6b7280">Total</td><td>{{ money($booking->total_amount, $booking->currency) }} {{ $booking->tax_included ? '' : setting('price_tax_note') }}</td></tr>
     <tr><td style="color:#6b7280">Deposit due now</td><td><strong>{{ money($booking->deposit_amount, $booking->currency) }}</strong></td></tr>
     @if($forAdmin)
       <tr><td style="color:#6b7280">Customer</td><td>{{ $booking->first_name }} {{ $booking->last_name }} · {{ $booking->phone }} · {{ $booking->email }}@if($booking->whatsapp) · WhatsApp {{ $booking->whatsapp }}@endif</td></tr>

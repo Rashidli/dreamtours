@@ -25,18 +25,18 @@
   /* Handwritten accent, used only for the motto band above the footer */
   --font-script: "Dancing Script", "Brush Script MT", cursive;
 
-  /* ---- Brand (crimson / rose) — primary CTA + accent colour ----------- */
-  --color-brand-50: #fff1f3;
-  --color-brand-100: #ffe4e8;
-  --color-brand-200: #fecdd6;
-  --color-brand-300: #fda4b4;
-  --color-brand-400: #fb7189;
-  --color-brand-500: #f43f5e;
-  --color-brand-600: #e11d48; /* main brand colour */
-  --color-brand-700: #be123c;
-  --color-brand-800: #9f1239;
-  --color-brand-900: #881337;
-  --color-brand-950: #4c0519;
+  /* ---- Brand (logo pink) — primary CTA + accent colour ---------------- */
+  --color-brand-50: #fff0f6;
+  --color-brand-100: #ffe0ee;
+  --color-brand-200: #ffc2de;
+  --color-brand-300: #ff94c2;
+  --color-brand-400: #ff559c;
+  --color-brand-500: #fb2a82;
+  --color-brand-600: #f80a6a; /* main brand colour — the pink in the logo */
+  --color-brand-700: #d0045a;
+  --color-brand-800: #ab084c;
+  --color-brand-900: #8e0c43;
+  --color-brand-950: #570022;
 
   /* ---- Ink (deep navy) — headers, footers, dark feature bands --------- */
   --color-ink-50: #f4f6fb;

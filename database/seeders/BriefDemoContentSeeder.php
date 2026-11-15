@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\CompanyContent;
 use App\Models\Faq;
-use App\Models\PageSection;
+use App\Models\LegalDocument;
 use App\Models\Tour;
 use App\Models\TourFilter;
 use App\Models\VisaService;
@@ -65,12 +65,9 @@ HTML,
 <p>DreamTour arranges transport and services provided by independent suppliers and is not responsible for their acts or omissions beyond what the law requires. We recommend travel insurance.</p>
 HTML,
         ];
-        foreach ($pages as $page => $body) {
-            $section = PageSection::where('key', 'content')->whereHas('page', fn ($q) => $q->where('key', $page))->first();
-            if ($section) {
-                $section->translateOrNew('en')->body = $body;
-                $section->save();
-            }
+        // The texts live in Admin → Legal documents; saving them keeps a version history.
+        foreach ($pages as $slug => $body) {
+            LegalDocument::where('slug', $slug)->first()?->saveWithVersion(['body' => $body], null);
         }
     }
 

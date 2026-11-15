@@ -8,7 +8,7 @@
     <div class="mx-auto flex max-w-4xl flex-col gap-4 rounded-3xl bg-ink-950 p-5 text-sm text-ink-100 shadow-2xl ring-1 ring-white/10 sm:flex-row sm:items-center sm:p-6">
       <p class="flex-1 leading-6">
         We use essential cookies to run this site. With your permission we also remember your preferences (like saved trips) and, if enabled, measure visits to improve the site.
-        <a href="{{ setting('privacy_url', '/privacy-policy') }}" class="font-semibold text-white underline">Privacy Policy</a>
+        <a href="/privacy-policy" class="font-semibold text-white underline">Privacy Policy</a>
       </p>
       <div class="flex flex-wrap gap-2 sm:flex-nowrap">
         <button type="button" @click="$store.consent.openPanel()" class="btn btn-ghost btn-sm">Preferences</button>

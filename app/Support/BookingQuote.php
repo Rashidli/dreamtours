@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Models\Tour;
 use App\Models\TourDeparture;
-use App\Models\TourDeparturePrice;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -13,7 +12,8 @@ use Illuminate\Validation\ValidationException;
  *
  * Room prices are per person, so choosing 1 × Triple creates three passenger slots in
  * room 1. On a departure with room pricing, a child shares a room and is flagged per
- * passenger instead of being counted separately.
+ * passenger instead of being counted separately; infants are always counted on their own.
+ * An infant takes a seat only when the tour says so.
  */
 class BookingQuote
 {
@@ -31,19 +31,15 @@ class BookingQuote
     public static function make(Tour $tour, TourDeparture $departure, array $selections, array $passengers = []): self
     {
         $quote = new self($tour, $departure);
-        $prices = $departure->prices->keyBy('code');
-
-        if ($prices->isEmpty()) {
-            // A departure without a price list charges its base price per person.
-            $prices = collect(['adult' => new TourDeparturePrice(['code' => 'adult', 'price' => $departure->price])]);
-        }
+        // Includes an adult fare at the base price when the date has no full fare of its own.
+        $prices = $departure->fares()->keyBy('code');
 
         $roomPricing = $prices->contains(fn ($price) => $price->is_room);
         $room = 0;
 
         foreach ($prices as $code => $price) {
             $quantity = max(0, min(50, (int) ($selections[$code] ?? 0)));
-            if ($roomPricing && !$price->is_room) {
+            if ($roomPricing && !$price->is_room && $code !== 'infant') {
                 continue; // children are flagged per passenger inside a room
             }
             for ($n = 0; $n < $quantity; $n++) {
@@ -67,8 +63,10 @@ class BookingQuote
         }
 
         $quote->total = round(array_sum(array_column($quote->slots, 'price')), 2);
+        // The per-person deposit applies to paying passengers only (a free infant pays none).
+        $paying = count(array_filter($quote->slots, fn ($slot) => $slot['price'] > 0));
         $quote->deposit = $tour->deposit_per_person
-            ? min($quote->total, round((float) $tour->deposit_per_person * count($quote->slots), 2))
+            ? min($quote->total, round((float) $tour->deposit_per_person * $paying, 2))
             : $quote->total;
 
         return $quote;
@@ -77,5 +75,11 @@ class BookingQuote
     public function passengerCount(): int
     {
         return count($this->slots);
+    }
+
+    /** Seats this booking occupies: every passenger except infants on a lap. */
+    public function seatCount(): int
+    {
+        return count(array_filter($this->slots, fn ($slot) => $slot['code'] !== 'infant' || $this->tour->infant_needs_seat));
     }
 }

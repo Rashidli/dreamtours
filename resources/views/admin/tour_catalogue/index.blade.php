@@ -31,7 +31,11 @@
                             @endif
 
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 class="card-title mb-0">{{ $title }} list</h4>
+                                <div>
+                                    <h4 class="card-title mb-0">{{ $title }} list</h4>
+                                    @if($resource === 'categories')<p class="text-muted small mb-0 mt-1">How long or what kind of trip it is — One-Day, Multi-Day, International, plus services such as Private tours and Cruises. A tour can be in several. Where it goes is set separately under <a href="{{ route('tour-catalogue.index', 'destinations') }}">Destinations</a>.</p>@endif
+                                    @if($resource === 'destinations')<p class="text-muted small mb-0 mt-1">Where a trip goes — continents, countries, provinces and cities, nested with “Parent destination” (e.g. Europe › France › Paris). Each tour picks one destination on its edit page; how long it is comes from <a href="{{ route('tour-catalogue.index', 'categories') }}">Tour categories</a>, so a tour can be Multi-Day and in Europe.</p>@endif
+                                </div>
                                 @can('create-'.$permission)
                                     <a href="{{ route('tour-catalogue.create', $resource) }}" class="btn btn-primary">
                                         <i class="ri-add-line align-middle me-1"></i> New
@@ -81,8 +85,8 @@
                                                     @endif
                                                 </td>
                                             @endif
-                                            <td>{{ $item->name }}</td>
-                                            <td>{{ $resource === 'pickup-points' ? $item->address : $item->type }}</td>
+                                            <td>@if($resource === 'destinations' && $item->parent)<span class="text-muted">{{ $item->parent->parent ? $item->parent->parent->name.' › ' : '' }}{{ $item->parent->name }} › </span>@endif{{ $item->name }}@if(in_array($resource, ['categories', 'destinations']))<small class="text-muted d-block">{{ $item->tours_count }} {{ Str::plural('tour', $item->tours_count) }}</small>@endif</td>
+                                            <td>{{ $resource === 'pickup-points' ? $item->address : (\App\Http\Controllers\Admin\TourCatalogueController::TYPES[$resource][$item->type] ?? $item->type) }}</td>
                                             <td>
                                                 @if($item->is_active)
                                                     <span class="badge bg-success">Active</span>

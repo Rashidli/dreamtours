@@ -1,5 +1,4 @@
-{{-- Policy pages (Privacy Policy, Terms and Conditions). Title from Pages & SEO; text from the page's "content" section. --}}
-@php($policy = $sections->get('content'))
+{{-- Policy pages (Privacy, Terms, Refund & Cancellation, Waiver). SEO title from Pages & SEO; text from Legal documents. --}}
 <!doctype html>
 <html lang="en" class="scroll-smooth">
   <head>
@@ -18,16 +17,15 @@
           <nav aria-label="Breadcrumb" class="text-sm text-ink-300">
             <a href="/" class="hover:text-white">Home</a> <span aria-hidden="true">/</span> <span class="text-white">{{ $cmsPage->title }}</span>
           </nav>
-          <h1 class="mt-3 font-display text-4xl font-extrabold text-white sm:text-5xl">{{ $policy?->title ?: $cmsPage->title }}</h1>
-          @if($policy?->subtitle)<p class="mt-4 max-w-2xl text-ink-100">{{ $policy->subtitle }}</p>@endif
+          <h1 class="mt-3 font-display text-4xl font-extrabold text-white sm:text-5xl">{{ $legalDocument->heading ?: $legalDocument->title }}</h1>
         </div>
       </section>
 
       <section class="py-12 lg:py-16">
         <div class="container-page">
           {{-- Rich text from the admin editor, so it renders as markup rather than escaped HTML. --}}
-          <article class="rich-text mx-auto max-w-3xl">{!! $policy?->body ?: '<p>This page is being prepared.</p>' !!}</article>
-          <p class="mx-auto mt-10 max-w-3xl text-sm text-ink-500">Last updated {{ ($policy?->updated_at ?? $cmsPage->updated_at)?->format('F j, Y') }}</p>
+          <article class="rich-text mx-auto max-w-3xl">{!! $legalDocument->body ?: '<p>This page is being prepared.</p>' !!}</article>
+          <p class="mx-auto mt-10 max-w-3xl text-sm text-ink-500">Last updated {{ ($legalDocument->currentVersion?->created_at ?? $legalDocument->updated_at)->format('F j, Y') }}</p>
         </div>
       </section>
     </main>

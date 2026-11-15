@@ -1131,6 +1131,32 @@ document.addEventListener("alpine:init", () => {
   }));
 
   /* --------------------------------------------------------------------------
+     Horizontal card rail — native swipe and scroll-snap, with arrow buttons
+     that move one card at a time. The track is x-ref="track".
+     ------------------------------------------------------------------------ */
+  Alpine.data("cardRail", () => ({
+    atStart: true,
+    atEnd: false,
+    init() {
+      const track = this.$refs.track;
+      this.update();
+      track.addEventListener("scroll", () => this.update(), { passive: true });
+      window.addEventListener("resize", () => this.update());
+    },
+    update() {
+      const t = this.$refs.track;
+      this.atStart = t.scrollLeft <= 4;
+      this.atEnd = t.scrollLeft + t.clientWidth >= t.scrollWidth - 4;
+    },
+    step(dir) {
+      const t = this.$refs.track;
+      const card = t.firstElementChild;
+      const gap = parseFloat(getComputedStyle(t).columnGap) || 0;
+      t.scrollBy({ left: dir * ((card ? card.offsetWidth : t.clientWidth) + gap), behavior: "smooth" });
+    },
+  }));
+
+  /* --------------------------------------------------------------------------
      Tour page request dialog — "Invoice request", "Let us call you" and private
      tour quotes. Every request lands in the admin CRM with its own type.
      ------------------------------------------------------------------------ */
@@ -1189,12 +1215,14 @@ document.addEventListener("alpine:init", () => {
      Step-by-step tour booking (tour-booking.blade.php). Mirrors the server-side
      App\Support\BookingQuote arithmetic for the live price; the server recalculates.
      ------------------------------------------------------------------------ */
-  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, taxNote = "", countries = [], pickups = [], meals = [], hasWaiver = false }) => ({
+  Alpine.data("bookingWizard", ({ departures = [], old = {}, errors = {}, depositPerPerson = null, taxNote = "", countries = [], pickups = [], meals = [], hasWaiver = false, needTerms = true, needPrivacy = true, infantNeedsSeat = false }) => ({
     departures,
     countries,
     pickups,
     meals,
     hasWaiver,
+    needTerms,
+    needPrivacy,
     step: 1,
     steps: ["Date & travellers", "Passengers", "Contact", "Extras", "Payment", "Review"],
     departureId: Number(old.tour_departure_id) || departures[0]?.id || null,
@@ -1286,13 +1314,24 @@ document.addEventListener("alpine:init", () => {
       return this.prices.find((p) => p.code === "child") || null;
     },
     get options() {
-      // With room pricing, children are flagged per passenger rather than counted here.
-      return this.roomPricing ? this.prices.filter((p) => p.occupancy) : this.prices;
+      // With room pricing, children are flagged per passenger rather than counted here; infants are always counted.
+      return this.roomPricing ? this.prices.filter((p) => p.occupancy || p.code === "infant") : this.prices;
+    },
+    /** Seats the selection needs: an infant on a lap is a passenger without a seat. */
+    get seatsNeeded() {
+      return this.slots.filter((s) => s.code !== "infant" || infantNeedsSeat).length;
+    },
+    isInfant(i) {
+      return this.slots[i]?.code === "infant";
+    },
+    fareCode(i) {
+      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child && !this.isInfant(i)) return "child";
+      return this.slots[i]?.code || "";
     },
     resetSelections(saved) {
       const next = {};
       this.options.forEach((p, i) => {
-        const fallback = this.roomPricing ? 0 : i === 0 ? 1 : 0;
+        const fallback = this.roomPricing || p.code === "infant" ? 0 : i === 0 ? 1 : 0;
         next[p.code] = saved[p.code] !== undefined ? Number(saved[p.code]) : fallback;
       });
       this.selections = next;
@@ -1325,13 +1364,13 @@ document.addEventListener("alpine:init", () => {
     priceOf(i) {
       const slot = this.slots[i];
       if (!slot) return 0;
-      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child) return this.childPrice.price;
+      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child && !this.isInfant(i)) return this.childPrice.price;
       return slot.price;
     },
     fareLabel(i) {
       const slot = this.slots[i];
       if (!slot) return "";
-      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child) return this.childPrice.label;
+      if (this.roomPricing && this.childPrice && this.passengers[i]?.is_child && !this.isInfant(i)) return this.childPrice.label;
       return slot.label;
     },
     get count() {
@@ -1341,7 +1380,9 @@ document.addEventListener("alpine:init", () => {
       return this.slots.reduce((sum, _s, i) => sum + this.priceOf(i), 0);
     },
     get deposit() {
-      return depositPerPerson ? Math.min(this.total, depositPerPerson * this.count) : this.total;
+      // The per-person deposit applies to paying passengers only (a free infant pays none).
+      const paying = this.slots.filter((_s, i) => this.priceOf(i) > 0).length;
+      return depositPerPerson ? Math.min(this.total, depositPerPerson * paying) : this.total;
     },
     money(value) {
       const currency = this.departure?.currency || "CAD";
@@ -1418,14 +1459,15 @@ document.addEventListener("alpine:init", () => {
       if (step === 1) {
         if (!this.departure) return "Please choose a departure date.";
         if (!this.count) return this.roomPricing ? "Please choose at least one room." : "Please choose at least one passenger.";
-        if (this.count > this.departure.seats) return `Only ${this.departure.seats} seats are left on this date.`;
+        if (this.seatsNeeded > this.departure.seats) return `Only ${this.departure.seats} seats are left on this date.`;
+        if (this.slots.some((s) => s.code === "infant") && this.slots.every((s) => s.code === "infant")) return "An infant must travel with an adult — please add at least one adult.";
       }
       if (step === 2) {
         if (this.passengers.some((p) => !p.first_name.trim() || !p.last_name.trim())) return "Please enter the first and last name of every passenger.";
         if (!this.passengers[0]?.date_of_birth) return "Please enter the date of birth of the main passenger.";
         const missing = this.passengers.findIndex((p) => !p.pickup_point_id);
         if (missing !== -1) return `Please choose a pickup point for passenger ${missing + 1}.`;
-        const noMeal = this.meals.length ? this.passengers.findIndex((p) => !p.meal_selection) : -1;
+        const noMeal = this.meals.length ? this.passengers.findIndex((p, i) => !p.meal_selection && !this.isInfant(i)) : -1;
         if (noMeal !== -1) return `Please choose a meal for passenger ${noMeal + 1}.`;
       }
       if (step === 3) {
@@ -1437,8 +1479,8 @@ document.addEventListener("alpine:init", () => {
       }
       if (step === 5) {
         if (!this.fileName) return "Please upload a screenshot of your deposit payment.";
-        if (!this.acceptTerms) return "Please accept the Terms and Conditions of Booking.";
-        if (!this.acceptPrivacy) return "Please confirm you have read the Privacy Policy.";
+        if (this.needTerms && !this.acceptTerms) return "Please accept the Terms and Conditions of Booking.";
+        if (this.needPrivacy && !this.acceptPrivacy) return "Please confirm you have read the Privacy Policy.";
         if (this.hasWaiver && !this.acceptWaiver) return "Please read and accept the waiver for this trip.";
       }
       return "";

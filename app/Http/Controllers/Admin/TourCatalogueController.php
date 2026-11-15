@@ -29,6 +29,8 @@ class TourCatalogueController extends Controller
         [$class, $permission] = $this->definition($resource);
         abort_unless($request->user()->can('list-'.$permission), 403);
         $items = $class::query()->with('translations')
+            ->when($resource === 'destinations', fn ($q) => $q->with('parent.parent.translations', 'parent.translations'))
+            ->when(in_array($resource, ['categories', 'destinations'], true), fn ($q) => $q->withCount('tours'))
             ->when($request->filled('q'), fn($q) => $q->whereTranslationLike('name', '%'.$request->string('q').'%'))
             ->when($request->filled('status'), fn($q) => $q->where('is_active', $request->boolean('status')))
             ->orderBy('sort_order')->paginate(20)->withQueryString();
@@ -67,10 +69,18 @@ class TourCatalogueController extends Controller
         $class::findOrFail($item)->delete(); return back()->with('message', 'Item deleted successfully.');
     }
 
+    /** Suggested values for the Type field; a custom value already saved is kept. */
+    public const TYPES = [
+        'categories' => ['tour' => 'Duration / tour type (One-Day, Multi-Day, International)', 'service' => 'Service (Private tours, Cruises, Visa support)'],
+        'destinations' => ['continent' => 'Continent / region of the world (Europe, Asia)', 'country' => 'Country (Canada, USA, France)', 'region' => 'Province / state / region (Ontario)', 'city' => 'City or place'],
+    ];
+
     private function form(string $resource, Model $item, string $permission): View
     {
-        $parents=$resource==='destinations'?Destination::whereNull('parent_id')->whereKeyNot($item->id)->withTranslation()->get():collect();
-        return view('admin.tour_catalogue.form', compact('resource','item','permission','parents'));
+        // Any destination can be a parent (Europe → France → Paris) except the item itself and its own children.
+        $parents=$resource==='destinations'?Destination::whereKeyNot($item->id)->when($item->exists,fn($q)=>$q->where(fn($w)=>$w->whereNull('parent_id')->orWhere('parent_id','!=',$item->id)))->with(['translations','parent.translations'])->orderBy('sort_order')->get():collect();
+        $typeOptions=self::TYPES[$resource]??[];
+        return view('admin.tour_catalogue.form', compact('resource','item','permission','parents','typeOptions'));
     }
 
     private function definition(string $resource): array { abort_unless(isset(self::MAP[$resource]),404); return self::MAP[$resource]; }

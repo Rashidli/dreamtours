@@ -34,7 +34,7 @@ class TourDepartureController extends Controller
             'departs_at' => ['required', 'date'],
             'returns_at' => ['nullable', 'date', 'after_or_equal:departs_at'],
         ]);
-        $booked = $departure->bookedPassengers();
+        $booked = $departure->bookedSeats();
         if ($data['capacity'] < $booked + ($data['held_seats'] ?? 0)) {
             throw ValidationException::withMessages(["capacity.{$departure->id}" => "Capacity cannot be below the {$booked} booked passengers plus seats held offline."]);
         }

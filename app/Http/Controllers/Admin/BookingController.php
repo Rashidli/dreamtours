@@ -55,7 +55,7 @@ class BookingController extends Controller
 
     public function show(Booking $booking): View
     {
-        $booking->load(['tour.translations', 'departure.pickupPoints.translations', 'departure.tour.pickupPoints.translations', 'pickupPoint.translations', 'passengers.pickupPoint.translations', 'updatedBy']);
+        $booking->load(['tour.translations', 'departure.pickupPoints.translations', 'departure.tour.pickupPoints.translations', 'pickupPoint.translations', 'passengers.pickupPoint.translations', 'updatedBy', 'legalAcceptances']);
 
         return view('admin.bookings.show', [
             'booking' => $booking,
@@ -80,7 +80,7 @@ class BookingController extends Controller
         DB::transaction(function () use ($booking, $d) {
             // Re-activating a cancelled booking needs its seats back.
             if ($booking->status === 'cancelled' && $d['status'] !== 'cancelled') {
-                $this->ensureSeats($booking, $booking->participant_count);
+                $this->ensureSeats($booking, $booking->seat_count);
             }
             $booking->update($d + ['updated_by' => auth()->id()]);
         });
@@ -118,15 +118,20 @@ class BookingController extends Controller
             $removeIds = collect($d['passengers'] ?? [])->filter(fn ($p) => !empty($p['remove']))->keys()->map(fn ($id) => (int) $id);
             $added = collect($d['new_passengers'] ?? [])->filter(fn ($p) => filled($p['first_name'] ?? null));
             $newCount = $existing->count() - $removeIds->intersect($existing->keys())->count() + $added->count();
+            // A lap infant is a passenger without a seat; staff-added passengers are adults.
+            $kept = $existing->reject(fn ($p) => $removeIds->contains($p->id));
+            $lapInfants = $booking->tour?->infant_needs_seat ? 0 : $kept->where('category', 'infant')->count();
+            $newSeats = $newCount - $lapInfants;
             // Enquiries without a passenger list keep the head count they were sent with.
             if ($existing->isEmpty() && $added->isEmpty()) {
                 $newCount = $booking->participant_count;
+                $newSeats = $booking->seat_count;
             }
             if ($newCount < 1) {
                 throw ValidationException::withMessages(['passengers' => 'A booking needs at least one passenger. Cancel the booking instead.']);
             }
-            if ($booking->status !== 'cancelled' && $newCount > $booking->participant_count) {
-                $this->ensureSeats($booking, $newCount - $booking->participant_count);
+            if ($booking->status !== 'cancelled' && $newSeats > $booking->seat_count) {
+                $this->ensureSeats($booking, $newSeats - $booking->seat_count);
             }
 
             foreach ($d['passengers'] ?? [] as $id => $p) {
@@ -141,6 +146,7 @@ class BookingController extends Controller
             $lead = $booking->passengers()->orderBy('id')->first();
             $booking->update(collect($d)->only(['first_name', 'last_name', 'email', 'phone', 'whatsapp', 'emergency_contact_name', 'emergency_contact_phone'])->all() + [
                 'participant_count' => $newCount,
+                'seat_count' => $newSeats,
                 'pickup_point_id' => $lead?->pickup_point_id ?? $booking->pickup_point_id,
                 'updated_by' => auth()->id(),
             ]);

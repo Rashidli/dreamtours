@@ -43,6 +43,8 @@ $frontPages = [
     'visa-support' => 'visa-support',
     'privacy-policy' => 'privacy-policy',
     'terms-and-conditions' => 'terms-and-conditions',
+    'refund-policy' => 'refund-policy',
+    'waiver' => 'waiver',
 ];
 
 foreach ($frontPages as $uri => $view) {
@@ -94,6 +96,7 @@ Route::prefix('admin')->group(function () {
         Route::resource('navigation-items', NavigationItemController::class)->except('show');
         Route::resource('tours', TourController::class)->except('show');
         Route::get('tour-filters', [\App\Http\Controllers\Admin\TourFilterController::class, 'index'])->name('tour-filters.index');
+        Route::resource('inclusions', \App\Http\Controllers\Admin\InclusionController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::post('tour-filters', [\App\Http\Controllers\Admin\TourFilterController::class, 'store'])->name('tour-filters.store');
         Route::put('tour-filters/{tour_filter}', [\App\Http\Controllers\Admin\TourFilterController::class, 'update'])->name('tour-filters.update');
         Route::delete('tour-filters/{tour_filter}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroy'])->name('tour-filters.destroy');
@@ -102,6 +105,10 @@ Route::prefix('admin')->group(function () {
         Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
         Route::resource('visa-enquiries', \App\Http\Controllers\Admin\VisaEnquiryController::class)->only(['index', 'show', 'update', 'destroy']);
+        Route::get('legal-documents', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'index'])->name('legal-documents.index');
+        Route::get('legal-documents/{legal_document}/edit', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'edit'])->name('legal-documents.edit');
+        Route::put('legal-documents/{legal_document}', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'update'])->name('legal-documents.update');
+        Route::get('legal-document-versions/{version}', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'version'])->name('legal-documents.version');
         Route::put('bookings/{booking}/details', [AdminBookingController::class, 'updateDetails'])->name('bookings.details');
         Route::put('bookings/{booking}/seats', [AdminBookingController::class, 'updateSeats'])->name('bookings.seats');
         Route::post('bookings/{booking}/seat-notice', [AdminBookingController::class, 'sendSeatNotice'])->name('bookings.seat-notice');

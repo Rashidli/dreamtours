@@ -33,7 +33,7 @@
   <td>{{str($b->type)->replace('_',' ')->title()}}</td>
   <td>{{$b->first_name}} {{$b->last_name}}<br><small>{{$b->phone}} · {{$b->email}}</small></td>
   <td>{{$b->tour?->name?:'—'}}@if($b->departure)<br><small>{{$b->departure->departs_at->format('M j, Y')}}</small>@endif</td>
-  <td>{{$b->participant_count}}</td>
+  <td>{{$b->participant_count}}@if($b->seat_count !== $b->participant_count)<small class="text-muted d-block">{{$b->seat_count}} seats</small>@endif</td>
   <td>@if($b->total_amount){{money($b->total_amount,$b->currency)}}<br><small>{{money($b->amount_paid,$b->currency)}} paid</small>@else — @endif</td>
   <td><span class="badge bg-{{$paymentClass}}">{{\App\Models\Booking::PAYMENT_STATUSES[$b->payment_status]??$b->payment_status}}</span></td>
   <td><span class="badge bg-{{['new'=>'warning','payment_pending'=>'info','confirmed'=>'success','cancelled'=>'secondary','completed'=>'dark'][$b->status]??'light'}}">{{\App\Models\Booking::STATUSES[$b->status]??$b->status}}</span></td>

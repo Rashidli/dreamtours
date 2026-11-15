@@ -23,7 +23,7 @@
           <div class="col-md-6">
             <p class="mb-1"><b>Trip:</b> @if($booking->tour)<a href="{{ route('tours.edit', $booking->tour) }}">{{ $booking->tour->name }}</a>@else — @endif</p>
             <p class="mb-1"><b>Date:</b> @if($booking->departure){{ \App\Support\DepartureCalendar::range($booking->departure) }} · {{ $booking->departure->departs_at->format('g:i A') }} @can('list-bookings')<a href="{{ route('tour-departures.passengers', $booking->departure) }}" class="small">(passenger list)</a>@endcan @else — @endif</p>
-            <p class="mb-1"><b>Passengers:</b> {{ $booking->participant_count }}</p>
+            <p class="mb-1"><b>Passengers:</b> {{ $booking->participant_count }}@if($booking->seat_count !== $booking->participant_count) <span class="text-muted">· {{ $booking->seat_count }} {{ Str::plural('seat', $booking->seat_count) }} (lap infants have no seat)</span>@endif</p>
             @if($booking->roommate_request)<p class="mb-1"><b>Roommate request:</b> {{ $booking->roommate_request }}</p>@endif
           </div>
           <div class="col-md-6">
@@ -120,7 +120,7 @@
       <div class="card"><div class="card-body">
         <h5>Payment</h5>
         <table class="table table-sm"><tbody>
-          <tr><td>Total</td><td class="text-end"><b>{{ $money($booking->total_amount) }}</b></td></tr>
+          <tr><td>Total <small class="text-muted">{{ $booking->tax_included ? '(taxes included)' : '(taxes extra)' }}</small></td><td class="text-end"><b>{{ $money($booking->total_amount) }}</b></td></tr>
           <tr><td>Deposit due</td><td class="text-end">{{ $money($booking->deposit_amount) }}</td></tr>
           <tr><td>Paid so far</td><td class="text-end">{{ $money($booking->amount_paid) }}</td></tr>
           <tr><td>Balance</td><td class="text-end"><b>{{ $booking->total_amount !== null ? $money($booking->balance_due) : '—' }}</b></td></tr>
@@ -152,7 +152,10 @@
           <li>{!! $booking->terms_accepted_at ? '✓ Terms accepted '.$booking->terms_accepted_at->format('Y-m-d H:i') : '— Terms not recorded' !!}</li>
           <li>{!! $booking->privacy_accepted_at ? '✓ Privacy Policy read '.$booking->privacy_accepted_at->format('Y-m-d H:i') : '— Privacy not recorded' !!}</li>
           <li>{{ $booking->marketing_consent ? '✓ Agreed to news & promotions' : '✗ No marketing consent' }}</li>
-          @if($booking->waiver_accepted_at)<li>✓ Waiver accepted {{ $booking->waiver_accepted_at->format('Y-m-d H:i') }} <details><summary class="text-primary" style="cursor:pointer">Waiver text agreed to</summary><div class="border rounded p-2 mt-1" style="max-height:200px;overflow:auto">{!! nl2br(e(strip_tags($booking->waiver_text))) !!}</div></details></li>@endif
+          @foreach($booking->legalAcceptances as $accepted)
+            <li>✓ {{ $accepted->document->title }} <a href="{{ route('legal-documents.version', $accepted) }}" title="Open the exact wording accepted">version {{ $accepted->version }}</a> · {{ \Illuminate\Support\Carbon::parse($accepted->pivot->accepted_at)->format('Y-m-d H:i') }}</li>
+          @endforeach
+          @if($booking->waiver_accepted_at && $booking->waiver_text)<li>✓ Trip waiver accepted {{ $booking->waiver_accepted_at->format('Y-m-d H:i') }} <details><summary class="text-primary" style="cursor:pointer">Trip waiver text agreed to</summary><div class="border rounded p-2 mt-1" style="max-height:200px;overflow:auto">{!! nl2br(e(strip_tags($booking->waiver_text))) !!}</div></details></li>@endif
           @if($booking->confirmation_sent_at)<li class="mt-1 text-muted">Confirmation email sent {{ $booking->confirmation_sent_at->format('Y-m-d H:i') }}</li>@endif
         </ul>
       </div></div>

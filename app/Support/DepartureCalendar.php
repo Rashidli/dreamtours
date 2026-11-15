@@ -24,12 +24,10 @@ class DepartureCalendar
         ])->values()->all();
     }
 
-    /** Lowest adult price of the date: a child fare must not be advertised as the "from" price. */
+    /** Lowest adult price of the date: a child or infant fare must not be advertised as the "from" price. */
     public static function adultFrom(TourDeparture $d): float
     {
-        $adult = $d->prices->where('code', '!=', 'child');
-
-        return (float) ($adult->isNotEmpty() ? $adult->min('price') : $d->from_price);
+        return $d->loadMissing('prices')->from_price;
     }
 
     /** "Sat, Oct 17, 2026" or, for a multi-day trip, "Oct 17 – Oct 19, 2026". */

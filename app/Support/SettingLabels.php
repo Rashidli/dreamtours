@@ -34,12 +34,8 @@ class SettingLabels
         ],
         'Booking & payments' => [
             'payment_instructions' => ['Payment instructions', 'Shown on the booking page and in the confirmation email — e.g. the Interac e-Transfer address.'],
-            'price_tax_note' => ['Price tax note', 'Shown after every price, e.g. “+ TAX”. Leave empty to hide.'],
+            'price_tax_note' => ['Price tax note', 'Shown after the prices of tours whose taxes are added on top, e.g. “+ TAX”. Tours set to “Taxes included in the price” never show it. Leave empty to hide everywhere.'],
             'whatsapp_label' => ['WhatsApp button text', 'Text on the floating WhatsApp button, e.g. “Chat with Jenn on WhatsApp”.'],
-        ],
-        'Policies' => [
-            'terms_url' => ['Terms and Conditions link', 'Where the booking form’s “Terms and Conditions of Booking” link opens. Edit the page itself under Pages & SEO.'],
-            'privacy_url' => ['Privacy Policy link', 'Where the booking form’s “Privacy Policy” link opens.'],
         ],
         'Analytics & cookies' => [
             'google_analytics_id' => ['Google Analytics ID', 'e.g. G-XXXXXXX. Loaded only for visitors who accept analytics cookies. Leave empty for none.'],

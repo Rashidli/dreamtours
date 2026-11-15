@@ -35,7 +35,7 @@
         <div class="rounded-3xl bg-white p-6 ring-1 ring-ink-900/5">
           <h2 class="font-display text-lg font-bold">Payment</h2>
           <dl class="mt-3 space-y-2 text-sm">
-            <div class="flex justify-between"><dt class="text-ink-500">Total {{ $siteSettings->get('price_tax_note') }}</dt><dd class="font-semibold">{{ money($booking->total_amount, $booking->currency) }}</dd></div>
+            <div class="flex justify-between"><dt class="text-ink-500">Total {{ $booking->tax_included ? '' : $siteSettings->get('price_tax_note') }}</dt><dd class="font-semibold">{{ money($booking->total_amount, $booking->currency) }}</dd></div>
             <div class="flex justify-between"><dt class="text-ink-500">Deposit</dt><dd class="font-semibold">{{ money($booking->deposit_amount, $booking->currency) }}</dd></div>
             <div class="flex justify-between"><dt class="text-ink-500">Balance</dt><dd class="font-semibold">{{ money($booking->total_amount - $booking->deposit_amount, $booking->currency) }}</dd></div>
           </dl>

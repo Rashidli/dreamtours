@@ -14,6 +14,7 @@ class TourDeparturePrice extends Model
     public const CODES = [
         'adult' => ['Adult', null],
         'child' => ['Child (under 12)', null],
+        'infant' => ['Infant', null],
         'senior' => ['Senior (65+)', null],
         'single' => ['Single room', 1],
         'double' => ['Double / Twin room', 2],
@@ -26,7 +27,8 @@ class TourDeparturePrice extends Model
 
     public function departure() { return $this->belongsTo(TourDeparture::class, 'tour_departure_id'); }
 
-    public function getLabelAttribute(): string { return self::CODES[$this->code][0] ?? ucfirst($this->code); }
+    /** Adult / child / infant labels carry the tour's age limits. */
+    public function getLabelAttribute(): string { $tour = $this->departure?->tour; return $tour ? $tour->priceLabel($this->code) : (self::CODES[$this->code][0] ?? ucfirst($this->code)); }
 
     public function getOccupancyAttribute(): ?int { return self::CODES[$this->code][1] ?? null; }
 

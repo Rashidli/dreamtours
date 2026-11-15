@@ -82,7 +82,7 @@
         @if($t['price'] > 0)
           <span class="text-xs text-ink-400">From</span>
           <span class="font-display text-xl font-extrabold text-ink-900">{{ money($t['price'], $t['currency']) }}</span>
-          <span class="text-xs text-ink-400">{{ $siteSettings->get('price_tax_note') }} / person{{ !empty($t['roomPricing']) ? ' (room share)' : '' }}</span>
+          <span class="text-xs text-ink-400">{{ $t['taxNote'] ?? $siteSettings->get('price_tax_note') }} / person{{ !empty($t['roomPricing']) ? ' (room share)' : '' }}</span>
         @else
           <span class="font-display text-base font-bold text-ink-900">Price on request</span>
         @endif

@@ -106,7 +106,15 @@
                                 @unless($isPickup)
                                     <div class="mb-3">
                                         <label class="form-label">Type <span class="text-danger">*</span></label>
-                                        <input class="form-control @error('type') is-invalid @enderror" type="text" name="type" value="{{ old('type', $item->type) }}">
+                                        @if($typeOptions)
+                                            @php($currentType = old('type', $item->type))
+                                            <select class="form-select @error('type') is-invalid @enderror" name="type" required>
+                                                @foreach($typeOptions as $value => $label)<option value="{{ $value }}" @selected($currentType === $value)>{{ $label }}</option>@endforeach
+                                                @if($currentType && !array_key_exists($currentType, $typeOptions))<option value="{{ $currentType }}" selected>{{ $currentType }}</option>@endif
+                                            </select>
+                                        @else
+                                            <input class="form-control @error('type') is-invalid @enderror" type="text" name="type" value="{{ old('type', $item->type) }}">
+                                        @endif
                                         @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                     </div>
                                 @endunless
@@ -117,7 +125,7 @@
                                         <select class="form-select" name="parent_id">
                                             <option value="">None</option>
                                             @foreach($parents as $parent)
-                                                <option value="{{ $parent->id }}" @selected(old('parent_id', $item->parent_id) == $parent->id)>{{ $parent->name }}</option>
+                                                <option value="{{ $parent->id }}" @selected(old('parent_id', $item->parent_id) == $parent->id)>{{ $parent->parent ? $parent->parent->name.' › ' : '' }}{{ $parent->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>

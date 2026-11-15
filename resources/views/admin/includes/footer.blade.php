@@ -1,6 +1,40 @@
 
 </div>
 <!-- END layout-wrapper -->
+<script>
+    // Keep the admin where it was: a form posted from this page comes back to the same
+    // scroll position (unless the redirect names an anchor). This runs right after the
+    // page content and before the slower library scripts below, so there is no jump.
+    (function () {
+        var KEY = 'dt-admin-scroll';
+        // Capture phase: some admin scripts cancel the event and submit the form themselves.
+        document.addEventListener('submit', function (e) {
+            if ((e.target.getAttribute('method') || 'get').toLowerCase() === 'get') return;
+            try { sessionStorage.setItem(KEY, JSON.stringify({ path: location.pathname, y: window.scrollY, at: Date.now() })); } catch (err) {}
+        }, true);
+
+        var saved = null;
+        try { saved = JSON.parse(sessionStorage.getItem(KEY) || 'null'); sessionStorage.removeItem(KEY); } catch (err) {}
+        if (!saved || saved.path !== location.pathname || Date.now() - saved.at > 120000 || location.hash) return;
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        var place = function () { window.scrollTo(0, saved.y); };
+        place();
+        // Editors and images change the page height while loading; settle again afterwards.
+        document.addEventListener('DOMContentLoaded', place);
+        window.addEventListener('load', function () { place(); setTimeout(place, 150); });
+    })();
+
+    // The result of a save shows as a toast when the message at the top is out of view.
+    window.addEventListener('load', function () {
+        setTimeout(function () {
+            var toastEl = document.getElementById('successToast');
+            if (!toastEl || !window.bootstrap) return;
+            var inline = document.querySelector('.page-content .alert-success');
+            var box = inline && inline.getBoundingClientRect();
+            if (!box || box.bottom < 0 || box.top > window.innerHeight) new bootstrap.Toast(toastEl).show();
+        }, 200);
+    });
+</script>
 
 <!-- Toast Container -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
@@ -13,6 +47,16 @@
         <div class="toast-body bg-white" id="toastBody">
         </div>
     </div>
+    @if(session('message'))
+    <div id="successToast" class="toast" role="status" aria-live="polite" aria-atomic="true" data-bs-autohide="true" data-bs-delay="6000">
+        <div class="toast-header bg-success text-white">
+            <i class="ri-check-line me-2"></i>
+            <strong class="me-auto">Saved</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body bg-white">{{ session('message') }}</div>
+    </div>
+    @endif
 </div>
 
 
@@ -165,6 +209,7 @@
             toast.show();
         });
     @endif
+
 </script>
 </body>
 

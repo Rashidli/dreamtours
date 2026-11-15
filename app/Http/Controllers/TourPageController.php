@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\SharesFrontLayout;
+use App\Models\LegalDocument;
 use App\Models\PickupPoint;
 use App\Models\Tour;
 use Illuminate\Contracts\View\View;
@@ -21,7 +22,7 @@ class TourPageController extends Controller
                 'transportations' => fn ($query) => $query->where('is_active', true)->with('translations'), 'pickupPoints.translations',
                 'departures' => fn ($query) => $query->visible()->with(['prices', 'pickupPoints.translations'])->orderBy('departs_at'),
                 'itineraryDays.translations', 'itineraryDays.items.translations',
-                'contentItems.translations', 'galleryAlbums' => fn ($query) => $query->where('is_active', true)->with('media.translations'),
+                'contentItems.translations', 'inclusions.translations', 'galleryAlbums' => fn ($query) => $query->where('is_active', true)->with('media.translations'),
                 'reviews' => fn ($query) => $query->published()->with('translations')->latest('travel_date')->latest(),
             ])->firstOrFail();
 
@@ -45,6 +46,8 @@ class TourPageController extends Controller
             'nextDeparture' => $bookable ?? $tour->departures->first(),
             'canBook' => !$tour->is_private && $bookable !== null,
             'rating' => $tour->reviews->isNotEmpty() ? round((float) $tour->reviews->avg('rating'), 1) : null,
+            // Central policies (e.g. refund & cancellation, waiver) apply to every tour.
+            'tourLegalDocuments' => LegalDocument::publishedByKey()->where('show_on_tours', true),
         ] + $this->layoutData());
     }
 }

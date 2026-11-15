@@ -10,17 +10,19 @@
 </head>
 @php
   $currency = $nextDeparture?->currency ?: 'CAD';
-  $taxNote = $siteSettings->get('price_tax_note');
+  $taxNote = $tour->taxNote();
   $fromPrice = $nextDeparture?->from_price;
   $category = $tour->categories->first();
   $categoryUrl = match($category?->slug) { 'multi-day' => '/multi-day-tours', 'international' => '/international-tours', 'cruises' => '/cruises', 'private' => '/private-tours', default => '/one-day-tours' };
-  $included = $tour->contentItems->where('type', 'included');
-  $excluded = $tour->contentItems->where('type', 'excluded');
+  // Shared lines from Tours & CRM → Inclusions, plus any older lines kept on the tour itself
+  $included = $tour->inclusions->where('is_active', true)->where('type', 'included')->concat($tour->contentItems->where('type', 'included'));
+  $excluded = $tour->inclusions->where('is_active', true)->where('type', 'excluded')->concat($tour->contentItems->where('type', 'excluded'));
   $goodToKnow = collect(['what_to_bring' => 'What to bring', 'document_requirement' => 'Documents', 'children' => 'Travelling with children', 'seniors' => 'Information for seniors'])
     ->map(fn ($title, $type) => ['title' => $title, 'items' => $tour->contentItems->where('type', $type)])
     ->filter(fn ($group) => $group['items']->isNotEmpty());
   $faqs = $tour->contentItems->where('type', 'faq');
-  $policies = collect(['deposit_policy' => 'Deposit policy', 'cancellation_policy' => 'Cancellation policy', 'refund_policy' => 'Refund policy', 'boarding_rules' => 'Boarding rules', 'baggage_rules' => 'Baggage', 'important_notes' => 'Important notes'])
+  $centralRefund = $tourLegalDocuments->has('refund');
+  $policies = collect(['deposit_policy' => 'Deposit policy', 'cancellation_policy' => $centralRefund ? 'Cancellation notes for this trip' : 'Cancellation policy', 'refund_policy' => $centralRefund ? 'Refund notes for this trip' : 'Refund policy', 'boarding_rules' => 'Boarding rules', 'baggage_rules' => 'Baggage', 'important_notes' => 'Important notes'])
     ->filter(fn ($title, $field) => filled($tour->{$field}));
   $phone = $siteSettings->get('phone');
   $phoneLink = $siteSettings->get('phone_link') ?: preg_replace('/[^\d+]/', '', (string) $phone);
@@ -169,7 +171,7 @@
                         </p>
                       </div>
                       <ul class="divide-y divide-ink-100 bg-white">
-                        @forelse($departure->prices as $price)
+                        @forelse($departure->prices->isEmpty() ? collect() : $departure->fares() as $price)
                           <li class="flex items-center justify-between gap-4 px-5 py-3.5">
                             <span class="text-sm text-ink-600">
                               @if($price->is_room) Per person in a <b class="text-ink-900">{{ str($price->label)->replace(' room', '') }} room</b>
@@ -230,12 +232,12 @@
                   </div>
                 @endif
                 @if($excluded->isNotEmpty())
-                  <div class="rounded-3xl bg-rose-50/60 p-5 ring-1 ring-rose-100">
-                    <h3 class="font-display font-bold text-rose-800">Not included</h3>
+                  <div class="rounded-3xl bg-brand-50/60 p-5 ring-1 ring-brand-100">
+                    <h3 class="font-display font-bold text-brand-800">Not included</h3>
                     <ul class="mt-4 space-y-3">
                       @foreach($excluded as $item)
                         <li class="flex gap-3">
-                          <span class="relative grid size-9 shrink-0 place-items-center rounded-xl bg-white text-lg shadow-sm" aria-hidden="true">{{ $item->icon ?: '•' }}<span class="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-rose-600 text-[10px] font-bold leading-none text-white">✕</span></span>
+                          <span class="relative grid size-9 shrink-0 place-items-center rounded-xl bg-white text-lg shadow-sm" aria-hidden="true">{{ $item->icon ?: '•' }}<span class="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-brand-600 text-[10px] font-bold leading-none text-white">✕</span></span>
                           <span><span class="block text-sm font-semibold text-ink-900">{{ $item->title }}</span>@if($item->description)<span class="block text-xs text-ink-500">{{ $item->description }}</span>@endif</span>
                         </li>
                       @endforeach
@@ -345,12 +347,19 @@
           @endif
 
           {{-- Policies --}}
-          @if($policies->isNotEmpty())
+          @if($policies->isNotEmpty() || $tourLegalDocuments->isNotEmpty())
             <div id="policies" class="scroll-mt-28">
               <h2 class="font-display text-2xl font-bold text-ink-900">Policies</h2>
               <div class="mt-5 divide-y divide-ink-100 overflow-hidden rounded-3xl ring-1 ring-ink-100">
-                @foreach($policies as $field => $title)
+                {{-- DreamTour-wide documents from Admin → Legal documents --}}
+                @foreach($tourLegalDocuments as $doc)
                   <details class="group bg-white" @if($loop->first) open @endif>
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-ink-900 hover:bg-sand-50">{{ $doc->title }}<span class="text-ink-400 transition group-open:rotate-180" aria-hidden="true">⌄</span></summary>
+                    <div class="px-5 pb-5 text-sm leading-6 text-ink-600"><div class="rich-text max-h-80 overflow-y-auto">{!! $doc->body !!}</div><a href="{{ $doc->url }}" target="_blank" class="mt-3 inline-block font-semibold text-brand-600 hover:underline">Open the full {{ $doc->title }} →</a></div>
+                  </details>
+                @endforeach
+                @foreach($policies as $field => $title)
+                  <details class="group bg-white" @if($loop->first && $tourLegalDocuments->isEmpty()) open @endif>
                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold text-ink-900 hover:bg-sand-50">{{ $title }}<span class="text-ink-400 transition group-open:rotate-180" aria-hidden="true">⌄</span></summary>
                     <div class="px-5 pb-5 text-sm leading-6 text-ink-600">{!! nl2br(e($tour->{$field})) !!}</div>
                   </details>

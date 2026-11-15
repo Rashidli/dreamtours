@@ -76,13 +76,13 @@
               </div>
             @endforeach
             <!-- Shade only the bottom and left edges so the copy reads without darkening the subject -->
-            <div class="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/25 to-ink-950/10"></div>
-            <div class="absolute inset-0 hidden bg-gradient-to-r from-ink-950/65 via-ink-950/10 to-transparent lg:block"></div>
+            <div class="absolute inset-0 bg-linear-to-t from-ink-950/75 via-ink-950/10 via-35% to-transparent"></div>
+            <div class="absolute inset-0 hidden bg-linear-to-r from-ink-950/45 via-transparent via-50% to-transparent lg:block"></div>
           </div>
 
           <!-- Copy -->
           <div class="container-page flex h-full flex-col justify-end pb-24 sm:pb-24">
-            <div class="max-w-2xl">
+            <div class="max-w-2xl [text-shadow:0_1px_14px_rgb(0_0_0/0.45)]">
               @if($heroSection?->eyebrow)
                 <p class="font-display text-sm font-semibold uppercase tracking-[0.16em] text-white/85 sm:text-base">{{ $heroSection->eyebrow }}</p>
               @endif
@@ -256,10 +256,19 @@
             </a>
           </div>
 
-          <div x-data="tourList" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach(collect($frontendData['tours'])->where('home', true) as $t)
-              @include('front.partials.tour_card', ['t' => $t])
-            @endforeach
+          {{-- Swipe / scroll through the home tours, soonest departure first --}}
+          <div x-data="cardRail" class="mt-10">
+            <div x-ref="track" class="relative -mx-4 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-px-4 px-4 pt-1 pb-4 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden" tabindex="0" aria-label="Upcoming tours" @keydown.left.prevent="step(-1)" @keydown.right.prevent="step(1)">
+              @foreach(collect($frontendData['tours'])->where('home', true)->sortBy(fn ($t) => $t['dateValue'] ?? '9999') as $t)
+                <div class="flex w-[85%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]">
+                  @include('front.partials.tour_card', ['t' => $t])
+                </div>
+              @endforeach
+            </div>
+            <div class="mt-4 flex justify-center gap-3" x-show="!(atStart && atEnd)">
+              <button type="button" @click="step(-1)" :disabled="atStart" class="grid size-11 place-items-center rounded-full bg-white text-xl text-ink-900 shadow ring-1 ring-ink-900/10 hover:bg-sand-50 disabled:opacity-40" aria-label="Previous tours">‹</button>
+              <button type="button" @click="step(1)" :disabled="atEnd" class="grid size-11 place-items-center rounded-full bg-white text-xl text-ink-900 shadow ring-1 ring-ink-900/10 hover:bg-sand-50 disabled:opacity-40" aria-label="Next tours">›</button>
+            </div>
           </div>
 
           <div class="mt-12 flex justify-center">
@@ -462,29 +471,42 @@
             </a>
           </div>
 
-          <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach(collect($frontendData['tours'])->where('home', true)->sortBy('dateValue') as $t)
-              @php($departsAt = $t['dateValue'] ? \Carbon\Carbon::parse($t['dateValue']) : null)
-              <li class="min-w-0">
-                <a href="/tours/{{ $t['slug'] }}" class="group flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-900/5 transition hover:-translate-y-0.5 hover:shadow-card">
-                  <span class="grid size-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-center text-brand-700">
-                    <span class="block font-display text-lg font-extrabold leading-none">{{ $departsAt?->format('j') }}</span>
-                    <span class="mt-0.5 block text-[11px] font-semibold uppercase">{{ $departsAt?->format('M') }}</span>
-                  </span>
-                  <span class="min-w-0 flex-1">
-                    <span class="block truncate font-display text-sm font-bold text-ink-900">{{ $t['name'] }}</span>
-                    <span class="mt-0.5 block text-xs text-ink-500">
-                      <span>{{ $t['duration'] }}</span> ·
-                      <span class="{{ $t['seatsLeft'] === 0 ? 'text-brand-600 font-medium' : '' }}">{{ $t['seatsLeft'] === 0 ? 'Sold out' : $t['seatsLeft'].' seats left' }}</span>
-                    </span>
-                  </span>
-                  <svg class="size-4 shrink-0 text-ink-300 transition-transform group-hover:translate-x-1 group-hover:text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                </a>
-              </li>
-            @endforeach
-          </ul>
+          {{-- Next departure of each home tour as swipeable cards; tours without an open date are left out --}}
+          <div x-data="cardRail" class="mt-10">
+            <ul x-ref="track" class="relative -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pt-1 pb-4 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden" tabindex="0" aria-label="Upcoming departure dates" @keydown.left.prevent="step(-1)" @keydown.right.prevent="step(1)">
+              @foreach(collect($frontendData['tours'])->where('home', true)->filter(fn ($t) => $t['dateValue'])->sortBy('dateValue') as $t)
+                @php($departsAt = \Carbon\Carbon::parse($t['dateValue']))
+                <li class="w-[70%] shrink-0 snap-start sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]">
+                  <article class="group flex h-full flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-ink-900/5 transition hover:-translate-y-0.5 hover:shadow-card">
+                    <a href="/tours/{{ $t['slug'] }}" class="relative block">
+                      <img src="{{ $t['image'] }}" alt="{{ $t['name'] }}" class="h-36 w-full object-cover" loading="lazy">
+                      <span class="absolute left-3 top-3 grid size-14 place-items-center rounded-xl bg-white/95 text-center text-brand-700 shadow-sm">
+                        <span class="block font-display text-lg font-extrabold leading-none">{{ $departsAt->format('j') }}</span>
+                        <span class="mt-0.5 block text-[11px] font-semibold uppercase">{{ $departsAt->format('M') }}</span>
+                      </span>
+                    </a>
+                    <div class="flex flex-1 flex-col p-4">
+                      <h3 class="line-clamp-2 font-display text-sm font-bold text-ink-900"><a href="/tours/{{ $t['slug'] }}" class="hover:text-brand-600">{{ $t['name'] }}</a></h3>
+                      <p class="mt-1 text-xs text-ink-500">{{ $departsAt->format('D, M j, Y') }} · {{ $t['duration'] }}</p>
+                      <p class="mt-1 text-xs {{ $t['seatsLeft'] > 0 && $t['seatsLeft'] <= 10 ? 'font-semibold text-brand-600' : 'text-ink-500' }}">{{ $t['seatsLeft'] > 0 ? $t['seatsLeft'].' seats left' : 'Sold out' }}</p>
+                      <div class="mt-auto flex items-end justify-between gap-2 pt-3">
+                        <p class="leading-tight"><span class="block text-[11px] text-ink-400">From</span><b class="font-display text-base text-ink-900">{{ money($t['price'], $t['currency']) }}</b> <span class="text-[11px] text-ink-400">{{ $t['taxNote'] }}</span></p>
+                        @if($t['seatsLeft'] > 0 && !$t['isPrivate'])
+                          <a href="/tours/{{ $t['slug'] }}/book" class="btn btn-primary btn-sm shrink-0">Book Now</a>
+                        @else
+                          <a href="/tours/{{ $t['slug'] }}" class="btn btn-outline btn-sm shrink-0">Details</a>
+                        @endif
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              @endforeach
+            </ul>
+            <div class="mt-4 flex justify-center gap-3" x-show="!(atStart && atEnd)">
+              <button type="button" @click="step(-1)" :disabled="atStart" class="grid size-11 place-items-center rounded-full bg-white text-xl text-ink-900 shadow ring-1 ring-ink-900/10 hover:bg-sand-50 disabled:opacity-40" aria-label="Previous dates">‹</button>
+              <button type="button" @click="step(1)" :disabled="atEnd" class="grid size-11 place-items-center rounded-full bg-white text-xl text-ink-900 shadow ring-1 ring-ink-900/10 hover:bg-sand-50 disabled:opacity-40" aria-label="Next dates">›</button>
+            </div>
+          </div>
         </div>
       </section>
       @endif
@@ -513,12 +535,17 @@
             </div>
           </div>
 
-          <div
-            x-data="{ reviews: window.DreamTourData.reviews }"
-            class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            @foreach($frontendData['reviews'] as $r)
-              <figure class="flex h-full flex-col rounded-4xl bg-sand-50 p-6 ring-1 ring-ink-900/5">
+          {{-- Approved reviews in a new order on every visit, a few at a time --}}
+          <div x-data="cardRail" class="mt-12">
+            <div
+              x-ref="track"
+              class="relative -mx-4 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+              tabindex="0"
+              aria-label="Traveller reviews"
+              @keydown.left.prevent="step(-1)" @keydown.right.prevent="step(1)"
+            >
+            @foreach(collect($frontendData['reviews'])->shuffle() as $r)
+              <figure class="flex w-[85%] shrink-0 snap-start flex-col rounded-4xl bg-sand-50 p-6 ring-1 ring-ink-900/5 sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]">
                 <div class="flex gap-0.5" aria-hidden="true">
                   @for($n = 1; $n <= 5; $n++)
                     <svg class="size-4 {{ $n <= $r['rating'] ? 'text-brand-500' : 'text-ink-200' }}" fill="currentColor" viewBox="0 0 20 20">
@@ -538,6 +565,11 @@
                 </figcaption>
               </figure>
             @endforeach
+            </div>
+            <div class="mt-6 flex justify-center gap-3" x-show="!(atStart && atEnd)">
+              <button type="button" @click="step(-1)" :disabled="atStart" class="grid size-11 place-items-center rounded-full bg-white text-xl text-ink-900 shadow ring-1 ring-ink-900/10 hover:bg-sand-50 disabled:opacity-40" aria-label="Previous reviews">‹</button>
+              <button type="button" @click="step(1)" :disabled="atEnd" class="grid size-11 place-items-center rounded-full bg-white text-xl text-ink-900 shadow ring-1 ring-ink-900/10 hover:bg-sand-50 disabled:opacity-40" aria-label="Next reviews">›</button>
+            </div>
           </div>
         </div>
       </section>

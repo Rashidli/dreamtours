@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\ContactItem;
+use App\Models\LegalDocument;
 use App\Models\NavigationItem;
 use App\Models\Setting;
 use App\Models\Social;
@@ -18,7 +19,10 @@ trait SharesFrontLayout
                 ->with(['translations', 'children' => fn ($query) => $query->where('is_active', true)->with('translations')])
                 ->orderBy('sort_order')->get(),
             'footerNavigation' => NavigationItem::whereIn('location', ['footer_company', 'footer_support', 'footer_legal'])
-                ->where('is_active', true)->with('translations')->orderBy('sort_order')->get()->groupBy('location'),
+                ->where('is_active', true)
+                // Links to a hidden legal document disappear with it.
+                ->whereNotIn('url', LegalDocument::where('is_published', false)->get()->map->url)
+                ->with('translations')->orderBy('sort_order')->get()->groupBy('location'),
             'contactItems' => ContactItem::active()->ordered()->with('translations')->get(),
             'socials' => Social::active()->ordered()->get(),
         ];

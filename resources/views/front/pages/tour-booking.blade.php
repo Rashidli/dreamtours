@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
 </head>
 @php
-  $taxNote = $siteSettings->get('price_tax_note');
+  $taxNote = $tour->taxNote();
   $policyFields = collect(['deposit_policy' => 'Deposit policy', 'cancellation_policy' => 'Cancellation policy', 'refund_policy' => 'Refund policy'])->filter(fn ($t, $f) => filled($tour->{$f}));
   $input = 'w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500';
   $label = 'mb-1.5 block text-sm font-semibold text-ink-800';
@@ -19,8 +19,14 @@
     'countries' => $countries,
     'pickups' => $pickupPoints->map(fn ($p) => ['id' => (string) $p->id, 'name' => $p->name, 'address' => $p->address])->values(),
     'meals' => $tour->mealChoices(),
-    'hasWaiver' => $tour->hasWaiver(),
+    'hasWaiver' => $agreements['waiver'],
+    'needTerms' => $agreements['terms'],
+    'needPrivacy' => $agreements['privacy'],
+    'infantNeedsSeat' => (bool) $tour->infant_needs_seat,
   ];
+  // Central documents from Admin → Legal documents that this form asks the customer to accept
+  $legal = $agreements['documents']->toBase(); // keyed by document key; toBase() so only() works on keys
+  $docLink = fn ($doc) => '<a href="'.e($doc->url).'" target="_blank" rel="noopener" class="font-semibold text-brand-600 underline">'.e($doc->title).'</a>';
   $submissionToken = old('submission_token') ?: \App\Http\Controllers\BookingPageController::newSubmissionToken();
 @endphp
 <body class="bg-sand-50 text-ink-800 antialiased">
@@ -79,13 +85,15 @@
 
               <div class="mt-7">
                 <span class="{{ $label }}" x-text="roomPricing ? 'Choose your rooms' : 'Number of travellers'"></span>
-                <p x-show="roomPricing" class="-mt-1 mb-3 text-sm text-ink-500">Prices are per person. A Double room is for 2 people, Triple for 3 and Quad for 4. <span x-show="childPrice">Children under 12 can be marked on the next step.</span></p>
+                <p x-show="roomPricing" class="-mt-1 mb-3 text-sm text-ink-500">Prices are per person. A Double room is for 2 people, Triple for 3 and Quad for 4. <span x-show="childPrice">Children aged {{ ($tour->infant_max_age ?? 1) + 1 }}–{{ $tour->child_max_age ?? 11 }} can be marked on the next step.</span></p>
                 <div class="divide-y divide-ink-100 rounded-2xl ring-1 ring-ink-200">
                   <template x-for="p in options" :key="p.code">
                     <div class="flex items-center justify-between gap-4 p-4">
                       <div class="min-w-0">
                         <p class="font-semibold text-ink-900" x-text="p.label"></p>
-                        <p class="text-sm text-ink-500"><span x-text="money(p.price)"></span> <span x-text="taxNote"></span> <span x-text="p.occupancy ? 'per person · ' + p.occupancy + ' guests per room' : 'per person'"></span></p>
+                        <p class="text-sm text-ink-500" x-show="Number(p.price) > 0"><span x-text="money(p.price)"></span> <span x-text="taxNote"></span> <span x-text="p.occupancy ? 'per person · ' + p.occupancy + ' guests per room' : 'per person'"></span></p>
+                        <p class="text-sm font-semibold text-emerald-700" x-show="!(Number(p.price) > 0)">Free</p>
+                        <p class="text-xs text-ink-400" x-show="p.code === 'infant'">{{ $tour->infant_needs_seat ? 'Needs its own seat' : 'Sits on a parent’s lap — no seat needed' }}</p>
                       </div>
                       <input type="hidden" :name="'selections[' + p.code + ']'" :value="selections[p.code] || 0">
                       <div class="flex shrink-0 items-center gap-3">
@@ -96,7 +104,7 @@
                     </div>
                   </template>
                 </div>
-                <p class="mt-3 text-sm text-ink-600" x-show="count"><b x-text="count"></b> <span x-text="count === 1 ? 'traveller' : 'travellers'"></span> · total <b x-text="money(total)"></b> <span x-text="taxNote"></span></p>
+                <p class="mt-3 text-sm text-ink-600" x-show="count"><b x-text="count"></b> <span x-text="count === 1 ? 'traveller' : 'travellers'"></span> <span x-show="seatsNeeded !== count" x-text="'(' + seatsNeeded + (seatsNeeded === 1 ? ' seat)' : ' seats)')"></span> · total <b x-text="money(total)"></b> <span x-text="taxNote"></span></p>
               </div>
             </section>
 
@@ -116,7 +124,8 @@
                       <legend class="sr-only" x-text="'Passenger ' + (i + 1)"></legend>
                       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <p class="font-semibold text-ink-900" x-text="i === 0 ? 'Passenger 1 (main contact)' : 'Passenger ' + (i + 1)"></p>
-                        <span class="text-sm text-ink-500"><span x-text="fareLabel(i)"></span> · <b class="text-ink-800" x-text="money(priceOf(i))"></b></span>
+                        <span class="text-sm text-ink-500"><span x-text="fareLabel(i)"></span> · <b class="text-ink-800" x-text="priceOf(i) > 0 ? money(priceOf(i)) : 'Free'"></b></span>
+                        <input type="hidden" :name="'passengers[' + i + '][price_code]'" :value="fareCode(i)">
                       </div>
                       <div class="grid gap-3 sm:grid-cols-3">
                         <input :name="'passengers[' + i + '][first_name]'" x-model="passenger.first_name" class="{{ $input }}" placeholder="First name *" autocomplete="off">
@@ -136,7 +145,7 @@
                         </select>
                       </label>
                       @if($tour->mealChoices())
-                        <label class="mt-3 block">
+                        <label class="mt-3 block" x-show="!isInfant(i)">
                           <span class="sr-only" x-text="'Meal for passenger ' + (i + 1)"></span>
                           <select :name="'passengers[' + i + '][meal_selection]'" x-model="passenger.meal_selection" class="{{ $input }}" :class="!passenger.meal_selection && clientError ? 'border-red-400' : ''">
                             <option value="">Meal choice *</option>
@@ -144,9 +153,9 @@
                           </select>
                         </label>
                       @endif
-                      <label x-show="roomPricing && childPrice" class="mt-3 flex items-center gap-2 text-sm text-ink-700">
+                      <label x-show="roomPricing && childPrice && !isInfant(i)" class="mt-3 flex items-center gap-2 text-sm text-ink-700">
                         <input type="checkbox" value="1" :name="'passengers[' + i + '][is_child]'" x-model="passenger.is_child" class="size-4 accent-brand-600">
-                        Child under 12 (<span x-text="childPrice ? money(childPrice.price) : ''"></span>)
+                        {{ $tour->priceLabel('child') }} (<span x-text="childPrice ? money(childPrice.price) : ''"></span>)
                       </label>
                     </fieldset>
                   </div>
@@ -276,28 +285,44 @@
                 </div>
               @endif
 
+              @if($legal->has('refund'))
+                <details class="group mt-5 rounded-2xl ring-1 ring-ink-200"><summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink-900">{{ $legal['refund']->title }}<span class="text-ink-400 group-open:rotate-180" aria-hidden="true">⌄</span></summary><div class="rich-text max-h-64 overflow-y-auto px-4 pb-4 text-sm text-ink-600">{!! $legal['refund']->body !!}</div></details>
+              @endif
+
+              @if($legal->has('waiver'))
+                <div class="mt-6">
+                  <p class="{{ $label }}">{{ $legal['waiver']->title }} <span class="font-normal text-ink-500">— please read before you continue</span></p>
+                  <div class="rich-text max-h-64 overflow-y-auto rounded-2xl bg-sand-50 p-4 text-sm ring-1 ring-ink-200" tabindex="0" aria-label="{{ $legal['waiver']->title }}">{!! $legal['waiver']->body !!}</div>
+                </div>
+              @endif
+
               @if($tour->hasWaiver())
                 <div class="mt-6">
-                  <p class="{{ $label }}">{{ $tour->waiver_title ?: 'Waiver' }} <span class="font-normal text-ink-500">— please read before you continue</span></p>
-                  <div class="rich-text max-h-64 overflow-y-auto rounded-2xl bg-sand-50 p-4 text-sm ring-1 ring-ink-200" tabindex="0" aria-label="{{ $tour->waiver_title ?: 'Waiver' }}">{!! str_contains((string) $tour->waiver, '<') ? $tour->waiver : nl2br(e($tour->waiver)) !!}</div>
+                  <p class="{{ $label }}">{{ $tour->waiver_title ?: 'Waiver for this trip' }} <span class="font-normal text-ink-500">— please read before you continue</span></p>
+                  <div class="rich-text max-h-64 overflow-y-auto rounded-2xl bg-sand-50 p-4 text-sm ring-1 ring-ink-200" tabindex="0" aria-label="{{ $tour->waiver_title ?: 'Waiver for this trip' }}">{!! str_contains((string) $tour->waiver, '<') ? $tour->waiver : nl2br(e($tour->waiver)) !!}</div>
                 </div>
               @endif
 
               <fieldset class="mt-6 space-y-3">
                 <legend class="{{ $label }}">Agreements</legend>
-                <p class="text-xs font-semibold uppercase tracking-wide text-ink-500">Required</p>
-                <label class="flex items-start gap-3 text-sm text-ink-700">
-                  <input type="checkbox" name="accept_terms" value="1" x-model="acceptTerms" class="mt-0.5 size-5 shrink-0 accent-brand-600">
-                  <span>I have read and accept DreamTour’s <a href="{{ $termsUrl }}" target="_blank" rel="noopener" class="font-semibold text-brand-600 underline">Terms and Conditions of Booking</a>{{ $policyFields->isNotEmpty() ? ', including the deposit, cancellation and refund policies above' : '' }}.</span>
-                </label>
-                <label class="flex items-start gap-3 text-sm text-ink-700">
-                  <input type="checkbox" name="accept_privacy" value="1" x-model="acceptPrivacy" class="mt-0.5 size-5 shrink-0 accent-brand-600">
-                  <span>I have read DreamTour’s <a href="{{ $privacyUrl }}" target="_blank" rel="noopener" class="font-semibold text-brand-600 underline">Personal Data Protection and Privacy Policy</a>.</span>
-                </label>
-                @if($tour->hasWaiver())
+                @foreach($legal as $doc)<input type="hidden" name="legal_versions[{{ $doc->key }}]" value="{{ $doc->currentVersion->id }}">@endforeach
+                @if($agreements['terms'] || $agreements['privacy'] || $agreements['waiver'])<p class="text-xs font-semibold uppercase tracking-wide text-ink-500">Required</p>@endif
+                @if($agreements['terms'])
+                  <label class="flex items-start gap-3 text-sm text-ink-700">
+                    <input type="checkbox" name="accept_terms" value="1" x-model="acceptTerms" class="mt-0.5 size-5 shrink-0 accent-brand-600">
+                    <span>I have read and accept DreamTour’s {!! $legal->only(['terms', 'refund'])->map($docLink)->implode(' and ') !!}{{ $policyFields->isNotEmpty() ? ', including the notes for this trip above' : '' }}.</span>
+                  </label>
+                @endif
+                @if($agreements['privacy'])
+                  <label class="flex items-start gap-3 text-sm text-ink-700">
+                    <input type="checkbox" name="accept_privacy" value="1" x-model="acceptPrivacy" class="mt-0.5 size-5 shrink-0 accent-brand-600">
+                    <span>I have read DreamTour’s {!! $docLink($legal['privacy']) !!}.</span>
+                  </label>
+                @endif
+                @if($agreements['waiver'])
                   <label class="flex items-start gap-3 text-sm text-ink-700">
                     <input type="checkbox" name="accept_waiver" value="1" x-model="acceptWaiver" class="mt-0.5 size-5 shrink-0 accent-brand-600">
-                    <span>I have read and agree to the {{ $tour->waiver_title ?: 'waiver' }} for this trip, for myself and the passengers in this booking.</span>
+                    <span>I have read and agree to the {{ collect([$legal->get('waiver')?->title, $tour->hasWaiver() ? ($tour->waiver_title ?: 'waiver for this trip') : null])->filter()->implode(' and the ') }}, for myself and the passengers in this booking.</span>
                   </label>
                 @endif
                 <p class="pt-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Optional</p>
@@ -326,8 +351,8 @@
                 <div class="grid gap-1 p-4 sm:grid-cols-[180px_1fr]" x-show="extrasSummary"><dt class="text-ink-500">Extras</dt><dd class="whitespace-pre-line text-ink-900" x-text="extrasSummary"></dd></div>
                 <div class="grid gap-1 p-4 sm:grid-cols-[180px_1fr]"><dt class="text-ink-500">Payment</dt><dd class="text-ink-900">Total <b x-text="money(total)"></b> <span x-text="taxNote"></span> · deposit now <b x-text="money(deposit)"></b> · balance later <b x-text="money(total - deposit)"></b><br>Payment proof: <span x-text="fileName"></span></dd></div>
                 <div class="grid gap-1 p-4 sm:grid-cols-[180px_1fr]"><dt class="text-ink-500">Agreements</dt><dd class="text-ink-900">
-                  <span x-text="(acceptTerms ? '✓' : '✗') + ' Terms and Conditions of Booking'"></span><br>
-                  <span x-text="(acceptPrivacy ? '✓' : '✗') + ' Privacy Policy'"></span><br>
+                  <template x-if="needTerms"><span x-text="(acceptTerms ? '✓ ' : '✗ ') + @js($legal->only(['terms', 'refund'])->pluck('title')->implode(' and '))"></span></template><template x-if="needTerms"><br></template>
+                  <template x-if="needPrivacy"><span x-text="(acceptPrivacy ? '✓' : '✗') + ' Privacy Policy'"></span></template><template x-if="needPrivacy"><br></template>
                   <template x-if="hasWaiver"><span x-text="(acceptWaiver ? '✓' : '✗') + ' Waiver'"></span></template><template x-if="hasWaiver"><br></template>
                   <span x-text="marketing ? '✓ News and promotions: yes' : '— News and promotions: no'"></span>
                 </dd></div>

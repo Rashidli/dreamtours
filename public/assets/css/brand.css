@@ -1,0 +1,65 @@
+/* DreamTour admin: action buttons, badges and markers use the logo pink instead of
+   the theme's red. Validation messages (.form-text.text-danger, .alert-danger,
+   .invalid-feedback) keep the theme red so errors still read as errors. */
+:root {
+  --dt-pink: #f80a6a;
+  --dt-pink-dark: #d0045a;
+  --dt-pink-darker: #ab084c;
+  --dt-pink-soft: rgba(248, 10, 106, 0.12);
+}
+
+.btn-danger {
+  color: #fff;
+  background-color: var(--dt-pink);
+  border-color: var(--dt-pink);
+}
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-check:focus + .btn-danger {
+  color: #fff;
+  background-color: var(--dt-pink-dark);
+  border-color: var(--dt-pink-dark);
+}
+.btn-danger:active,
+.btn-danger.active,
+.show > .btn-danger.dropdown-toggle {
+  color: #fff;
+  background-color: var(--dt-pink-darker);
+  border-color: var(--dt-pink-darker);
+}
+.btn-danger:focus,
+.btn-outline-danger:focus {
+  box-shadow: 0 0 0 0.15rem var(--dt-pink-soft);
+}
+
+.btn-outline-danger {
+  color: var(--dt-pink);
+  border-color: var(--dt-pink);
+}
+.btn-outline-danger:hover,
+.btn-outline-danger:active,
+.btn-outline-danger.active {
+  color: #fff;
+  background-color: var(--dt-pink);
+  border-color: var(--dt-pink);
+}
+
+.bg-danger {
+  background-color: var(--dt-pink) !important;
+}
+.badge-soft-danger,
+.bg-soft-danger {
+  color: var(--dt-pink-dark) !important;
+  background-color: var(--dt-pink-soft) !important;
+}
+
+/* Delete links, required-field asterisks and seat warnings */
+.btn-link.text-danger,
+span.text-danger:not(.small),
+td .text-danger,
+.text-danger > i {
+  color: var(--dt-pink) !important;
+}
+.btn-link.text-danger:hover {
+  color: var(--dt-pink-dark) !important;
+}
