@@ -69,9 +69,7 @@ Route::post('tours/{slug}/reviews', [FrontReviewController::class, 'store'])->mi
 
 Route::prefix('admin')->group(function () {
     Route::get('/', [PageController::class, 'login'])->name('login');
-    Route::get('/register', [PageController::class, 'register'])->name('register');
     Route::post('/login', [AuthController::class, 'login_submit'])->name('login_submit');
-    Route::post('/register', [AuthController::class, 'register_submit'])->name('register_submit');
 
     Route::middleware('auth')->group(function () {
         Route::get('/home', [PageController::class, 'home'])->name('home');

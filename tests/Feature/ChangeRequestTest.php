@@ -332,6 +332,20 @@ class ChangeRequestTest extends TestCase
         Mail::assertNothingOutgoing();
     }
 
+    // Security — nobody can open an admin account from the website; admins add users in Admin > Users.
+    public function test_admin_registration_is_closed(): void
+    {
+        $this->get('/admin/register')->assertNotFound();
+        $this->post('/admin/register', ['name' => 'Intruder', 'email' => 'intruder@example.com', 'password' => 'secret123', 'password_confirmation' => 'secret123']);
+        $this->assertDatabaseMissing('users', ['email' => 'intruder@example.com']);
+        $this->assertGuest();
+
+        $user = User::factory()->create(['password' => bcrypt('right-password')]);
+        $this->get('/admin')->assertOk();
+        $this->post(route('login_submit'), ['email' => $user->email, 'password' => 'right-password'])->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+    }
+
     // 06 — without a notification email the main email still gets the alerts.
     public function test_office_alerts_fall_back_to_the_main_email(): void
     {
