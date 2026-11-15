@@ -171,6 +171,10 @@ Route::prefix('admin')->group(function () {
         Route::get('tours/{tour}/structure/{section}', [TourStructureController::class,'index'])->name('tour-structure.index');
         Route::put('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'update'])->name('tour-departures.update');
         Route::get('departures/{departure}/passengers', [\App\Http\Controllers\Admin\TourDepartureController::class,'passengers'])->name('tour-departures.passengers');
+        Route::post('departures/{departure}/staff', [\App\Http\Controllers\Admin\DepartureStaffController::class, 'store'])->name('departure-staff.store');
+        Route::delete('departures/{departure}/staff/{assignment}', [\App\Http\Controllers\Admin\DepartureStaffController::class, 'destroy'])->name('departure-staff.destroy');
+        Route::get('my-trips', [\App\Http\Controllers\Admin\MyTripsController::class, 'index'])->name('my-trips.index');
+        Route::get('my-trips/{departure}', [\App\Http\Controllers\Admin\MyTripsController::class, 'show'])->name('my-trips.show');
         Route::delete('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'destroy'])->name('tour-departures.destroy');
         Route::post('tours/{tour}/itinerary-days', [TourStructureController::class,'storeDay'])->name('tour-itinerary-days.store');
         Route::put('tours/{tour}/itinerary-days/{day}', [TourStructureController::class,'updateDay'])->name('tour-itinerary-days.update');

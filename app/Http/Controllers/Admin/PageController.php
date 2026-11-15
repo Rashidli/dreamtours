@@ -20,6 +20,11 @@ class PageController extends Controller
 
     public function home()
     {
+        // Trip staff (a tour leader, a driver) land on their own trips, not on company-wide figures.
+        $user = auth()->user();
+        if (!$user->can('list-bookings') && !$user->can('list-tours') && ($user->can('list-assigned-departures') || $user->tripAssignments()->exists())) {
+            return redirect()->route('my-trips.index');
+        }
         $stats = [
             'tours' => Tour::count(),
             'published_tours' => Tour::where('status', 'published')->count(),

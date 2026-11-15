@@ -1,6 +1,7 @@
 {{-- Departure dates of a tour. On "New tour" the first dates are part of the main form; on edit each date is managed on its own. --}}
 @php
   $statuses = \App\Models\TourDeparture::STATUSES;
+  $staffUsers = auth()->user()->can('assign-departure-staff') ? \App\Models\User::with('roles')->orderBy('name')->get() : collect();
   $badge = ['available' => 'success', 'limited' => 'warning', 'sold_out' => 'danger', 'closed' => 'secondary', 'hidden' => 'dark', 'cancelled' => 'secondary'];
 @endphp
 <div class="card" id="departures"><div class="card-body">
@@ -32,6 +33,33 @@
     @forelse($tour->departures as $departure)
       @php($booked = $departure->bookedSeats())
       <div class="border rounded p-3 mb-3" id="departure-{{ $departure->id }}">
+        @can('assign-departure-staff')
+        {{-- Who works this date. Assigning opens the trip to that person at once; removing closes it. --}}
+        <div class="modal fade" id="staff-{{ $departure->id }}" tabindex="-1" aria-labelledby="staff-title-{{ $departure->id }}" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title" id="staff-title-{{ $departure->id }}">Trip staff · {{ $departure->departs_at->format('D, M j, Y') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+          <div class="modal-body">
+            <table class="table crm-table mb-3">
+              <tbody>
+              @forelse($departure->staff as $s)
+                <tr>
+                  <td><span class="fw-semibold">{{ $s->user?->name }}</span><span class="sub">{{ collect([$s->user?->phone, $s->user?->email])->filter()->implode(' · ') }}</span></td>
+                  <td><span class="badge bg-primary bg-opacity-10 text-primary"><i class="{{ \App\Models\DepartureStaff::ROLES[$s->role][1] ?? 'ri-user-line' }} me-1"></i>{{ $s->role_label }}</span>@if($s->note)<span class="sub">{{ $s->note }}</span>@endif</td>
+                  <td class="text-end"><form method="post" action="{{ route('departure-staff.destroy', [$departure, $s]) }}" onsubmit="return confirm({{ \Illuminate\Support\Js::from('Remove '.$s->user?->name.' from this date? They will no longer see this trip.') }})">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger"><i class="ri-user-unfollow-line"></i> Remove</button></form></td>
+                </tr>
+              @empty
+                <tr><td class="crm-empty"><i class="ri-team-line"></i>Nobody assigned yet.</td></tr>
+              @endforelse
+              </tbody>
+            </table>
+            <form method="post" action="{{ route('departure-staff.store', $departure) }}" class="row g-3 align-items-end crm-filters border-top pt-3">@csrf
+              <div class="col-md-5"><label class="form-label" for="staff-user-{{ $departure->id }}">Person</label><select class="form-select" id="staff-user-{{ $departure->id }}" name="user_id" required><option value="">Choose…</option>@foreach($staffUsers as $u)<option value="{{ $u->id }}">{{ $u->name }}{{ $u->roles->isNotEmpty() ? ' — '.$u->roles->pluck('name')->implode(', ') : '' }}</option>@endforeach</select></div>
+              <div class="col-md-3"><label class="form-label" for="staff-role-{{ $departure->id }}">Works as</label><select class="form-select" id="staff-role-{{ $departure->id }}" name="role">@foreach(\App\Models\DepartureStaff::ROLES as $value => [$label])<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></div>
+              <div class="col-md-4"><label class="form-label" for="staff-note-{{ $departure->id }}">Note <span class="text-muted fw-normal">(optional)</span></label><input class="form-control" id="staff-note-{{ $departure->id }}" name="note" maxlength="255" placeholder="e.g. Bus 2, joins at Mississauga"></div>
+              <div class="col-12 d-flex justify-content-between align-items-center gap-2"><span class="text-muted">They see this trip under <b>My trips</b> as soon as you save. @can('create-users')No account? <a href="{{ route('users.create') }}">Create one</a> with the Tour Leader role.@endcan</span><button class="btn btn-primary text-nowrap"><i class="ri-user-add-line me-1"></i>Assign</button></div>
+            </form>
+          </div>
+        </div></div></div>
+        @endcan
         <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
           <div>
             <strong>{{ \App\Support\DepartureCalendar::range($departure) }}</strong> <span class="text-muted">· {{ $departure->departs_at->format('g:i A') }}</span>
@@ -41,8 +69,18 @@
               Seats: <b>{{ $booked }}</b> booked + <b>{{ $departure->held_seats }}</b> held of <b>{{ $departure->capacity }}</b> → <b class="{{ $departure->available_seats ? '' : 'text-danger' }}">{{ $departure->available_seats }} left</b>
               · Pickups: {{ $departure->pickupPoints->isNotEmpty() ? $departure->pickupPoints->pluck('name')->implode(', ') : 'same as the tour' }}
             </div>
+            <div class="mt-1">
+              <i class="ri-team-line text-muted me-1"></i>
+              @forelse($departure->staff as $s)
+                <span class="badge bg-primary bg-opacity-10 text-primary me-1" title="{{ $s->role_label }}"><i class="{{ \App\Models\DepartureStaff::ROLES[$s->role][1] ?? 'ri-user-line' }} me-1"></i>{{ $s->user?->name }}</span>
+              @empty
+                <span class="text-muted">No leader or driver assigned</span>
+              @endforelse
+            </div>
           </div>
           <div class="d-flex gap-1">
+            @can('assign-departure-staff')<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staff-{{ $departure->id }}"><i class="ri-team-line"></i> Staff ({{ $departure->staff->count() }})</button>@endcan
+            @if($departure->staff->isNotEmpty() || auth()->user()->can('list-bookings'))<a class="btn btn-sm btn-outline-secondary" href="{{ route('my-trips.show', $departure) }}" title="What the leader sees"><i class="ri-map-2-line"></i> Trip page</a>@endif
             @can('list-bookings')<a class="btn btn-sm btn-outline-primary" href="{{ route('tour-departures.passengers', $departure) }}"><i class="ri-group-line"></i> Passengers ({{ $booked }})</a>@endcan
             @can('delete-tour-departures')<form method="post" action="{{ route('tour-departures.destroy', [$tour, $departure]) }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete this date?')"><i class="ri-delete-bin-line"></i></button></form>@endcan
           </div>

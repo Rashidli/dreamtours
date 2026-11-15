@@ -1,6 +1,10 @@
 <ul class="metismenu list-unstyled" id="side-menu">
     <li class="menu-title">DreamTour</li>
     <li><a href="{{route('home')}}"><i class="ri-dashboard-line"></i><span>Dashboard</span></a></li>
+    @php($upcomingTrips = auth()->user()->tripAssignments()->whereHas('departure', fn ($q) => $q->where('departs_at', '>=', now()->startOfDay()))->distinct()->count('tour_departure_id'))
+    @if($upcomingTrips || auth()->user()->can('list-assigned-departures'))
+      <li><a href="{{route('my-trips.index')}}"><i class="ri-map-2-line"></i>@if($upcomingTrips)<span class="badge rounded-pill bg-primary float-end" title="Upcoming trips assigned to you">{{ $upcomingTrips }}</span>@endif<span>My trips</span></a></li>
+    @endif
 
     @canany(['list-users','list-roles','list-permissions','list-activity-log'])
     <li><a href="javascript:void(0)" class="has-arrow"><i class="ri-shield-user-line"></i><span>Access control</span></a><ul class="sub-menu">
@@ -11,7 +15,7 @@
     </ul></li>
     @endcanany
 
-    <li class="menu-title">Website CMS</li>
+    @canany(['list-pages', 'list-page-sections', 'list-navigation', 'list-legal-documents', 'list-settings', 'list-words'])<li class="menu-title">Website CMS</li>@endcanany
     @can('list-pages')<li><a href="{{route('cms-pages.index')}}"><i class="ri-pages-line"></i><span>Pages & SEO</span></a></li>@endcan
     @can('list-page-sections')<li><a href="{{route('page-sections.index')}}"><i class="ri-layout-grid-line"></i><span>Page sections</span></a></li>@endcan
     @can('list-navigation')<li><a href="{{route('navigation-items.index')}}"><i class="ri-menu-line"></i><span>Navigation & footer</span></a></li>@endcan
@@ -19,7 +23,7 @@
     @can('list-settings')<li><a href="{{route('settings.index')}}"><i class="ri-settings-3-line"></i><span>Global settings</span></a></li>@endcan
     @can('list-words')<li><a href="{{route('words.index')}}"><i class="ri-translate-2"></i><span>UI copy</span></a></li>@endcan
 
-    <li class="menu-title">Tours & CRM</li>
+    @canany(['list-tours', 'list-tour-categories', 'list-tour-filters', 'list-inclusions', 'list-destinations', 'list-transportations', 'list-pickup-points', 'list-leads', 'list-payments', 'list-customers', 'list-bookings', 'list-visa-services', 'list-visa-enquiries'])<li class="menu-title">Tours & CRM</li>@endcanany
     @can('list-tours')<li><a href="{{route('tours.index')}}"><i class="ri-suitcase-line"></i><span>Tours & cruises</span></a></li>@endcan
     @can('list-tour-categories')<li><a href="{{route('tour-catalogue.index','categories')}}"><i class="ri-price-tag-3-line"></i><span>Tour categories</span></a></li>@endcan
     @can('list-tour-filters')<li><a href="{{route('tour-filters.index')}}"><i class="ri-filter-3-line"></i><span>Tour filters</span></a></li>@endcan
@@ -42,7 +46,7 @@
     @can('list-visa-services')<li><a href="{{route('domain-content.index','visa-services')}}"><i class="ri-passport-line"></i><span>Visa Support Pricing</span></a></li>@endcan
     @can('list-visa-enquiries')<li><a href="{{route('visa-enquiries.index')}}"><i class="ri-question-answer-line"></i><span>Visa enquiries</span></a></li>@endcan
 
-    <li class="menu-title">Content</li>
+    @canany(['list-company-content', 'list-abouts', 'list-reviews', 'list-faqs', 'list-gallery-albums', 'list-gallery-categories', 'list-contact_items', 'list-socials', 'list-contacts'])<li class="menu-title">Content</li>@endcanany
     @can('list-company-content')<li><a href="{{route('company-content.index',['type'=>'hero_slide'])}}"><i class="ri-slideshow-line"></i><span>Homepage carousel</span></a></li>@endcan
     @can('list-company-content')<li><a href="{{route('company-content.index',['type'=>'team'])}}"><i class="ri-team-line"></i><span>Team members</span></a></li>@endcan
     @can('list-company-content')<li><a href="{{route('company-content.index',['type'=>'private_place'])}}"><i class="ri-map-pin-line"></i><span>Private tour places</span></a></li>@endcan

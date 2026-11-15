@@ -22,8 +22,12 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
     ];
+
+    /** Departures this person works (CRM §12): the only trips a tour leader can open. */
+    public function tripAssignments() { return $this->hasMany(DepartureStaff::class); }
 
     /**
      * The attributes that should be hidden for serialization.

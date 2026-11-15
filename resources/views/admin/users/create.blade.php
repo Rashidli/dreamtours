@@ -32,6 +32,11 @@
                                         @if($errors->first('email')) <small class="form-text text-danger">{{$errors->first('email')}}</small> @endif
                                     </div>
                                     <div class="mb-3">
+                                        <label for="user-phone" class="col-form-label">Phone <span class="text-muted">(optional — shown to the rest of a trip's team)</span></label>
+                                        <input class="form-control" type="tel" name="phone" id="user-phone" value="{{ old('phone') }}" maxlength="50">
+                                        @if($errors->first('phone')) <small class="form-text text-danger">{{$errors->first('phone')}}</small> @endif
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="example-text-input" class=" col-form-label">Username</label>
                                         <input class="form-control" type="text" name="name"  id="example-text-input">
                                         @if($errors->first('name')) <small class="form-text text-danger">{{$errors->first('name')}}</small> @endif

@@ -14,6 +14,11 @@ class TourDeparture extends Model
     /** Kept in step by recountSeats(); not worth a history entry of its own. */
     protected array $activityIgnore = ['reserved_seats'];
 
+    /** Leaders, drivers, guides and coordinators on this date, leaders first. */
+    public function staff() { return $this->hasMany(DepartureStaff::class)->orderByRaw("field(role, 'leader', 'guide', 'driver', 'coordinator')")->orderBy('id'); }
+
+    public function hasStaff(?User $user): bool { return $user && $this->staff()->where('user_id', $user->id)->exists(); }
+
     public function activityLabel(): string { return trim(($this->tour?->name ?? 'Tour').' — '.$this->departs_at?->format('M j, Y g:i A')); }
 
     /** status => [admin label, shown to visitors, bookable] */
