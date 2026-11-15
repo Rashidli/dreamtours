@@ -120,6 +120,7 @@
 
             <!--- Sidemenu -->
             <div id="sidebar-menu">
+                @include('admin.includes.menu_search')
                 <!-- Left Menu Start -->
                 @include('admin.includes.menu')
             </div>
