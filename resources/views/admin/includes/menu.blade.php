@@ -27,6 +27,7 @@
     @can('list-destinations')<li><a href="{{route('tour-catalogue.index','destinations')}}"><i class="ri-map-pin-line"></i><span>Destinations</span></a></li>@endcan
     @can('list-transportations')<li><a href="{{route('tour-catalogue.index','transportations')}}"><i class="ri-bus-line"></i><span>Transportation</span></a></li>@endcan
     @can('list-pickup-points')<li><a href="{{route('tour-catalogue.index','pickup-points')}}"><i class="ri-map-pin-2-line"></i><span>Pickup points</span></a></li>@endcan
+    @can('list-customers')<li><a href="{{route('customers.index')}}"><i class="ri-contacts-book-line"></i><span>Customers</span></a></li>@endcan
     @can('list-bookings')<li><a href="{{route('bookings.index')}}"><i class="ri-calendar-check-line"></i><span>Bookings & enquiries</span></a></li>@endcan
     @can('list-bookings')<li><a href="{{route('email-previews.index')}}"><i class="ri-mail-open-line"></i><span>Email previews</span></a></li>@endcan
     @can('list-visa-services')<li><a href="{{route('domain-content.index','visa-services')}}"><i class="ri-passport-line"></i><span>Visa Support Pricing</span></a></li>@endcan

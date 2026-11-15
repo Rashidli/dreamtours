@@ -32,7 +32,7 @@
         <tr>
             <td class="small text-nowrap" title="{{ $log->created_at->utc()->format('Y-m-d H:i:s') }} UTC">{{ $log->created_at->timezone($timezone)->format('M j, Y') }}<br><span class="text-muted">{{ $log->created_at->timezone($timezone)->format('g:i:s A') }}</span></td>
             <td class="small">{{ $log->actor_name }}@if($log->actor_role)<br><span class="badge bg-light text-body">{{ $log->actor_role }}</span>@endif</td>
-            <td><span class="badge {{ match(true) { str_contains($log->action, 'deleted') || str_contains($log->action, 'failed') => 'bg-danger-subtle text-danger', $log->action === 'created' => 'bg-success-subtle text-success', str_starts_with($log->action, 'email') => 'bg-info-subtle text-info', default => 'bg-secondary-subtle text-secondary' } }}">{{ str($log->action)->replace('_', ' ') }}</span></td>
+            <td><span class="badge {{ match(true) { str_contains($log->action, 'deleted') || str_contains($log->action, 'failed') => 'bg-danger bg-opacity-10 text-danger', $log->action === 'created' => 'bg-success bg-opacity-10 text-success', str_starts_with($log->action, 'email') => 'bg-info bg-opacity-10 text-info', default => 'bg-secondary bg-opacity-10 text-secondary' } }}">{{ str($log->action)->replace('_', ' ') }}</span></td>
             <td class="small"><span class="text-muted">{{ $log->moduleLabel() }}</span><br>@if($url = $log->subjectUrl())<a href="{{ $url }}">{{ $log->subject_label }}</a>@else{{ $log->subject_label }}@endif @if($log->subject_id)<span class="text-muted">#{{ $log->subject_id }}</span>@endif</td>
             <td class="small">
                 @php($fields = collect($log->changes ?? []))

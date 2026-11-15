@@ -103,6 +103,13 @@ Route::prefix('admin')->group(function () {
         Route::put('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'updateOption'])->name('tour-filter-options.update');
         Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
+        Route::get('customers/labels', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'index'])->name('customer-labels.index');
+        Route::post('customers/labels/{kind}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'store'])->name('customer-labels.store');
+        Route::put('customers/labels/{kind}/{id}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'update'])->name('customer-labels.update');
+        Route::post('customers/labels/{kind}/{id}/archive', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'archive'])->name('customer-labels.archive');
+        Route::delete('customers/labels/{kind}/{id}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'destroy'])->name('customer-labels.destroy');
+        Route::post('customers/{customer}/restore', [\App\Http\Controllers\Admin\CustomerController::class, 'restore'])->name('customers.restore');
+        Route::resource('customers', \App\Http\Controllers\Admin\CustomerController::class)->withTrashed(['show']);
         Route::get('email-previews', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'index'])->name('email-previews.index');
         Route::get('email-previews/{key}', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'show'])->name('email-previews.show');
         Route::resource('visa-enquiries', \App\Http\Controllers\Admin\VisaEnquiryController::class)->only(['index', 'show', 'update', 'destroy']);

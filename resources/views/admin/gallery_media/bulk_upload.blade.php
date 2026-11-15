@@ -134,8 +134,8 @@
         for (const item of items.filter(i => i.status === 'done')) { items.splice(items.indexOf(item), 1); item.el.remove(); }
         summary();
     });
-    ['dragenter', 'dragover'].forEach(type => drop.addEventListener(type, e => { e.preventDefault(); drop.classList.add('bg-primary-subtle'); }));
-    ['dragleave', 'drop'].forEach(type => drop.addEventListener(type, e => { e.preventDefault(); drop.classList.remove('bg-primary-subtle'); }));
+    ['dragenter', 'dragover'].forEach(type => drop.addEventListener(type, e => { e.preventDefault(); drop.classList.add('bg-primary', 'bg-opacity-10'); }));
+    ['dragleave', 'drop'].forEach(type => drop.addEventListener(type, e => { e.preventDefault(); drop.classList.remove('bg-primary', 'bg-opacity-10'); }));
     drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
     window.addEventListener('beforeunload', e => { if (running) { e.preventDefault(); e.returnValue = ''; } });
 })();

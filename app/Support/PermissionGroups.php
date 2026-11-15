@@ -8,7 +8,7 @@ class PermissionGroups
     public const SECTIONS = [
         'Access control' => ['users', 'roles', 'permissions', 'activity-log'],
         'Website CMS' => ['pages', 'page-sections', 'navigation', 'settings', 'words', 'images', 'sliders', 'singles'],
-        'Tours & CRM' => ['tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
+        'Tours & CRM' => ['customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
         'Content' => ['company-content', 'abouts', 'reviews', 'faqs', 'gallery-albums', 'gallery-categories', 'gallery-media', 'contact_items', 'socials', 'contacts', 'blogs', 'portfolios', 'services', 'tags'],
     ];
 

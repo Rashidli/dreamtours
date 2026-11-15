@@ -23,9 +23,14 @@ class VisaEnquiry extends Model
         'other' => 'Something else / not sure',
     ];
 
+    public function customer() { return $this->belongsTo(Customer::class); }
+
     protected static function booted(): void
     {
-        static::creating(fn (self $e) => $e->reference ??= 'VE-'.strtoupper(Str::random(8)));
+        static::creating(function (self $e) {
+            $e->reference ??= 'VE-'.strtoupper(Str::random(8));
+            $e->customer_id ??= \App\Support\Customers::forVisaEnquiry($e)->id;
+        });
     }
 
     public function assistanceLabels(): array

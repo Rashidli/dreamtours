@@ -28,6 +28,7 @@
           </div>
           <div class="col-md-6">
             <p class="mb-1"><b>Main contact:</b> {{ $booking->first_name }} {{ $booking->last_name }}@if($booking->date_of_birth) <small class="text-muted">(DOB {{ $booking->date_of_birth->format('Y-m-d') }})</small>@endif</p>
+            @if($booking->customer_id)<p class="mb-1"><b>Customer:</b> @can('list-customers')<a href="{{ route('customers.show', $booking->customer_id) }}">{{ $booking->customer?->full_name ?? 'Customer #'.$booking->customer_id }} →</a>@else{{ $booking->customer?->full_name }}@endcan</p>@endif
             <p class="mb-1"><b>Phone:</b> <a href="tel:{{ preg_replace('/[^\d+]/', '', $booking->phone) }}">{{ $booking->phone }}</a></p>
             @if($booking->whatsapp)<p class="mb-1"><b>WhatsApp:</b> <a href="https://wa.me/{{ preg_replace('/\D+/', '', $booking->whatsapp) }}" target="_blank" rel="noopener">{{ $booking->whatsapp }}</a></p>@endif
             <p class="mb-1"><b>Email:</b> <a href="mailto:{{ $booking->email }}">{{ $booking->email }}</a></p>
