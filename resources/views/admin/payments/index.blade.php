@@ -7,21 +7,6 @@
   $presets = ['This month' => [$now->copy()->startOfMonth(), $now], 'Last month' => [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()], 'This year' => [$now->copy()->startOfYear(), $now]];
   $statusBadge = fn (string $status) => '<span class="badge rounded-pill bg-'.\App\Models\BookingPayment::STATUSES[$status][1].'">'.\App\Models\BookingPayment::STATUSES[$status][0].'</span>';
 @endphp
-<style>
-  /* Payments & balances: readable sizes on the 0.9rem theme; no -sm controls or tiny text for data. */
-  .pay-tile { border: 1px solid #e9ebef; border-radius: 10px; padding: 14px 16px; height: 100%; background: #fff; display: block; color: inherit; transition: box-shadow .15s; }
-  a.pay-tile:hover { box-shadow: 0 4px 14px rgba(20, 24, 36, .08); color: inherit; }
-  .pay-tile .label { color: #74788d; font-size: .85rem; margin-bottom: 4px; }
-  .pay-tile .value { font-size: 1.45rem; font-weight: 700; line-height: 1.2; }
-  .pay-tile .note { color: #74788d; font-size: .8rem; margin-top: 2px; }
-  .pay-filters .form-label { font-weight: 600; font-size: .8rem; color: #495057; margin-bottom: 4px; }
-  .pay-table th { font-size: .78rem; text-transform: uppercase; letter-spacing: .4px; color: #74788d; font-weight: 600; white-space: nowrap; }
-  .pay-table td { vertical-align: middle; }
-  .pay-table .sub { display: block; color: #74788d; font-size: .82rem; margin-top: 1px; }
-  .pay-table .amount { font-weight: 700; white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
-  .pay-table tfoot td { font-weight: 700; border-top: 2px solid #343a40; }
-  .pay-group td { background: #f6f7f9 !important; font-weight: 600; }
-</style>
 
             <div class="row">
                 <div class="col-12">
@@ -47,7 +32,7 @@
 
 @if(in_array($tab, ['overview', 'ledger'], true))
 {{-- Period first (it drives every figure), then the ledger's own filters. --}}
-<div class="card pay-filters"><div class="card-body">
+<div class="card crm-filters"><div class="card-body">
   <form>
     <input type="hidden" name="tab" value="{{ $tab }}">
     <div class="row g-3 align-items-end">
@@ -90,7 +75,7 @@
       ['Net collected', $period['net'], 'received − refunded', 'primary', $tabUrl('ledger', $range + ['status' => 'confirmed'])],
       ['Waiting for verification', $allPending->total, $allPending->n.' payments · all dates', 'warning', $tabUrl('pending')],
     ] as [$label, $amount, $note, $color, $url])
-      <div class="col-sm-6 col-xl-3"><a href="{{ $url }}" class="pay-tile" style="border-top:3px solid var(--bs-{{ $color }})">
+      <div class="col-sm-6 col-xl-3"><a href="{{ $url }}" class="crm-tile" style="border-top:3px solid var(--bs-{{ $color }})">
         <div class="label">{{ $label }}</div><div class="value text-{{ $color }}">{{ money($amount) }}</div><div class="note">{{ $note }} <i class="ri-arrow-right-s-line"></i></div>
       </a></div>
     @endforeach
@@ -100,14 +85,14 @@
   <div class="row g-3">
     <div class="col-lg-6"><div class="card h-100"><div class="card-body">
       <h5 class="card-title mb-3">Still owed today</h5>
-      <table class="table pay-table mb-0">
+      <table class="table crm-table mb-0">
         <tr><td>Outstanding on active bookings<span class="sub">{{ $owing->bookings_count }} bookings</span></td><td class="amount"><a href="{{ $tabUrl('outstanding') }}">{{ money($owing->outstanding) }}</a></td></tr>
         <tr><td class="text-danger">…of which overdue<span class="sub">{{ $overdue->bookings_count }} bookings</span></td><td class="amount"><a class="text-danger" href="{{ $tabUrl('outstanding', ['overdue' => 1]) }}">{{ money($overdue->outstanding) }}</a></td></tr>
       </table>
     </div></div></div>
     <div class="col-lg-6"><div class="card h-100"><div class="card-body">
       <h5 class="card-title mb-3">By payment method</h5>
-      <table class="table pay-table mb-0">
+      <table class="table crm-table mb-0">
         <thead><tr><th>Method</th><th class="text-end">Received</th><th class="text-end">Refunded</th><th class="text-end">Net</th></tr></thead>
         @forelse($methods as $m)
           <tr><td><a href="{{ $tabUrl('ledger', $range + ['method' => $m->method, 'status' => 'confirmed']) }}">{{ \App\Models\BookingPayment::METHODS[$m->method] ?? $m->method }}</a></td><td class="amount fw-normal">{{ money($m->received) }}</td><td class="amount fw-normal">{{ money($m->refunded) }}</td><td class="amount">{{ money(bcsub((string) $m->received, (string) $m->refunded, 2)) }}</td></tr>
@@ -121,12 +106,12 @@
 @elseif($tab === 'ledger')
   <div class="row g-3 mb-3">
     @foreach([['Received', $totals['received'], $totals['received_count'].' confirmed payments', 'success'], ['Refunded', $totals['refunded'], $totals['refunded_count'].' refunds', 'danger'], ['Net', $totals['net'], 'received − refunded', 'primary'], ['Pending (not counted)', $totals['pending'], $totals['pending_count'].' waiting', 'warning']] as [$label, $amount, $note, $color])
-      <div class="col-sm-6 col-xl-3"><div class="pay-tile" style="border-top:3px solid var(--bs-{{ $color }})"><div class="label">{{ $label }}</div><div class="value text-{{ $color }}">{{ money($amount) }}</div><div class="note">{{ $note }}</div></div></div>
+      <div class="col-sm-6 col-xl-3"><div class="crm-tile" style="border-top:3px solid var(--bs-{{ $color }})"><div class="label">{{ $label }}</div><div class="value text-{{ $color }}">{{ money($amount) }}</div><div class="note">{{ $note }}</div></div></div>
     @endforeach
   </div>
   <div class="card"><div class="card-body">
     <h5 class="card-title mb-3">Transactions <span class="text-muted fw-normal">({{ $totals['rows'] }})</span></h5>
-    <div class="table-responsive"><table class="table table-hover pay-table mb-0">
+    <div class="table-responsive"><table class="table table-hover crm-table mb-0">
       <thead><tr><th>Date</th><th>Receipt</th><th>Booking · customer</th><th>Method</th><th class="text-end">Amount</th><th>Status</th><th></th></tr></thead>
       <tbody>
       @forelse($rows as $p)
@@ -152,7 +137,7 @@
   </div></div>
 
 @elseif($tab === 'outstanding')
-  <div class="card pay-filters"><div class="card-body">
+  <div class="card crm-filters"><div class="card-body">
     <form class="row g-3 align-items-end">
       <input type="hidden" name="tab" value="outstanding">
       <div class="col-md-6 col-xl-3"><label class="form-label" for="o-q">Search</label><input class="form-control" id="o-q" name="q" value="{{ $f['q'] ?? '' }}" placeholder="Booking, name or email"></div>
@@ -170,19 +155,19 @@
   </div></div>
   <div class="row g-3 mb-3">
     @foreach([['Bookings owing', $totals->bookings_count, false, 'secondary'], ['Total due', $totals->due, true, 'secondary'], ['Paid', $totals->paid, true, 'success'], ['Outstanding', $totals->outstanding, true, 'danger']] as [$label, $value, $isMoney, $color])
-      <div class="col-sm-6 col-xl-3"><div class="pay-tile" style="border-top:3px solid var(--bs-{{ $color }})"><div class="label">{{ $label }}</div><div class="value {{ $color === 'danger' ? 'text-danger' : '' }}">{{ $isMoney ? money($value) : $value }}</div></div></div>
+      <div class="col-sm-6 col-xl-3"><div class="crm-tile" style="border-top:3px solid var(--bs-{{ $color }})"><div class="label">{{ $label }}</div><div class="value {{ $color === 'danger' ? 'text-danger' : '' }}">{{ $isMoney ? money($value) : $value }}</div></div></div>
     @endforeach
   </div>
   @php($byGroup = $bookings->groupBy($groupKey))
   <div class="card"><div class="card-body">
-    <div class="table-responsive"><table class="table pay-table mb-0">
+    <div class="table-responsive"><table class="table crm-table mb-0">
       <thead><tr><th>Booking · customer</th><th>Trip</th><th>Balance due</th><th class="text-end">Total due</th><th class="text-end">Paid</th><th class="text-end">Outstanding</th><th>Status</th></tr></thead>
       @forelse($f['group'] === 'none' ? collect([null => $bookings]) : $groups->mapWithKeys(fn ($g) => [$g->group_id => $byGroup[$g->group_id] ?? collect()]) as $groupId => $list)
         <tbody>
         @if($f['group'] !== 'none')
           @php($g = $groups->firstWhere('group_id', $groupId))
           @php($first = $list->first())
-          <tr class="pay-group"><td colspan="3">
+          <tr class="crm-group"><td colspan="3">
             @if($f['group'] === 'trip')<i class="ri-bus-line me-1"></i>{{ $first?->tour?->name }} · {{ $first?->departure?->departs_at?->format('D, M j, Y') }}
             @else<i class="ri-user-line me-1"></i>{{ $first?->customer?->full_name ?? trim($first?->first_name.' '.$first?->last_name) }}@if($first?->customer_id) <a class="fw-normal ms-1" href="{{ route('customers.show', $first->customer_id) }}">profile</a>@endif @endif
             <span class="text-muted fw-normal ms-1">· {{ $g->bookings_count }} {{ str('booking')->plural($g->bookings_count) }}</span></td>
@@ -214,7 +199,7 @@
   <div class="card"><div class="card-body">
     <h5 class="card-title mb-1">Waiting for verification</h5>
     <p class="text-muted">Payments a customer says they made (for example the deposit screenshot sent with a booking) or that staff recorded without checking. They don't reduce any balance until confirmed.</p>
-    <div class="table-responsive"><table class="table table-hover pay-table mb-0">
+    <div class="table-responsive"><table class="table table-hover crm-table mb-0">
       <thead><tr><th>Date</th><th>Booking · customer</th><th>Trip</th><th>Method</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead>
       <tbody>
       @forelse($rows as $p)

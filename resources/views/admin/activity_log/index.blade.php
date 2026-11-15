@@ -13,8 +13,8 @@
                     </div>
                 </div>
             </div>
-<div class="card"><div class="card-body">
-<p class="text-muted small">Every important change and email, newest first. Entries cannot be edited or deleted. Times are {{ str($timezone)->after('/')->replace('_', ' ') }} time.</p>
+<div class="card crm-filters"><div class="card-body">
+<p class="text-muted">Every important change and email, newest first. Entries cannot be edited or deleted. Times are {{ str($timezone)->after('/')->replace('_', ' ') }} time.</p>
 <form class="row g-2 mb-3">
     <div class="col-md-3"><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search record, person or reason"></div>
     <div class="col-md-2"><select class="form-select" name="actor" aria-label="Who"><option value="">Anyone</option>@foreach($users as $user)<option value="{{ $user->id }}" @selected(request('actor') == $user->id)>{{ $user->name }}</option>@endforeach<option value="system" @selected(request('actor') === 'system')>System (automatic)</option><option value="visitor" @selected(request('actor') === 'visitor')>Website visitor</option></select></div>
@@ -25,29 +25,29 @@
     <div class="col-md-1"><input class="form-control" type="date" name="to" value="{{ request('to') }}" title="To"></div>
     <div class="col-12 d-flex gap-2"><button class="btn btn-outline-primary">Filter</button>@if(collect(request()->except('page'))->filter()->isNotEmpty())<a class="btn btn-light" href="{{ route('activity-log.index') }}">Reset</a>@endif</div>
 </form>
-<div class="table-responsive"><table class="table table-sm align-top">
+<div class="table-responsive"><table class="table crm-table align-top">
     <thead><tr><th style="width:130px">When</th><th style="width:170px">Who</th><th style="width:120px">Action</th><th style="width:220px">Record</th><th>Summary</th><th style="width:110px">From</th></tr></thead>
     <tbody>
     @forelse($logs as $log)
         <tr>
-            <td class="small text-nowrap" title="{{ $log->created_at->utc()->format('Y-m-d H:i:s') }} UTC">{{ $log->created_at->timezone($timezone)->format('M j, Y') }}<br><span class="text-muted">{{ $log->created_at->timezone($timezone)->format('g:i:s A') }}</span></td>
-            <td class="small">{{ $log->actor_name }}@if($log->actor_role)<br><span class="badge bg-light text-body">{{ $log->actor_role }}</span>@endif</td>
+            <td class="text-nowrap" title="{{ $log->created_at->utc()->format('Y-m-d H:i:s') }} UTC">{{ $log->created_at->timezone($timezone)->format('M j, Y') }}<br><span class="text-muted">{{ $log->created_at->timezone($timezone)->format('g:i:s A') }}</span></td>
+            <td>{{ $log->actor_name }}@if($log->actor_role)<br><span class="badge bg-light text-body">{{ $log->actor_role }}</span>@endif</td>
             <td><span class="badge {{ match(true) { str_contains($log->action, 'deleted') || str_contains($log->action, 'failed') => 'bg-danger bg-opacity-10 text-danger', $log->action === 'created' => 'bg-success bg-opacity-10 text-success', str_starts_with($log->action, 'email') => 'bg-info bg-opacity-10 text-info', default => 'bg-secondary bg-opacity-10 text-secondary' } }}">{{ str($log->action)->replace('_', ' ') }}</span></td>
-            <td class="small"><span class="text-muted">{{ $log->moduleLabel() }}</span><br>@if($url = $log->subjectUrl())<a href="{{ $url }}">{{ $log->subject_label }}</a>@else{{ $log->subject_label }}@endif @if($log->subject_id)<span class="text-muted">#{{ $log->subject_id }}</span>@endif</td>
-            <td class="small">
+            <td><span class="text-muted">{{ $log->moduleLabel() }}</span><br>@if($url = $log->subjectUrl())<a href="{{ $url }}">{{ $log->subject_label }}</a>@else{{ $log->subject_label }}@endif @if($log->subject_id)<span class="text-muted">#{{ $log->subject_id }}</span>@endif</td>
+            <td>
                 @php($fields = collect($log->changes ?? []))
                 @php($isEdit = $fields->isNotEmpty() && $fields->every(fn ($v) => is_array($v) && array_is_list($v) && count($v) === 2))
                 <span class="text-muted">{{ $isEdit ? str($fields->keys()->map(fn ($k) => str($k)->replace('_', ' '))->take(4)->implode(', '))->limit(80).($fields->count() > 4 ? ' +'.($fields->count() - 4).' more' : '') : str($fields->map(fn ($v) => is_array($v) ? null : $v)->filter()->first() ?? '')->limit(60) }}</span>
                 @if($fields->isNotEmpty() || $log->reason)
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 ms-1" data-bs-toggle="modal" data-bs-target="#activityDetails" data-log="{{ $log->id }}">Details</button>
                     <template id="activity-{{ $log->id }}">
-                        <p class="small text-muted mb-2">{{ $log->created_at->timezone($timezone)->format('M j, Y g:i:s A') }} · {{ $log->actor_name }}{{ $log->actor_role ? ' ('.$log->actor_role.')' : '' }} · {{ str($log->action)->replace('_', ' ') }} · {{ $log->moduleLabel() }}: {{ $log->subject_label }}</p>
+                        <p class="text-muted mb-2">{{ $log->created_at->timezone($timezone)->format('M j, Y g:i:s A') }} · {{ $log->actor_name }}{{ $log->actor_role ? ' ('.$log->actor_role.')' : '' }} · {{ str($log->action)->replace('_', ' ') }} · {{ $log->moduleLabel() }}: {{ $log->subject_label }}</p>
                         @include('admin.activity_log.entry')
-                        @if($log->user_agent)<p class="small text-muted mt-3 mb-0 text-break">{{ $log->origin }} · {{ $log->ip }} · {{ $log->user_agent }}</p>@endif
+                        @if($log->user_agent)<p class="text-muted mt-3 mb-0 text-break">{{ $log->origin }} · {{ $log->ip }} · {{ $log->user_agent }}</p>@endif
                     </template>
                 @endif
             </td>
-            <td class="small text-muted">{{ $log->origin }}@if($log->ip)<br>{{ $log->ip }}@endif</td>
+            <td class="text-muted">{{ $log->origin }}@if($log->ip)<br>{{ $log->ip }}@endif</td>
         </tr>
     @empty
         <tr><td colspan="6" class="text-muted">No activity matches these filters.</td></tr>

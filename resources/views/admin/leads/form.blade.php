@@ -17,7 +17,7 @@
 <div class="row justify-content-center"><div class="col-xl-8">
 <form method="post" action="{{ route('leads.store') }}">@csrf
 <div class="card"><div class="card-body">
-  <p class="text-muted small">For requests that didn't come through the website — a phone call, a walk-in, a message. If the person is already a customer (same email, or same phone without email) the lead is linked to them.</p>
+  <p class="text-muted">For requests that didn't come through the website — a phone call, a walk-in, a message. If the person is already a customer (same email, or same phone without email) the lead is linked to them.</p>
   @include('admin.includes.validation_errors')
   @include('admin.leads._fields')
   <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Assign to</label><select class="form-select" name="assigned_user_id"><option value="">Nobody yet</option>@foreach($users as $user)<option value="{{ $user->id }}" @selected(old('assigned_user_id', auth()->id()) == $user->id)>{{ $user->name }}{{ $user->id === auth()->id() ? ' (me)' : '' }}</option>@endforeach</select></div></div>

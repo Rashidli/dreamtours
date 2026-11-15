@@ -22,16 +22,16 @@
   <div class="col-lg-6">
     <div class="card"><div class="card-body">
       <h5 class="card-title mb-1">{{ $title }}</h5>
-      <p class="text-muted small">{{ $help }} Archived labels stay on the customers that have them but can no longer be chosen.</p>
-      <table class="table table-sm align-middle">
+      <p class="text-muted">{{ $help }} Archived labels stay on the customers that have them but can no longer be chosen.</p>
+      <table class="table crm-table align-middle">
         <thead><tr><th>Name</th><th>Colour</th>@if($kind === 'status')<th title="Blocks promotional messages">No promos</th>@endif<th class="text-end">Customers</th><th></th></tr></thead>
         <tbody>
         @foreach($labels as $label)
           <tr class="{{ $label->archived_at ? 'text-muted' : '' }}">
             <td colspan="{{ $kind === 'status' ? 3 : 2 }}">
               <form class="d-flex gap-2 align-items-center" method="post" action="{{ route('customer-labels.update', [$kind, $label->id]) }}">@csrf @method('PUT')
-                <input class="form-control form-control-sm" name="name" value="{{ $label->name }}" maxlength="60" required aria-label="Name">
-                <select class="form-select form-select-sm" name="color" style="max-width:120px" aria-label="Colour">@foreach($colors as $color)<option @selected($label->color === $color)>{{ $color }}</option>@endforeach</select>
+                <input class="form-control" name="name" value="{{ $label->name }}" maxlength="60" required aria-label="Name">
+                <select class="form-select" name="color" style="max-width:120px" aria-label="Colour">@foreach($colors as $color)<option @selected($label->color === $color)>{{ $color }}</option>@endforeach</select>
                 @if($kind === 'status')<input type="checkbox" name="blocks_marketing" value="1" @checked($label->blocks_marketing) title="Blocks promotional messages" aria-label="Blocks promotions">@endif
                 <button class="btn btn-sm btn-outline-primary" title="Save"><i class="ri-save-line"></i></button>
               </form>
@@ -46,8 +46,8 @@
         </tbody>
       </table>
       <form class="d-flex gap-2 align-items-center" method="post" action="{{ route('customer-labels.store', $kind) }}">@csrf
-        <input class="form-control form-control-sm" name="name" placeholder="New {{ $kind }}" maxlength="60" required>
-        <select class="form-select form-select-sm" name="color" style="max-width:120px" aria-label="Colour">@foreach($colors as $color)<option>{{ $color }}</option>@endforeach</select>
+        <input class="form-control" name="name" placeholder="New {{ $kind }}" maxlength="60" required>
+        <select class="form-select" name="color" style="max-width:120px" aria-label="Colour">@foreach($colors as $color)<option>{{ $color }}</option>@endforeach</select>
         @if($kind === 'status')<label class="small text-nowrap mb-0"><input type="checkbox" name="blocks_marketing" value="1"> No promos</label>@endif
         <button class="btn btn-sm btn-primary text-nowrap"><i class="ri-add-line"></i> Add</button>
       </form>

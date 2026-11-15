@@ -3,15 +3,15 @@
 <form method="post" action="{{ route('customer-imports.update', $import) }}">@csrf @method('PUT')
 <div class="card"><div class="card-body">
   <h5 class="card-title">Match the columns of “{{ $import->filename }}” <small class="text-muted fw-normal">({{ number_format($rowCount) }} rows)</small></h5>
-  <p class="text-muted small">We guessed from the column names — check each one. Columns set to “Don't import” are ignored.</p>
-  <div class="table-responsive"><table class="table table-sm align-middle">
+  <p class="text-muted">We guessed from the column names — check each one. Columns set to “Don't import” are ignored.</p>
+  <div class="table-responsive"><table class="table crm-table align-middle">
     <thead><tr><th style="width:22%">Column in your file</th><th style="width:28%">Import as</th><th>First rows</th></tr></thead>
     <tbody>
     @foreach($import->columns as $i => $header)
       <tr>
         <td class="fw-semibold">{{ $header !== '' ? $header : 'Column '.($i + 1) }}</td>
-        <td><select class="form-select form-select-sm" name="mapping[{{ $i }}]"><option value="">Don't import</option>@foreach(\App\Support\CustomerImport::FIELDS as $field => [$label])<option value="{{ $field }}" @selected(old("mapping.$i", $import->mapping[$i] ?? null) === $field)>{{ $label }}</option>@endforeach</select></td>
-        <td class="small text-muted text-truncate" style="max-width:360px">{{ collect($samples)->map(fn ($row) => $row[$i] ?? '')->filter()->implode(' · ') ?: '—' }}</td>
+        <td><select class="form-select" name="mapping[{{ $i }}]"><option value="">Don't import</option>@foreach(\App\Support\CustomerImport::FIELDS as $field => [$label])<option value="{{ $field }}" @selected(old("mapping.$i", $import->mapping[$i] ?? null) === $field)>{{ $label }}</option>@endforeach</select></td>
+        <td class="text-muted text-truncate" style="max-width:360px">{{ collect($samples)->map(fn ($row) => $row[$i] ?? '')->filter()->implode(' · ') ?: '—' }}</td>
       </tr>
     @endforeach
     </tbody>

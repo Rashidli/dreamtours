@@ -22,7 +22,7 @@
   .lead-card .lead-due { color: #d63939; font-weight: 600; }
   .lead-avatar { width: 24px; height: 24px; border-radius: 50%; background: #e9ecef; color: #495057; font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
   .lead-avatar.none { background: transparent; border: 1px dashed #adb5bd; color: #adb5bd; }
-  .lead-chip { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #f1f3f5; color: #495057; white-space: nowrap; }
+  .lead-chip { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #f1f3f5; color: #495057; white-space: nowrap; }
   .lead-empty { font-size: 12px; color: #adb5bd; text-align: center; padding: 18px 6px; }
   .timeline-item { position: relative; padding: 0 0 16px 34px; }
   .timeline-item::before { content: ''; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: #eef0f3; }

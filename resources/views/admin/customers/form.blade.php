@@ -39,7 +39,7 @@
     </div>
     <div class="col-12 mb-3"><label class="form-label d-block">Tags</label>
         @php($chosen = collect(old('tag_ids', $customer->tags->pluck('id')->all()))->map(fn ($id) => (int) $id))
-        @forelse($tags as $tag)<label class="me-3"><input type="checkbox" name="tag_ids[]" value="{{ $tag->id }}" @checked($chosen->contains($tag->id))> {{ $tag->name }}{{ $tag->archived_at ? ' (archived)' : '' }}</label>@empty<span class="text-muted small">No tags yet.@can('manage-customer-labels') <a href="{{ route('customer-labels.index') }}">Create tags</a>.@endcan</span>@endforelse
+        @forelse($tags as $tag)<label class="me-3"><input type="checkbox" name="tag_ids[]" value="{{ $tag->id }}" @checked($chosen->contains($tag->id))> {{ $tag->name }}{{ $tag->archived_at ? ' (archived)' : '' }}</label>@empty<span class="text-muted">No tags yet.@can('manage-customer-labels') <a href="{{ route('customer-labels.index') }}">Create tags</a>.@endcan</span>@endforelse
     </div>
     <div class="col-12 mb-3"><label class="form-label">Notes <small class="text-muted">(staff only)</small></label><textarea class="form-control" name="notes" rows="4">{{ old('notes', $customer->notes) }}</textarea></div>
 </div>

@@ -19,8 +19,8 @@
 @include('admin.includes.validation_errors')
 <div class="row justify-content-center"><div class="col-xl-9">
 <div class="card"><div class="card-body">
-  <p class="text-muted small">The columns of the lead board, in order. <b>Open</b> stages are still being worked on; <b>Won</b>, <b>Lost</b> and <b>Spam</b> close a lead. Built-in stages <i class="ri-lock-line"></i> are used by the automations (assigning, logging a call, converting, confirming a booking), so they can be renamed and recoloured but not removed.</p>
-  <table class="table align-middle">
+  <p class="text-muted">The columns of the lead board, in order. <b>Open</b> stages are still being worked on; <b>Won</b>, <b>Lost</b> and <b>Spam</b> close a lead. Built-in stages <i class="ri-lock-line"></i> are used by the automations (assigning, logging a call, converting, confirming a booking), so they can be renamed and recoloured but not removed.</p>
+  <table class="table crm-table">
     <thead><tr><th style="width:70px">Order</th><th>Name & colour</th><th style="width:130px">Kind</th><th class="text-end" style="width:80px">Leads</th><th style="width:170px"></th></tr></thead>
     <tbody>
     @foreach($stages as $stage)
@@ -29,10 +29,10 @@
         <td colspan="2">
           <form class="d-flex gap-2 align-items-center" method="post" action="{{ route('lead-stages.update', $stage) }}">@csrf @method('PUT')
             <span class="stage-dot" style="background:{{ \App\Models\LeadStage::HEX[$stage->color] ?? '#6c757d' }}"></span>
-            <input class="form-control form-control-sm" name="name" value="{{ $stage->name }}" maxlength="60" required aria-label="Name">
-            <select class="form-select form-select-sm" name="color" style="max-width:110px" aria-label="Colour">@foreach(\App\Models\CustomerStatus::COLORS as $color)<option @selected($stage->color === $color)>{{ $color }}</option>@endforeach</select>
+            <input class="form-control" name="name" value="{{ $stage->name }}" maxlength="60" required aria-label="Name">
+            <select class="form-select" name="color" style="max-width:110px" aria-label="Colour">@foreach(\App\Models\CustomerStatus::COLORS as $color)<option @selected($stage->color === $color)>{{ $color }}</option>@endforeach</select>
             @if($stage->key)<span class="badge bg-light text-body" style="min-width:110px"><i class="ri-lock-line"></i> {{ \App\Models\LeadStage::KINDS[$stage->kind] }}</span>
-            @else<select class="form-select form-select-sm" name="kind" style="max-width:110px" aria-label="Kind">@foreach(\App\Models\LeadStage::KINDS as $value => $label)<option value="{{ $value }}" @selected($stage->kind === $value)>{{ $label }}</option>@endforeach</select>@endif
+            @else<select class="form-select" name="kind" style="max-width:110px" aria-label="Kind">@foreach(\App\Models\LeadStage::KINDS as $value => $label)<option value="{{ $value }}" @selected($stage->kind === $value)>{{ $label }}</option>@endforeach</select>@endif
             <button class="btn btn-sm btn-outline-primary" title="Save"><i class="ri-save-line"></i></button>
           </form>
         </td>
@@ -48,9 +48,9 @@
     </tbody>
   </table>
   <form class="d-flex flex-wrap gap-2 align-items-center" method="post" action="{{ route('lead-stages.store') }}">@csrf
-    <input class="form-control form-control-sm" style="max-width:240px" name="name" placeholder="New stage, e.g. Quote sent" maxlength="60" required>
-    <select class="form-select form-select-sm" name="color" style="max-width:110px" aria-label="Colour">@foreach(\App\Models\CustomerStatus::COLORS as $color)<option>{{ $color }}</option>@endforeach</select>
-    <select class="form-select form-select-sm" name="kind" style="max-width:110px" aria-label="Kind">@foreach(\App\Models\LeadStage::KINDS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+    <input class="form-control" style="max-width:240px" name="name" placeholder="New stage, e.g. Quote sent" maxlength="60" required>
+    <select class="form-select" name="color" style="max-width:110px" aria-label="Colour">@foreach(\App\Models\CustomerStatus::COLORS as $color)<option>{{ $color }}</option>@endforeach</select>
+    <select class="form-select" name="kind" style="max-width:110px" aria-label="Kind">@foreach(\App\Models\LeadStage::KINDS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
     <button class="btn btn-sm btn-primary"><i class="ri-add-line"></i> Add stage</button>
   </form>
 </div></div>

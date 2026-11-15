@@ -49,7 +49,7 @@
 
   @if($canEdit)
   <div class="d-flex flex-wrap gap-2 align-items-center mt-3 pt-3 border-top stage-steps">
-    <span class="small text-muted me-1">Stage:</span>
+    <span class="text-muted me-1">Stage:</span>
     @foreach($open as $stage)
       <form method="post" action="{{ route('leads.stage', $lead) }}">@csrf @method('PATCH')<input type="hidden" name="lead_stage_id" value="{{ $stage->id }}">
         <button class="btn btn-sm {{ $lead->lead_stage_id === $stage->id ? 'btn-'.$stage->color : 'btn-outline-'.$stage->color }}" @disabled($lead->lead_stage_id === $stage->id)>{{ $stage->name }}</button></form>
@@ -66,7 +66,7 @@
   <div class="col-lg-4">
     <div class="card"><div class="card-body">
       <h6 class="text-uppercase text-muted small mb-3">Request</h6>
-      <dl class="row small mb-0">
+      <dl class="row mb-0">
         <dt class="col-5 fw-normal text-muted">Type</dt><dd class="col-7">{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}</dd>
         <dt class="col-5 fw-normal text-muted">Tour</dt><dd class="col-7">{{ $lead->tour?->name ?? '—' }}</dd>
         <dt class="col-5 fw-normal text-muted">Departure</dt><dd class="col-7">{{ $lead->departure?->departs_at?->format('D, M j, Y g:i A') ?? '—' }}</dd>
@@ -80,7 +80,7 @@
 
     <div class="card"><div class="card-body">
       <div class="d-flex justify-content-between"><h6 class="text-uppercase text-muted small mb-3">Contact</h6>@if($canEdit)<a href="#" class="small" data-bs-toggle="modal" data-bs-target="#editLead">Edit</a>@endif</div>
-      <dl class="row small mb-0">
+      <dl class="row mb-0">
         <dt class="col-5 fw-normal text-muted">Email</dt><dd class="col-7 text-break">{{ $lead->email ?: '—' }}</dd>
         <dt class="col-5 fw-normal text-muted">Phone</dt><dd class="col-7">{{ $lead->phone ?: '—' }}</dd>
         <dt class="col-5 fw-normal text-muted">WhatsApp</dt><dd class="col-7">{{ $lead->whatsapp ?: '—' }}</dd>
@@ -90,7 +90,7 @@
 
     <div class="card"><div class="card-body">
       <h6 class="text-uppercase text-muted small mb-3">Source</h6>
-      <dl class="row small mb-0">
+      <dl class="row mb-0">
         <dt class="col-5 fw-normal text-muted">Source</dt><dd class="col-7">{{ \App\Models\Lead::SOURCES[$lead->source] ?? $lead->source }}</dd>
         @foreach(['utm_source' => 'UTM source', 'utm_medium' => 'Medium', 'utm_campaign' => 'Campaign', 'utm_term' => 'Keyword', 'utm_content' => 'Ad'] as $field => $label)
           @if($lead->{$field})<dt class="col-5 fw-normal text-muted">{{ $label }}</dt><dd class="col-7 text-break">{{ $lead->{$field} }}</dd>@endif
@@ -116,8 +116,8 @@
       @endif
       <form method="post" action="{{ route('leads.follow-up', $lead) }}">@csrf @method('PATCH')
         <div class="d-flex flex-wrap gap-1 mb-2">@foreach(['today' => 'Today 5 PM', 'tomorrow' => 'Tomorrow', '3days' => 'In 3 days', 'week' => 'Next week'] as $value => $label)<button class="btn btn-sm btn-light" name="when" value="{{ $value }}">{{ $label }}</button>@endforeach</div>
-        <div class="input-group input-group-sm mb-2"><input class="form-control" type="datetime-local" name="next_follow_up_at" aria-label="Custom date and time"><button class="btn btn-outline-primary" name="when" value="custom">Set</button></div>
-        <input class="form-control form-control-sm mb-2" name="follow_up_note" maxlength="255" placeholder="What to do (optional)" value="{{ $lead->follow_up_note }}">
+        <div class="input-group mb-2"><input class="form-control" type="datetime-local" name="next_follow_up_at" aria-label="Custom date and time"><button class="btn btn-outline-primary" name="when" value="custom">Set</button></div>
+        <input class="form-control mb-2" name="follow_up_note" maxlength="255" placeholder="What to do (optional)" value="{{ $lead->follow_up_note }}">
         @if($lead->next_follow_up_at)<button class="btn btn-sm btn-link text-danger p-0" name="when" value="clear">Clear reminder</button>@endif
       </form>
     </div></div>
@@ -125,7 +125,7 @@
     <div class="card"><div class="card-body">
       <h6 class="text-uppercase text-muted small mb-2">Tags</h6>
       <form method="post" action="{{ route('leads.tags', $lead) }}">@csrf @method('PUT')
-        @forelse($tags as $tag)<label class="me-2 small"><input type="checkbox" name="tag_ids[]" value="{{ $tag->id }}" @checked($lead->tags->contains($tag))> {{ $tag->name }}</label>@empty<span class="small text-muted">No tags yet.</span>@endforelse
+        @forelse($tags as $tag)<label class="me-2 small"><input type="checkbox" name="tag_ids[]" value="{{ $tag->id }}" @checked($lead->tags->contains($tag))> {{ $tag->name }}</label>@empty<span class="text-muted">No tags yet.</span>@endforelse
         @if($tags->isNotEmpty())<div><button class="btn btn-sm btn-light mt-2">Save tags</button></div>@endif
       </form>
     </div></div>
@@ -146,7 +146,7 @@
         <div class="d-flex flex-wrap gap-3 mb-2 small" id="outcomes">@foreach(\App\Models\LeadNote::OUTCOMES as $value => $label)<label><input type="radio" name="outcome" value="{{ $value }}" @checked(old('outcome') === $value)> {{ $label }}</label>@endforeach</div>
         <textarea class="form-control mb-2" name="body" rows="3" placeholder="What did you talk about? Next steps?">{{ old('body') }}</textarea>
         <div class="d-flex justify-content-between align-items-center">
-          <span class="small text-muted">Calls, WhatsApp, email and SMS count as contact attempts{{ in_array($lead->stage->key, ['new', 'assigned'], true) ? ' and move the lead to “Contacted”' : '' }}.</span>
+          <span class="text-muted">Calls, WhatsApp, email and SMS count as contact attempts{{ in_array($lead->stage->key, ['new', 'assigned'], true) ? ' and move the lead to “Contacted”' : '' }}.</span>
           <button class="btn btn-primary">Save</button>
         </div>
       </form>
@@ -158,7 +158,7 @@
       @forelse($lead->notes as $note)
         <div class="timeline-item">
           <span class="timeline-icon"><i class="{{ \App\Models\LeadNote::KINDS[$note->kind][1] ?? 'ri-sticky-note-line' }}"></i></span>
-          <div class="small"><strong>{{ \App\Models\LeadNote::KINDS[$note->kind][0] ?? $note->kind }}</strong>@if($note->outcome) · <span class="{{ $note->outcome === 'reached' ? 'text-success' : 'text-muted' }}">{{ \App\Models\LeadNote::OUTCOMES[$note->outcome] ?? $note->outcome }}</span>@endif
+          <div><strong>{{ \App\Models\LeadNote::KINDS[$note->kind][0] ?? $note->kind }}</strong>@if($note->outcome) · <span class="{{ $note->outcome === 'reached' ? 'text-success' : 'text-muted' }}">{{ \App\Models\LeadNote::OUTCOMES[$note->outcome] ?? $note->outcome }}</span>@endif
             <span class="text-muted">· {{ $note->user?->name ?? 'System' }} · <span title="{{ $note->created_at->timezone($tz)->format('M j, Y g:i A') }}">{{ $note->created_at->diffForHumans() }}</span></span></div>
           @if($note->body)<div class="mt-1" style="white-space:pre-line">{{ $note->body }}</div>@endif
         </div>
@@ -172,7 +172,7 @@
       @forelse($activity as $log)
         <div class="d-flex gap-3 small py-1 border-top"><span class="text-muted text-nowrap" style="width:130px">{{ $log->created_at->timezone($tz)->format('M j, g:i A') }}</span><span><strong>{{ $log->actor_name }}</strong> · {{ str($log->action)->replace('_', ' ') }}@if(isset($log->changes['stage'])) — {{ $log->changes['stage'][0] ?? '—' }} → {{ $log->changes['stage'][1] }}@endif</span></div>
       @empty
-        <p class="small text-muted mb-0">Nothing yet.</p>
+        <p class="text-muted mb-0">Nothing yet.</p>
       @endforelse
       @can('delete-leads')<form method="post" action="{{ route('leads.destroy', $lead) }}" class="text-end mt-3" onsubmit="return confirm('Delete lead {{ $lead->reference }}? The original request and any booking are kept.')">@csrf @method('DELETE')<button class="btn btn-sm btn-link text-danger">Delete lead</button></form>@endcan
     </div></div>
@@ -184,7 +184,7 @@
 <div class="modal fade" id="convertLead" tabindex="-1" aria-labelledby="convertLeadTitle" aria-hidden="true"><div class="modal-dialog"><form class="modal-content" method="post" action="{{ route('leads.convert', $lead) }}">@csrf
   <div class="modal-header"><h5 class="modal-title" id="convertLeadTitle">Convert to booking</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
   <div class="modal-body">
-    <p class="small text-muted">{{ $lead->full_name }}'s contact details{{ $lead->message ? ', message' : '' }} and pick-up are copied to the booking. You can add passengers and adjust the price on the booking page.</p>
+    <p class="text-muted">{{ $lead->full_name }}'s contact details{{ $lead->message ? ', message' : '' }} and pick-up are copied to the booking. You can add passengers and adjust the price on the booking page.</p>
     <label class="form-label">Departure</label>
     <select class="form-select mb-3" name="tour_departure_id" required>
       <option value="">Choose a date…</option>

@@ -17,15 +17,15 @@
 @include('admin.includes.flash')
 @include('admin.includes.validation_errors')
 <div class="card"><div class="card-body">
-  <p class="text-muted small">Customers that share a phone number or a full name. Nothing is merged automatically — open a pair, compare, and choose. If two people are really different (for example a couple sharing a phone), mark them “Not duplicates” and they won't be suggested again.</p>
-  <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+  <p class="text-muted">Customers that share a phone number or a full name. Nothing is merged automatically — open a pair, compare, and choose. If two people are really different (for example a couple sharing a phone), mark them “Not duplicates” and they won't be suggested again.</p>
+  <div class="table-responsive"><table class="table table-hover crm-table mb-0">
     <thead><tr><th>Customer A</th><th>Customer B</th><th>Why</th><th></th></tr></thead>
     <tbody>
     @forelse($pairs as $pair)
       @php([$a, $b] = $pair)
       <tr>
         @foreach([$a, $b] as $c)
-          <td><a href="{{ route('customers.show', $c) }}" target="_blank" class="fw-semibold">{{ $c->full_name }}</a> <span class="text-muted small">#{{ $c->id }}</span>@if($c->status) <span class="badge bg-{{ $c->status->color }}">{{ $c->status->name }}</span>@endif<br><span class="small text-muted">{{ collect([$c->email, $c->phone])->filter()->implode(' · ') }} · {{ $c->bookings_count }} {{ str('booking')->plural($c->bookings_count) }}</span></td>
+          <td><a href="{{ route('customers.show', $c) }}" target="_blank" class="fw-semibold">{{ $c->full_name }}</a> <span class="text-muted">#{{ $c->id }}</span>@if($c->status) <span class="badge bg-{{ $c->status->color }}">{{ $c->status->name }}</span>@endif<br><span class="text-muted">{{ collect([$c->email, $c->phone])->filter()->implode(' · ') }} · {{ $c->bookings_count }} {{ str('booking')->plural($c->bookings_count) }}</span></td>
         @endforeach
         <td>@foreach($pair['reasons'] as $reason)<span class="badge bg-warning bg-opacity-10 text-warning border border-warning me-1">{{ $reason }}</span>@endforeach</td>
         <td class="text-end text-nowrap">

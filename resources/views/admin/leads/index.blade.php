@@ -21,7 +21,7 @@
             </div>
 @include('admin.includes.flash')
 
-<div class="card"><div class="card-body pb-2">
+<div class="card crm-filters"><div class="card-body pb-2">
   <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
     <div class="btn-group" role="group" aria-label="View">
       <a class="btn btn-sm {{ $view === 'board' ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ request()->fullUrlWithQuery(['view' => null, 'page' => null]) }}"><i class="ri-layout-column-line align-middle"></i> Board</a>
@@ -37,22 +37,22 @@
   <form class="row g-2" id="lead-filters">
     @if($view === 'list')<input type="hidden" name="view" value="list">@endif
     @if(request()->boolean('due'))<input type="hidden" name="due" value="1">@endif
-    <div class="col-md-3"><input class="form-control form-control-sm" name="q" value="{{ request('q') }}" placeholder="Name, email, phone or L-reference"></div>
-    <div class="col-md-2"><select class="form-select form-select-sm" name="assigned" aria-label="Assigned to" onchange="this.form.submit()">
+    <div class="col-md-3"><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Name, email, phone or L-reference"></div>
+    <div class="col-md-2"><select class="form-select" name="assigned" aria-label="Assigned to" onchange="this.form.submit()">
       <option value="">Everyone</option><option value="me" @selected(request('assigned') === 'me')>Assigned to me</option><option value="none" @selected(request('assigned') === 'none')>Unassigned</option>
       @foreach($users as $user)<option value="{{ $user->id }}" @selected(request('assigned') == $user->id)>{{ $user->name }}</option>@endforeach
     </select></div>
-    <div class="col-md-2"><select class="form-select form-select-sm" name="source" aria-label="Source" onchange="this.form.submit()"><option value="">All sources</option>@foreach(\App\Models\Lead::SOURCES as $value => $label)<option value="{{ $value }}" @selected(request('source') === $value)>{{ $label }}</option>@endforeach</select></div>
-    @if($view === 'list')<div class="col-md-2"><select class="form-select form-select-sm" name="stage" aria-label="Stage" onchange="this.form.submit()"><option value="">All stages</option>@foreach($stages as $stage)<option value="{{ $stage->id }}" @selected(request('stage') == $stage->id)>{{ $stage->name }}</option>@endforeach</select></div>@endif
+    <div class="col-md-2"><select class="form-select" name="source" aria-label="Source" onchange="this.form.submit()"><option value="">All sources</option>@foreach(\App\Models\Lead::SOURCES as $value => $label)<option value="{{ $value }}" @selected(request('source') === $value)>{{ $label }}</option>@endforeach</select></div>
+    @if($view === 'list')<div class="col-md-2"><select class="form-select" name="stage" aria-label="Stage" onchange="this.form.submit()"><option value="">All stages</option>@foreach($stages as $stage)<option value="{{ $stage->id }}" @selected(request('stage') == $stage->id)>{{ $stage->name }}</option>@endforeach</select></div>@endif
     <div class="col-md-auto d-flex gap-2"><button class="btn btn-sm btn-outline-primary">Filter</button>@if($filters->isNotEmpty())<a class="btn btn-sm btn-light" href="{{ route('leads.index', $view === 'list' ? ['view' => 'list'] : []) }}">Reset</a>@endif
       <a class="btn btn-sm btn-link" data-bs-toggle="collapse" href="#moreLeadFilters" role="button" aria-expanded="{{ $moreFilters ? 'true' : 'false' }}">More filters</a></div>
     <div class="collapse {{ $moreFilters ? 'show' : '' }}" id="moreLeadFilters"><div class="row g-2 pt-1">
-      <div class="col-md-2"><label class="form-label small mb-0">Request type</label><select class="form-select form-select-sm" name="type"><option value="">Any</option>@foreach(\App\Models\Lead::TYPES as $value => $label)<option value="{{ $value }}" @selected(request('type') === $value)>{{ $label }}</option>@endforeach</select></div>
-      <div class="col-md-2"><label class="form-label small mb-0">Campaign</label><select class="form-select form-select-sm" name="campaign"><option value="">Any</option>@foreach($campaigns as $campaign)<option @selected(request('campaign') === $campaign)>{{ $campaign }}</option>@endforeach</select></div>
-      <div class="col-md-2"><label class="form-label small mb-0">Tour</label><select class="form-select form-select-sm" name="tour"><option value="">Any</option>@foreach($tours as $tour)<option value="{{ $tour->id }}" @selected(request('tour') == $tour->id)>{{ $tour->name }}</option>@endforeach</select></div>
-      <div class="col-md-3"><label class="form-label small mb-0">Received between</label><div class="input-group input-group-sm"><input class="form-control" type="date" name="from" value="{{ request('from') }}" aria-label="Received from"><input class="form-control" type="date" name="to" value="{{ request('to') }}" aria-label="Received to"></div></div>
-      <div class="col-md-3"><label class="form-label small mb-0">Trip date between</label><div class="input-group input-group-sm"><input class="form-control" type="date" name="trip_from" value="{{ request('trip_from') }}" aria-label="Trip from"><input class="form-control" type="date" name="trip_to" value="{{ request('trip_to') }}" aria-label="Trip to"></div></div>
-      <div class="col-md-3"><label class="form-label small mb-0">Last contact between</label><div class="input-group input-group-sm"><input class="form-control" type="date" name="contacted_from" value="{{ request('contacted_from') }}" aria-label="Contacted from"><input class="form-control" type="date" name="contacted_to" value="{{ request('contacted_to') }}" aria-label="Contacted to"></div></div>
+      <div class="col-md-2"><label class="form-label">Request type</label><select class="form-select" name="type"><option value="">Any</option>@foreach(\App\Models\Lead::TYPES as $value => $label)<option value="{{ $value }}" @selected(request('type') === $value)>{{ $label }}</option>@endforeach</select></div>
+      <div class="col-md-2"><label class="form-label">Campaign</label><select class="form-select" name="campaign"><option value="">Any</option>@foreach($campaigns as $campaign)<option @selected(request('campaign') === $campaign)>{{ $campaign }}</option>@endforeach</select></div>
+      <div class="col-md-2"><label class="form-label">Tour</label><select class="form-select" name="tour"><option value="">Any</option>@foreach($tours as $tour)<option value="{{ $tour->id }}" @selected(request('tour') == $tour->id)>{{ $tour->name }}</option>@endforeach</select></div>
+      <div class="col-md-3"><label class="form-label">Received between</label><div class="input-group"><input class="form-control" type="date" name="from" value="{{ request('from') }}" aria-label="Received from"><input class="form-control" type="date" name="to" value="{{ request('to') }}" aria-label="Received to"></div></div>
+      <div class="col-md-3"><label class="form-label">Trip date between</label><div class="input-group"><input class="form-control" type="date" name="trip_from" value="{{ request('trip_from') }}" aria-label="Trip from"><input class="form-control" type="date" name="trip_to" value="{{ request('trip_to') }}" aria-label="Trip to"></div></div>
+      <div class="col-md-3"><label class="form-label">Last contact between</label><div class="input-group"><input class="form-control" type="date" name="contacted_from" value="{{ request('contacted_from') }}" aria-label="Contacted from"><input class="form-control" type="date" name="contacted_to" value="{{ request('contacted_to') }}" aria-label="Contacted to"></div></div>
     </div></div>
   </form>
 </div></div>
@@ -93,7 +93,7 @@
       </div>
     @endforeach
   </div>
-  <p class="small text-muted mt-1"><i class="ri-drag-move-line"></i> Drag a card to another column to change its stage, or open it to log a call, set a reminder or convert it to a booking.</p>
+  <p class="text-muted mt-1"><i class="ri-drag-move-line"></i> Drag a card to another column to change its stage, or open it to log a call, set a reminder or convert it to a booking.</p>
 
   {{-- Lost needs a reason: asked here instead of a browser prompt. --}}
   <div class="modal fade" id="lostReason" tabindex="-1" aria-labelledby="lostReasonTitle" aria-hidden="true"><div class="modal-dialog"><form class="modal-content">
@@ -106,18 +106,18 @@
   </form></div></div>
 @else
   <div class="card"><div class="card-body">
-    <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+    <div class="table-responsive"><table class="table table-hover crm-table mb-0">
       <thead><tr><th>Lead</th><th>Request</th><th>Stage</th><th>Assigned</th><th>Source</th><th>Last contact</th><th>Follow-up</th><th></th></tr></thead>
       <tbody>
       @forelse($leads as $lead)
         <tr>
-          <td><span class="fw-semibold">{{ $lead->full_name }}</span><br><span class="small text-muted">{{ $lead->reference }} · {{ $lead->created_at->timezone($tz)->format('M j, Y') }}</span></td>
-          <td class="small">{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour)<br><span class="text-muted">{{ $lead->tour->name }}@if($lead->departure) · {{ $lead->departure->departs_at->format('M j') }}@endif @if($lead->guests) · {{ $lead->guests }} {{ str('guest')->plural($lead->guests) }}@endif</span>@endif</td>
+          <td><span class="fw-semibold">{{ $lead->full_name }}</span><br><span class="text-muted">{{ $lead->reference }} · {{ $lead->created_at->timezone($tz)->format('M j, Y') }}</span></td>
+          <td>{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour)<br><span class="text-muted">{{ $lead->tour->name }}@if($lead->departure) · {{ $lead->departure->departs_at->format('M j') }}@endif @if($lead->guests) · {{ $lead->guests }} {{ str('guest')->plural($lead->guests) }}@endif</span>@endif</td>
           <td><span class="badge bg-{{ $lead->stage?->color }}">{{ $lead->stage?->name }}</span></td>
-          <td class="small">{{ $lead->assignedUser?->name ?? '—' }}</td>
-          <td class="small text-muted">{{ $lead->sourceLabel() }}</td>
-          <td class="small">{{ $lead->last_contacted_at?->timezone($tz)->format('M j') ?? '—' }}@if($lead->contact_attempts) <span class="text-muted">({{ $lead->contact_attempts }})</span>@endif</td>
-          <td class="small {{ $lead->isFollowUpDue() ? 'text-danger fw-semibold' : '' }}">{{ $lead->next_follow_up_at?->timezone($tz)->format('M j, g:i A') ?? '—' }}</td>
+          <td>{{ $lead->assignedUser?->name ?? '—' }}</td>
+          <td class="text-muted">{{ $lead->sourceLabel() }}</td>
+          <td>{{ $lead->last_contacted_at?->timezone($tz)->format('M j') ?? '—' }}@if($lead->contact_attempts) <span class="text-muted">({{ $lead->contact_attempts }})</span>@endif</td>
+          <td class="{{ $lead->isFollowUpDue() ? 'text-danger fw-semibold' : '' }}">{{ $lead->next_follow_up_at?->timezone($tz)->format('M j, g:i A') ?? '—' }}</td>
           <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('leads.show', $lead) }}">Details</a></td>
         </tr>
       @empty
