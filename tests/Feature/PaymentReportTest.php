@@ -96,7 +96,7 @@ class PaymentReportTest extends TestCase
         // Refunded: 20.00 (1). Net: 380.25. Pending (all dates): 80.00 (1). Voided 999 and rejected 50 never count.
         $page->assertSeeInOrder(['Received', 'CA$400.25', '5 payments', 'Refunded', 'CA$20', '1 refunds', 'Net collected', 'CA$380.25', 'Waiting for verification', 'CA$80', '1 payments'], false);
         // Owed today: A 120 + B 100 + C 120 = 340.00 on 3 bookings; overdue: C 120.00.
-        $page->assertSeeInOrder(['Outstanding on active bookings', 'CA$340', '3 bookings', 'of which overdue', 'CA$120', '1 bookings'], false);
+        $page->assertSeeInOrder(['Outstanding on active bookings', '3 bookings', 'CA$340', 'of which overdue', '1 bookings', 'CA$120'], false);
         // By method: e-Transfer 150 + 100 received, 20 refunded → net 230; cash 50 + 0.25 = 50.25; cheque 100.
         $page->assertSeeInOrder(['Interac e-Transfer', 'CA$250', 'CA$20', 'CA$230'], false)->assertSee('CA$50.25')->assertSee('Cheque');
     }
