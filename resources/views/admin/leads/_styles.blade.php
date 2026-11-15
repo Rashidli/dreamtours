@@ -1,15 +1,17 @@
 <style>
   /* Lead pipeline — Bootstrap 5.1 theme, so no *-subtle utilities. */
-  .lead-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
-  .lead-col { flex: 0 0 272px; background: #f6f7f9; border-radius: 10px; display: flex; flex-direction: column; max-height: 74vh; }
+  /* Columns run the full board height, so a card can be dropped anywhere in a column's strip (Trello-style). */
+  .lead-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: stretch; height: 74vh; min-height: 420px; }
+  .lead-col { flex: 0 0 272px; background: #f6f7f9; border-radius: 10px; display: flex; flex-direction: column; min-height: 0; transition: background .15s, box-shadow .15s; }
+  .lead-col.drop-over { background: #eaf5fe; box-shadow: inset 0 0 0 2px rgba(15, 156, 243, .45); }
   .lead-col.closed { flex-basis: 232px; opacity: .92; }
   .lead-col-head { padding: 10px 12px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; border-bottom: 1px solid #e9ebef; }
   .lead-col-body { padding: 8px; overflow-y: auto; min-height: 90px; flex: 1; border-radius: 0 0 10px 10px; transition: background .15s; }
-  .lead-col-body.drop-over { background: rgba(15, 156, 243, .08); outline: 2px dashed rgba(15, 156, 243, .45); outline-offset: -4px; }
+  .lead-slot { border: 2px dashed rgba(15, 156, 243, .55); background: rgba(15, 156, 243, .06); border-radius: 8px; margin-bottom: 8px; }
   .stage-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: 0 0 9px; }
   .lead-card { background: #fff; border: 1px solid #e6e8ec; border-radius: 8px; padding: 10px 11px; margin-bottom: 8px; cursor: grab; transition: box-shadow .15s, transform .15s; display: block; color: inherit; }
   .lead-card:hover { box-shadow: 0 3px 10px rgba(20, 24, 36, .08); color: inherit; }
-  .lead-card.dragging { opacity: .5; transform: rotate(1deg); }
+  .lead-card.dragging { display: none; } /* the dashed slot stands in for it while dragging */
   .lead-card .lead-name { font-weight: 600; font-size: 13.5px; color: #1f2430; }
   .lead-card .lead-meta { font-size: 12px; color: #6c757d; }
   .lead-card .lead-due { color: #d63939; font-weight: 600; }

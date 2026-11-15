@@ -87,7 +87,7 @@
             <div class="lead-empty" data-empty>{{ $stage->isClosed() ? 'Nothing here yet' : 'Drop a lead here' }}</div>
           @endforelse
           @if($stage->isClosed() && ($counts[$stage->id] ?? 0) > $board[$stage->id]->count())
-            <a class="small d-block text-center py-1" href="{{ request()->fullUrlWithQuery(['view' => 'list', 'stage' => $stage->id]) }}">See all {{ $counts[$stage->id] }}</a>
+            <a class="small d-block text-center py-1 see-all" href="{{ request()->fullUrlWithQuery(['view' => 'list', 'stage' => $stage->id]) }}">See all {{ $counts[$stage->id] }}</a>
           @endif
         </div>
       </div>
@@ -144,10 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.remove(), 5000);
   };
   const count = (col, delta) => { const el = col.querySelector('[data-count]'); el.textContent = Math.max(0, +el.textContent + delta); };
-  const placeholder = (body) => {
+  // Empty columns say so; a column that gets a card loses the message.
+  const refreshEmpty = (body) => {
     const empty = body.querySelector('[data-empty]');
-    const hasCards = body.querySelector('.lead-card');
+    const hasCards = body.querySelector('.lead-card:not(.dragging)') || body.contains(dragged);
     if (hasCards && empty) empty.remove();
+    if (!hasCards && !empty) {
+      const el = Object.assign(document.createElement('div'), { className: 'lead-empty', textContent: 'Drop a lead here' });
+      el.dataset.empty = '';
+      body.prepend(el);
+    }
   };
 
   async function move(card, col, reason) {
@@ -178,31 +184,92 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /*
+   * Trello-style dragging: the whole column (header, cards, empty space below,
+   * and the gap next to it) accepts the card, and a dashed slot shows where it
+   * will land. The board scrolls sideways near its edges, a long column up/down.
+   */
+  const cols = [...board.querySelectorAll('.lead-col')];
+  const slot = Object.assign(document.createElement('div'), { className: 'lead-slot' });
+  let origin = null; // where the card was, to put it back if the move fails
+
+  const columnAt = (x) => cols.find(col => { const r = col.getBoundingClientRect(); return x >= r.left - 6 && x <= r.right + 6; });
+  const cardAfter = (body, y) => [...body.querySelectorAll('.lead-card:not(.dragging)')].find(card => { const r = card.getBoundingClientRect(); return y < r.top + r.height / 2; });
+  const clearHighlight = () => cols.forEach(col => col.classList.remove('drop-over'));
+
+  function autoScroll(e, body) {
+    const b = board.getBoundingClientRect();
+    if (e.clientX < b.left + 70) board.scrollLeft -= 18;
+    else if (e.clientX > b.right - 70) board.scrollLeft += 18;
+    const r = body.getBoundingClientRect();
+    if (e.clientY < r.top + 50) body.scrollTop -= 14;
+    else if (e.clientY > r.bottom - 50) body.scrollTop += 14;
+  }
+
   board.addEventListener('dragstart', e => {
     const card = e.target.closest('.lead-card');
     if (!card) return;
     dragged = card; from = card.closest('.lead-col');
-    card.classList.add('dragging');
+    origin = { body: card.parentElement, next: card.nextElementSibling };
+    slot.style.height = card.offsetHeight + 'px';
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.dataset.lead);
+    setTimeout(() => card.classList.add('dragging')); // after the browser has taken the drag image of the card
   });
-  board.addEventListener('dragend', () => { dragged?.classList.remove('dragging'); board.querySelectorAll('.drop-over').forEach(el => el.classList.remove('drop-over')); });
-  board.addEventListener('dragover', e => { const body = e.target.closest('[data-drop]'); if (body && dragged) { e.preventDefault(); body.classList.add('drop-over'); } });
-  board.addEventListener('dragleave', e => { const body = e.target.closest('[data-drop]'); if (body && !body.contains(e.relatedTarget)) body.classList.remove('drop-over'); });
-  board.addEventListener('drop', async e => {
-    const body = e.target.closest('[data-drop]');
-    if (!body || !dragged) return;
+
+  board.addEventListener('dragover', e => {
+    if (!dragged) return;
+    const col = e.target.closest('.lead-col') || columnAt(e.clientX);
+    if (!col) return;
     e.preventDefault();
-    body.classList.remove('drop-over');
-    const to = body.closest('.lead-col');
-    if (to === from) return;
-    const card = dragged;
-    body.prepend(card); placeholder(body); count(to, 1); count(from, -1);   // optimistic
+    e.dataTransfer.dropEffect = 'move';
+    if (!col.classList.contains('drop-over')) { clearHighlight(); col.classList.add('drop-over'); }
+    const body = col.querySelector('[data-drop]');
+    const after = cardAfter(body, e.clientY);
+    if (after) { if (slot.nextElementSibling !== after) body.insertBefore(slot, after); }
+    else {
+      const tail = body.querySelector(':scope > .see-all'); // keep "See all" links last
+      if (slot.nextElementSibling !== tail || slot.parentElement !== body) body.insertBefore(slot, tail);
+    }
+    autoScroll(e, body);
+  });
+
+  board.addEventListener('dragleave', e => {
+    if (!board.contains(e.relatedTarget)) { clearHighlight(); slot.remove(); }
+  });
+
+  board.addEventListener('dragend', () => {
+    dragged?.classList.remove('dragging');
+    clearHighlight();
+    slot.remove();
+    dragged = null;
+  });
+
+  board.addEventListener('drop', async e => {
+    if (!dragged) return;
+    const col = e.target.closest('.lead-col') || columnAt(e.clientX);
+    if (!col || !slot.parentElement) return;
+    e.preventDefault();
+    const card = dragged, to = col, body = slot.parentElement;
+    body.insertBefore(card, slot);
+    slot.remove();
+    card.classList.remove('dragging');
+    clearHighlight();
+    refreshEmpty(body);
+    refreshEmpty(origin.body);
+    if (to === from) return; // same column: only the order on screen changes
+
+    count(to, 1); count(from, -1); // optimistic
     let result = await move(card, to);
     if (result === 'reason') {
       const reason = await askReason();
       result = reason ? await move(card, to, reason) : false;
     }
-    if (result !== true) { from.querySelector('[data-drop]').prepend(card); count(to, -1); count(from, 1); }
+    if (result !== true) {
+      origin.body.insertBefore(card, origin.next && origin.body.contains(origin.next) ? origin.next : null);
+      count(to, -1); count(from, 1);
+      refreshEmpty(body); refreshEmpty(origin.body);
+    }
   });
 });
 </script>
