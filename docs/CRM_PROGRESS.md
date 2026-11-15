@@ -1,0 +1,187 @@
+# DreamTour CRM: iş jurnalı və davam etmək üçün qeydlər
+
+Son yenilənmə: **15 noyabr 2026**. Production commit: **`f8be481`**.
+
+Bu sənəd yeni sessiyada (və ya yeni developer üçün) işi qaldığı yerdən davam etdirmək üçündür. Hər modul bitəndə yenilənir.
+
+---
+
+## 1. Mühit
+
+| | Production | Staging |
+|---|---|---|
+| URL | https://dreamtourpa.com | https://staging.dreamtourpa.com |
+| Qovluq | `/var/www/dreamtourpa` | `/var/www/staging.dreamtourpa` |
+| Baza | `websites_tours` | `websites_tours_staging` |
+| Git branch | `phase-1-tz-fixes` | `develop` |
+| Növbə (systemd) | `dreamtour-queue` | `dreamtour-staging-queue` |
+
+- **Stack:** Laravel 13.42, PHP 8.5-FPM, MySQL 8.4 (`ONLY_FULL_GROUP_BY` aktivdir), Nginx, certbot.
+- **Repo:** https://github.com/Rashidli/dreamtours
+- **Admin teması:** Nazox, Bootstrap **5.1.3**. Versiyanı dəyişmə, tema 5.1 üçün yazılıb.
+- **Test bazası:** `websites_tours_test`. `phpunit.xml` bu bazanı məcbur edir.
+- **Backup-lar:** `/root/backups/`. Hər deploy-dan əvvəl baza, `.env` və kod (`*before-moduleN-*`).
+- **Sənədlər:**
+  - CRM tələbləri: `/var/www/dreamtourpa/DreamTour_CRM_Developer_Requirements.pdf`
+  - Change request: `/var/www/dreamtourpa/DreamTour_Website_Developer_Change_Request.pdf`
+
+## 2. Dəyişməz qaydalar (istifadəçinin tələbi)
+
+1. **Production canlıdır, data silən heç bir əmr işlətmə:** `migrate:fresh/refresh/reset/rollback`, `db:wipe`, `DROP`, `TRUNCATE`, `DELETE`, overwrite edən seeder və s. Yalnız əlavə edən migration-lar.
+2. **Testləri heç vaxt production qovluğunda işlətmə.** Staging-də əvvəlcə `config:clear` et. Bir dəfə keşlənmiş config staging bazasını silib.
+3. **Artisan və testləri `sudo -u www-data php artisan …` ilə işlət.** Root kimi işlədəndə `storage/` və `bootstrap/cache`-də root-a məxsus fayllar yaranır və sayt sınır.
+4. **Fayl sahibliyini yoxla:**
+   - layihə: `root:www-data`;
+   - `storage` və `bootstrap/cache`: `www-data:www-data`;
+   - `.env`: 640.
+5. **Server resurslarını izlə:** disk, RAM, yük.
+6. **Git iş axını:** işə başlamazdan əvvəl commit və push, hər task ayrıca commit, sonda hamısını push.
+7. **Admin UI qaydaları:**
+   - UX/UI qaydalarına əməl et, panel həmişə istifadəçi dostu olsun;
+   - siyahılarda qısa xülasə və "Details" düyməsi ilə modal;
+   - `small`, `table-sm` və `-sm` inputlarla səhifə qurma, ortaq `crm-*` class-larından istifadə et (bax §5).
+8. **Rəqəmlər dəqiq olmalıdır:** pul `bcmath` ilə hesablanır (`App\Support\Money`). Hesabat cəmləri filtrlənmiş sorğunun özündən SQL-də hesablanır. Hər yeni hesabat əl ilə hesablanmış ssenari testi ilə yoxlanır.
+
+## 3. Deploy addımları (hər modul üçün eyni)
+
+```bash
+# staging-də: testlər keçib, commit olunub
+cd /var/www/staging.dreamtourpa && git push origin develop && git push origin develop:phase-1-tz-fixes
+
+# production
+cd /var/www/dreamtourpa
+git fetch origin && git merge-base --is-ancestor HEAD origin/phase-1-tz-fixes   # fast-forward olmalıdır
+# backup: mysqldump websites_tours | gzip > /root/backups/websites_tours-before-moduleN-$TS.sql.gz ; .env ; tar kod
+sudo -u www-data php artisan down --retry=30
+git merge --ff-only origin/phase-1-tz-fixes
+# composer.lock dəyişibsə: COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader, sonra chown
+chown -R www-data:www-data storage bootstrap/cache
+sudo -u www-data php artisan optimize:clear
+sudo -u www-data php artisan migrate --pretend --force   # DROP/DELETE/TRUNCATE/RENAME olmamalıdır
+sudo -u www-data php artisan migrate --force
+sudo -u www-data php artisan permission:cache-reset && sudo -u www-data php artisan cache:clear
+sudo -u www-data php artisan optimize && systemctl restart dreamtour-queue
+sudo -u www-data php artisan up
+# yoxla: əsas səhifələr 200, logda production.ERROR yoxdur, sahiblik qaydasındadır
+```
+
+- `migrate --pretend` 000009-da xəta verir: dry-run rejimində `insertGetId` `null` qaytarır. Bu zərərsizdir. Belə halda migration kodunu oxuyub yoxla.
+- JS yoxlaması: serverdə brauzer yoxdur.
+  1. `apt-get install --no-install-recommends nodejs`
+  2. Səhifəni HTTP kernel vasitəsilə www-data kimi render et və stdout-a çıxar.
+  3. `node --check`
+  4. `apt-get purge nodejs node-undici`
+- Staging-i production-dan təzələyəndə həm `storage/app/public`, həm `storage/app/private` köçürülməlidir (ödəniş skrinşotları private-dadır).
+
+## 4. Görülən işlər
+
+### Change request (CR 01–06): production-da
+- Invoice Request düyməsi silindi.
+- "Infant" etiketi əlavə olundu.
+- Turlara `show_in_carousel` əlavə olundu.
+- Admin tur siyahısına tarix filtrləri və sıralama gəldi.
+- Toplu qalereya yükləmə əlavə olundu.
+- Yeni email şablonları hazırlandı.
+- Əlavə olaraq: HEIC şəkillər, link önizləmələri, 50 MB yükləmə limiti; admin qeydiyyatı bağlandı.
+
+### CRM Faza 1
+
+| # | Modul | Status | Əsas commit-lər |
+|---|---|---|---|
+| 1 | Audit log / activity history (§22) | ✅ production | `542a51f`, `6687f12` |
+| 2 | Müştərilər, import, birləşdirmə (§4, §25) | ✅ production | `50f4fe1`, `2d13937` |
+| 3 | Lead pipeline (§3) | ✅ production | `146a483` … `b391a3a` |
+| 4 | Ödəniş jurnalı, hesabatlar, qəbzlər (§7) | ✅ production | `127f671`, `9d642b6`, `c54bf92`, `a41ad4c`, `c9041fc` |
+| — | Ortaq admin CSS (oxunaqlılıq) | ✅ production | `1fea9a1` |
+| 5 | Rollar və icazə redaktoru (§16) | ✅ production | `8ae96ea` |
+| 5 | Çıxışa işçi təyini + My trips (§5, §12) | ✅ production | `a2906aa` |
+| 6 | Sərnişin siyahısı, check-in, no-show (§11) | ✅ production | `f8be481` |
+| 7 | Avtobuslar və oturacaq sxemi (§9) | ⏸ sonraya saxlanıb (istifadəçinin qərarı) | — |
+| 8 | Dashboard, export-lar, admin bildirişləri (§2, §15) | ⏳ gözləyir | — |
+
+### Modulların qısa xəritəsi (hansı kod harada)
+
+- **Audit:**
+  - `App\Support\Activity::record()`;
+  - `RecordsActivity` trait: modeldə `$activityIgnore` sahələri tarixçəyə yazılmır, `saveQuietly()` heç nə yazmır;
+  - cədvəl: `activity_logs` (sütunlar `actor_id`, `subject_*`, `changes` JSON).
+- **Müştərilər:**
+  - `App\Support\Customers` uyğunlaşdırır: e-poçt ilə, e-poçt yoxdursa telefonla;
+  - `Customer::withStats()`: `total_paid` = `amount_paid`-in cəmi (xalis), `outstanding` = `outstanding_amount`-un cəmi.
+- **Lead-lər:** `App\Support\Leads`, `RememberAttribution` middleware (UTM məlumatı).
+- **Ödənişlər:**
+  - `App\Support\BookingMoney`: `summary()`, `sync()`, `record`, `confirm`, `reject`, `refund`, `void`, `adjust`;
+  - `bookings.amount_paid` = **xalis** (ödənişlər − geri qaytarmalar), `outstanding_amount` bu ledger-dən hesablanır;
+  - `default_deposit_percent` = **50** (sənəd §7, Settings-dən dəyişir), `balance_due_days` = 7;
+  - əmr: `crm:sync-payments [--dry-run]`.
+- **Rollar:**
+  - `App\Support\StaffRoles::DEFAULTS` rolları yalnız mövcud deyilsə yaradır; seeder `install(topUp: true)` işlədir;
+  - `App\Support\PermissionGroups`: redaktor üçün qrid, insan dilində adlar, `ROLE_HINTS`;
+  - superadmin `Gate::before` ilə bütün icazələrə malikdir.
+- **Maliyyə görünürlüğü:** `view-financial-info` icazəsi. Bu icazə olmadan məbləğlər, qəbzlər, pul filtrləri və CSV-dəki pul sütunları bağlıdır. Yoxlama serverdə aparılır.
+- **İşçi təyini:**
+  - `departure_staff` cədvəli (rollar: leader, driver, guide, coordinator);
+  - `DepartureStaffController` (`assign-departure-staff` icazəsi);
+  - `MyTripsController`: tura giriş = **cari təyinat** VƏ YA `list-bookings` (ofis baxışı);
+  - `users.phone` sütunu;
+  - lider daxil olanda `home` onu My trips-ə yönləndirir.
+- **Check-in:**
+  - `App\Support\Attendance`:
+    - irəli getmək üçün `check-in-passengers` kifayətdir;
+    - geri qaytarmaq üçün `undo-check-in` lazımdır, yalnız öz qeydini 10 dəqiqə ərzində düzəltmək istisnadır;
+    - yola düşməyə 30 dəqiqə qalanda "missing" xəbərdarlığı göstərilir.
+  - `App\Support\Roster`: filtrlər, sıralama, export sütunları; liderin nüsxəsində bron statusu və pul yoxdur.
+  - `App\Support\RosterExport`: csv, xlsx (openspout), pdf (dompdf); hər yükləmə activity log-a yazılır.
+  - Tarixçə: `passenger_attendance_events`.
+
+### Rollar (production)
+
+| Rol | Nə üçündür |
+|---|---|
+| superadmin | Hər şey (yeganə istifadəçi #1) |
+| admin | Bütün CRM, texniki ayarlar istisna |
+| Sales Manager | Lead-lər, müştərilər, bronlar, ödəniş qeydi |
+| Content Manager | Turlar, səhifələr, kontent; bron və maliyyə yoxdur |
+| Accountant | Ödənişlər, geri qaytarmalar, endirimlər, hesabatlar |
+| Tour Leader | Yalnız My trips + check-in |
+| editor, test | Köhnə rollar, istifadəçisi yoxdur |
+
+## 5. UI qaydaları (ortaq CSS)
+
+- **Fayl:** `public/assets/css/admin-crm.css`. `admin/includes/header` vasitəsilə bütün admin səhifələrinə yüklənir.
+- **Class-lar:**
+  - `crm-tile`: cəm kartı, rəngli üst xətlə: `style="border-top:3px solid var(--bs-success)"`;
+  - `crm-filters`: filtr kartı, etiketlər qalın;
+  - `crm-table`: cədvəl, `.sub` boz ikinci sətir, `.amount` sağa düzülü qalın məbləğ;
+  - `crm-group`, `crm-empty`.
+- Bu fayl həm də bütün admin üçün kiçik mətn və `-sm` inputlara minimal ölçü təyin edir.
+- **Temada olmayan class-lar:** `btn-soft-*`, `*-subtle`, `nav-tabs-custom`. Əvəzinə `btn-outline-*` və `bg-x bg-opacity-10 text-x` işlət.
+- **Blade tələsi:** eyni faylda `@php(...)` inline forması ilə `@php … @endphp` blokunu qarışdırma, kompilyasiya pozulur.
+
+## 6. Testlər
+
+- **İşlətmək:**
+  ```bash
+  cd /var/www/staging.dreamtourpa
+  sudo -u www-data php artisan config:clear && sudo -u www-data php artisan test
+  ```
+- **Əvvəldən uğursuz olan 3 köhnə test** (bizim işə aid deyil, meyar: "yeni uğursuz test olmasın"):
+  - `booking rejects more seats than available`;
+  - `tour detail exposes booking anchor and posts its form`;
+  - `departure and itinerary nested cruds validate relations`.
+- **CRM testləri:** `ActivityLogTest`, `CustomerTest`, `CustomerImportMergeTest`, `LeadTest`, `PaymentLedgerTest`, `PaymentReportTest`, `StaffRolesTest`, `DepartureStaffTest`, `AttendanceTest`.
+- Testlərdən sonra staging-də yenidən `config:cache` və `route:cache` et.
+
+## 7. Açıq məsələlər və növbəti addımlar
+
+- **Modul 7: avtobuslar və oturacaq sxemi (§9, AT-03, AT-06).** İstifadəçi sonraya saxlamağı qərara aldı. Başlayanda:
+  - `vehicles` və oturacaq şablonu;
+  - bir çıxışa bir neçə avtobus, hər avtobusun ayrıca lideri və roster-i (§5);
+  - sürüklə-burax ilə oturacaq dəyişmək, eyni oturacaq iki dəfə verilməməlidir;
+  - Roster filtrinə "bus" əlavə et.
+  - Hazırda `booking_passengers.seat_number` sadə mətn sahəsidir.
+- **Modul 8:** dashboard (yalnız sayların olduğu köhnə `PageController::home`), export-lar, admin bildirişləri (§15).
+- **Check-in oflayn rejimi** (§11 "tövsiyə") hələ yoxdur.
+- **Referral Partner rolu** Faza 2-yə (partnyor portalı) aiddir.
+- **SMTP:** `noreply@dreamtourpa.com` məlumatları gözlənilir. Production-da `MAIL_MAILER=log`-dur, e-poçtlar `storage/logs/mail-*.log`-a yazılır.
+- **DNS:** `_dmarc` TXT qeydi yoxdur.
