@@ -26,6 +26,7 @@ class CmsPermissionSeeder extends Seeder
             'list-tour-content', 'create-tour-content', 'edit-tour-content', 'delete-tour-content',
             'list-bookings', 'edit-bookings', 'delete-bookings',
             'list-customers', 'create-customers', 'edit-customers', 'delete-customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'import-customers', 'merge-customers',
+            'list-leads', 'create-leads', 'edit-leads', 'delete-leads', 'manage-lead-stages',
             'list-visa-services', 'create-visa-services', 'edit-visa-services', 'delete-visa-services',
             'list-gallery-categories', 'create-gallery-categories', 'edit-gallery-categories', 'delete-gallery-categories',
             'list-gallery-albums', 'create-gallery-albums', 'edit-gallery-albums', 'delete-gallery-albums',

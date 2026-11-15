@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'frontend.copy' => ReplaceFrontendCopy::class,
         ]);
+        // Where website visitors came from, for the leads they send (CRM §3).
+        $middleware->appendToGroup('web', \App\Http\Middleware\RememberAttribution::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

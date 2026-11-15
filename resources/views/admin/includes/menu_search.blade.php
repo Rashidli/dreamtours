@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (li.classList.contains('menu-title')) { section = li.textContent.trim(); continue; }
         const link = li.querySelector(':scope > a');
         if (!link || link.classList.contains('has-arrow')) continue;
-        const label = (link.querySelector('span') || link);
+        const label = (link.querySelector('span:not(.badge)') || link); // skip count badges (Leads)
         const parentLi = li.parentElement.closest('li');
         const parent = parentLi ? parentLi.querySelector(':scope > a').textContent.trim() : '';
         items.push({ li, link, label, text: label.textContent.trim(), context: plain(`${parent} ${section}`), parentLi });

@@ -8,6 +8,7 @@ use App\Models\LegalDocument;
 use App\Models\Tour;
 use App\Models\TourDeparture;
 use App\Support\BookingMail;
+use App\Support\Leads;
 use App\Support\BookingQuote;
 use App\Support\CountryCodes;
 use App\Support\DepartureCalendar;
@@ -227,6 +228,7 @@ class BookingPageController extends Controller
         });
 
         BookingMail::submitted($booking);
+        Leads::fromWebsiteBooking($booking);
 
         return $this->thankYouRedirect($booking);
     }

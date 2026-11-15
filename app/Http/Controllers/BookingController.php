@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\{Booking,TourDeparture};use App\Support\BookingMail;use Illuminate\Http\{Request,RedirectResponse};use Illuminate\Support\Facades\DB;use Illuminate\Validation\Rule;use Illuminate\Validation\ValidationException;
+use App\Models\{Booking,TourDeparture};use App\Support\BookingMail;use App\Support\Leads;use Illuminate\Http\{Request,RedirectResponse};use Illuminate\Support\Facades\DB;use Illuminate\Validation\Rule;use Illuminate\Validation\ValidationException;
 class BookingController{
  public function store(Request $request):RedirectResponse{$data=$request->validate([
   'tour_id'=>['nullable','exists:tours,id'],'tour_departure_id'=>['nullable','exists:tour_departures,id'],'pickup_point_id'=>['nullable','exists:pickup_points,id'],'type'=>['required',Rule::in(['contact','tour','private_tour','visa','cruise','invoice','callback'])],
@@ -9,5 +9,6 @@ class BookingController{
   $booking=DB::transaction(function()use($data){$passengers=$data['passengers']??[];unset($data['passengers']);if(!empty($data['tour_departure_id'])){$departure=TourDeparture::open()->when(!empty($data['tour_id']),fn($q)=>$q->where('tour_id',$data['tour_id']))->lockForUpdate()->find($data['tour_departure_id']);if(!$departure||!$departure->is_bookable)throw ValidationException::withMessages(['tour_departure_id'=>'This departure is no longer available. Please choose another date.']);if($departure->available_seats<$data['participant_count'])throw ValidationException::withMessages(['participant_count'=>"Only {$departure->available_seats} seats are left on this departure."]);}$booking=Booking::create($data);$booking->passengers()->createMany($passengers);return $booking;});
   // A request with a departure is a booking; everything else (contact, call-back, private tour, quick tour request) is an enquiry.
   $booking->tour_departure_id?BookingMail::submitted($booking):BookingMail::enquiry($booking);
+  Leads::fromWebsiteBooking($booking);
   return back()->with('message','Your request has been received. A DreamTour representative will contact you to confirm your booking.');}
 }

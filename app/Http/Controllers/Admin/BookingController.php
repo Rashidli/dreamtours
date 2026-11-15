@@ -8,6 +8,7 @@ use App\Models\PickupPoint;
 use App\Models\Tour;
 use App\Models\TourDeparture;
 use App\Support\BookingMail;
+use App\Support\Leads;
 use App\Support\SeatNotices;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -91,6 +92,7 @@ class BookingController extends Controller
         });
         // Setting a booking to Confirmed emails the customer (once per booking).
         BookingMail::confirmed($booking);
+        Leads::bookingConfirmed($booking);
 
         return back()->with('message', 'Booking updated.');
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Activity;
+use App\Support\Leads;
 use App\Mail\VisaEnquiryReceived;
 use App\Models\VisaEnquiry;
 use App\Support\CountryCodes;
@@ -40,6 +41,8 @@ class VisaEnquiryController extends Controller
         }
 
         $enquiry = VisaEnquiry::create(['phone' => $phone, 'applicants' => $data['applicants'] ?? 1] + collect($data)->except(['phone', 'phone_country', 'applicants'])->all());
+
+        Leads::fromVisaEnquiry($enquiry);
 
         if ($to = setting('visa_email') ?: setting('email')) {
             try {
