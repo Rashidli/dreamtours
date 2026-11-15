@@ -1157,18 +1157,17 @@ document.addEventListener("alpine:init", () => {
   }));
 
   /* --------------------------------------------------------------------------
-     Tour page request dialog — "Invoice request", "Let us call you" and private
-     tour quotes. Every request lands in the admin CRM with its own type.
+     Tour page request dialog — "Let us call you" and private tour quotes.
+     Every request lands in the admin CRM with its own type.
      ------------------------------------------------------------------------ */
   Alpine.data("tourRequest", ({ tourId, tourName }) => ({
     open: false,
-    mode: "invoice",
+    mode: "callback",
     sending: false,
     sent: false,
     error: "",
     form: { name: "", phone: "", email: "", people: 2, date: "", time: "", message: "" },
     titles: {
-      invoice: "Request an invoice",
       callback: "Let us call you",
       private_tour: "Request a private tour quote",
     },

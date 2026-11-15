@@ -484,7 +484,6 @@
                 @else
                   <span class="btn btn-lg mt-5 w-full cursor-not-allowed bg-ink-100 text-ink-400">Sold Out</span>
                 @endif
-                <button type="button" class="btn btn-outline mt-2 w-full" @click="show('invoice')">Invoice Request</button>
               @endif
             </div>
 
@@ -547,7 +546,7 @@
               <input x-model="form.date" type="date" class="rounded-xl border border-ink-200 px-3 py-2.5 text-sm" aria-label="Preferred date">
             @endif
           </template>
-          <textarea x-model="form.message" rows="3" class="rounded-xl border border-ink-200 px-3 py-2.5 text-sm sm:col-span-2" :placeholder="mode === 'invoice' ? 'Company name, billing address or anything to include on the invoice' : 'Message (optional)'"></textarea>
+          <textarea x-model="form.message" rows="3" class="rounded-xl border border-ink-200 px-3 py-2.5 text-sm sm:col-span-2" placeholder="Message (optional)"></textarea>
           <p x-show="error" x-text="error" class="rounded-xl bg-red-50 p-3 text-sm text-red-800 sm:col-span-2"></p>
           <button class="btn btn-primary sm:col-span-2" :disabled="sending" x-text="sending ? 'Sending…' : 'Send request'"></button>
         </form>
