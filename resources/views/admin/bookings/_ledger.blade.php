@@ -8,7 +8,10 @@
 <div class="card"><div class="card-body">
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h5 class="mb-0">Payment ledger</h5>
-    @can('record-payments')<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#recordPayment"><i class="ri-add-line"></i> Record payment</button>@endcan
+    <div class="d-flex gap-2">
+      <a class="btn btn-sm btn-light" href="{{ route('receipts.statement', $booking) }}" target="_blank"><i class="ri-file-list-3-line"></i> Statement</a>
+      @can('record-payments')<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#recordPayment"><i class="ri-add-line"></i> Record payment</button>@endcan
+    </div>
   </div>
   <div class="table-responsive"><table class="table table-sm align-middle mb-0">
     <thead><tr><th>Date</th><th>Receipt</th><th>Type</th><th>Method</th><th class="text-end">Amount</th><th>Status</th><th></th></tr></thead>
@@ -23,6 +26,7 @@
         <td class="text-end text-nowrap {{ in_array($p->status, ['voided', 'rejected'], true) ? 'text-decoration-line-through' : ($p->isRefund() ? 'text-danger' : '') }}">{{ $p->isRefund() ? '−' : '' }}{{ $fmt($p->amount) }}</td>
         <td><span class="badge bg-{{ $statusColor }}">{{ $statusLabel }}</span></td>
         <td class="text-end text-nowrap">
+          @if($p->status === 'confirmed' && $p->receipt_number)<a class="btn btn-sm btn-light" href="{{ route('receipts.payment', [$booking, $p]) }}" target="_blank" title="Receipt {{ $p->receipt_number }}"><i class="ri-file-text-line"></i></a>@endif
           @if($p->proof_path)<a class="btn btn-sm btn-light" href="{{ route('booking-payments.proof', [$booking, $p]) }}" target="_blank" title="View proof"><i class="ri-attachment-2"></i></a>@endif
           @if($p->status === 'pending' && $user->can('confirm-payments'))
             <form class="d-inline" method="post" action="{{ route('booking-payments.confirm', [$booking, $p]) }}" onsubmit="return confirm('Confirm that {{ $fmt($p->amount) }} has arrived?')">@csrf<button class="btn btn-sm btn-success" title="Funds arrived"><i class="ri-check-line"></i> Confirm</button></form>

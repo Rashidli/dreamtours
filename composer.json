@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.3",
         "astrotomic/laravel-translatable": "^11.17",
+        "dompdf/dompdf": "^3.1",
         "guzzlehttp/guzzle": "^8.1",
         "intervention/image": "^4.3",
         "laravel/framework": "^13.17",

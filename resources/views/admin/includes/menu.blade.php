@@ -32,6 +32,10 @@
       @php($leadsWaiting = \App\Models\Lead::whereHas('stage', fn ($q) => $q->where('key', 'new'))->count() + \App\Models\Lead::followUpDue()->count())
       <li><a href="{{route('leads.index')}}"><i class="ri-funnel-line"></i>@if($leadsWaiting)<span class="badge rounded-pill bg-danger float-end" title="New leads and follow-ups due">{{ $leadsWaiting }}</span>@endif<span>Leads</span></a></li>
     @endcan
+    @can('list-payments')
+      @php($paymentsWaiting = \App\Models\BookingPayment::where('status', 'pending')->count())
+      <li><a href="{{route('payments.index')}}"><i class="ri-money-dollar-circle-line"></i>@if($paymentsWaiting)<span class="badge rounded-pill bg-warning float-end" title="Payments waiting for verification">{{ $paymentsWaiting }}</span>@endif<span>Payments & balances</span></a></li>
+    @endcan
     @can('list-customers')<li><a href="{{route('customers.index')}}"><i class="ri-contacts-book-line"></i><span>Customers</span></a></li>@endcan
     @can('list-bookings')<li><a href="{{route('bookings.index')}}"><i class="ri-calendar-check-line"></i><span>Bookings & enquiries</span></a></li>@endcan
     @can('list-bookings')<li><a href="{{route('email-previews.index')}}"><i class="ri-mail-open-line"></i><span>Email previews</span></a></li>@endcan

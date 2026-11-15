@@ -103,6 +103,9 @@ Route::prefix('admin')->group(function () {
         Route::put('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'updateOption'])->name('tour-filter-options.update');
         Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
+        Route::get('payments', [\App\Http\Controllers\Admin\PaymentReportController::class, 'index'])->name('payments.index');
+        Route::get('bookings/{booking}/statement', [\App\Http\Controllers\Admin\ReceiptController::class, 'statement'])->name('receipts.statement');
+        Route::get('bookings/{booking}/payments/{payment}/receipt', [\App\Http\Controllers\Admin\ReceiptController::class, 'payment'])->name('receipts.payment');
         Route::post('bookings/{booking}/payments', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'store'])->name('booking-payments.store');
         Route::post('bookings/{booking}/payments/{payment}/confirm', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'confirm'])->name('booking-payments.confirm');
         Route::post('bookings/{booking}/payments/{payment}/reject', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'reject'])->name('booking-payments.reject');
