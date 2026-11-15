@@ -58,6 +58,15 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        // MAIL_MAILER=log writes whole messages here (MAIL_LOG_CHANNEL=mail), whatever LOG_LEVEL is.
+        'mail' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/mail.log'),
+            'level' => 'debug',
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),

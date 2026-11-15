@@ -104,6 +104,8 @@ Route::prefix('admin')->group(function () {
         Route::put('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'updateOption'])->name('tour-filter-options.update');
         Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
+        Route::get('email-previews', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'index'])->name('email-previews.index');
+        Route::get('email-previews/{key}', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'show'])->name('email-previews.show');
         Route::resource('visa-enquiries', \App\Http\Controllers\Admin\VisaEnquiryController::class)->only(['index', 'show', 'update', 'destroy']);
         Route::get('legal-documents', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'index'])->name('legal-documents.index');
         Route::get('legal-documents/{legal_document}/edit', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'edit'])->name('legal-documents.edit');

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Destination;
 use App\Models\Tour;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Carbon::setLocale(config('app.locale'));
+
+        if ($redirect = config('mail.redirect_to')) {
+            Mail::alwaysTo($redirect);
+        }
 
         // The footer lists tours and destinations on every page, including the
         // tour detail page, which is not served with the catalogue payload.

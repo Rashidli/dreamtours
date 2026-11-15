@@ -2,14 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Mail\BookingConfirmed;
+use App\Mail\BookingReceived;
+use App\Mail\EnquiryReceived;
+use App\Models\Booking;
 use App\Models\GalleryAlbum;
+use App\Models\PickupPoint;
+use App\Models\Setting;
 use App\Models\Tour;
 use App\Models\TourDeparture;
 use App\Models\User;
+use App\Support\BookingMail;
 use Database\Seeders\CmsPermissionSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -193,5 +202,142 @@ class ChangeRequestTest extends TestCase
         $this->assertSame(4, $album->media()->count());
         // The single link form still redirects back as before.
         $this->post(route('gallery-media.store', $album), ['type' => 'video', 'path' => 'https://youtu.be/abc'])->assertRedirect()->assertSessionHas('message', 'Media added.');
+    }
+
+    private function settings(array $values): void
+    {
+        foreach ($values as $key => $value) {
+            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        }
+        Cache::forget('settings');
+    }
+
+    private function submitBooking(): Booking
+    {
+        [$tour, $departure] = $this->bookableTour(['deposit_per_person' => 65]);
+        $pickup = PickupPoint::create(['address' => '100 Queen St W', 'is_active' => 1, 'en' => ['name' => 'Toronto City Hall']]);
+        $this->post(route('front.bookings.store'), ['tour_id' => $tour->id, 'tour_departure_id' => $departure->id, 'pickup_point_id' => $pickup->id, 'type' => 'tour', 'first_name' => 'Maria', 'last_name' => 'Lopez', 'phone' => '416-555-0101', 'email' => 'maria@example.com', 'participant_count' => 2, 'passengers' => [['first_name' => 'Maria', 'last_name' => 'Lopez', 'category' => 'adult'], ['first_name' => 'Leo', 'last_name' => 'Lopez', 'category' => 'child']]])->assertRedirect();
+
+        $booking = Booking::firstOrFail();
+        $booking->forceFill(['total_amount' => 200, 'deposit_amount' => 130])->saveQuietly();
+
+        return $booking;
+    }
+
+    // 06 — a booking queues an acknowledgement for the customer and an alert for every office address.
+    public function test_booking_queues_customer_acknowledgement_and_office_alert(): void
+    {
+        Mail::fake();
+        $this->settings(['notification_email' => 'jenn@dreamtourpa.com, info@dreamtourpa.com, not-an-email', 'email' => 'info@dreamtourpa.com']);
+        $booking = $this->submitBooking();
+
+        Mail::assertQueued(BookingReceived::class, fn ($mail) => !$mail->forAdmin && $mail->hasTo('maria@example.com') && count($mail->to) === 1);
+        Mail::assertQueued(BookingReceived::class, fn ($mail) => $mail->forAdmin && $mail->hasTo('jenn@dreamtourpa.com') && $mail->hasTo('info@dreamtourpa.com') && count($mail->to) === 2 && !$mail->hasTo('maria@example.com'));
+        Mail::assertQueuedCount(2);
+        $this->assertNotNull($booking->fresh()->confirmation_sent_at);
+    }
+
+    // 06 — the customer copy has the trip details and never claims the booking is confirmed.
+    public function test_customer_booking_email_lists_trip_details_and_pending_status(): void
+    {
+        $booking = $this->submitBooking()->load(['tour', 'departure', 'pickupPoint', 'passengers']);
+        $mail = new BookingReceived($booking);
+
+        $mail->assertHasSubject("We received your booking request — {$booking->reference}");
+        $mail->assertSeeInHtml('Niagara Day Trip');
+        $mail->assertSeeInHtml($booking->departure->departs_at->format('g:i A'));
+        $mail->assertSeeInHtml('Toronto City Hall');
+        $mail->assertSeeInHtml('2 guests');
+        $mail->assertSeeInHtml('CA$200');
+        $mail->assertSeeInHtml('CA$130');
+        $mail->assertSeeInHtml($booking->reference);
+        $mail->assertSeeInHtml('pending confirmation');
+        $mail->assertSeeInHtml('Child (2–11)');
+        $mail->assertDontSeeInHtml('is confirmed');
+        $this->assertSame(5, $mail->tries);
+        $this->assertSame([60, 300, 900, 3600], $mail->backoff());
+    }
+
+    // 06 — the office copy carries the customer's contact details and a link to the booking in admin.
+    public function test_office_booking_email_has_customer_contact_and_admin_link(): void
+    {
+        $booking = $this->submitBooking()->load(['tour', 'departure', 'pickupPoint', 'passengers']);
+        $mail = new BookingReceived($booking, forAdmin: true);
+
+        $mail->assertSeeInHtml('Maria Lopez');
+        $mail->assertSeeInHtml('maria@example.com');
+        $mail->assertSeeInHtml('416-555-0101');
+        $mail->assertSeeInHtml(route('bookings.show', $booking));
+        $mail->assertHasReplyTo('maria@example.com');
+    }
+
+    // 06 — setting the booking to Confirmed emails the customer once, however often the status is saved.
+    public function test_confirming_a_booking_emails_the_customer_once(): void
+    {
+        $booking = $this->submitBooking();
+        $this->seed(CmsPermissionSeeder::class);
+        Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+        $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
+        Mail::fake();
+        $update = fn (string $status) => $this->put(route('bookings.update', $booking), ['status' => $status, 'payment_status' => 'deposit_paid', 'total_amount' => 200, 'amount_paid' => 130])->assertRedirect();
+
+        $update('payment_pending');
+        Mail::assertNothingQueued();
+        $update('confirmed');
+        $update('payment_pending');
+        $update('confirmed');
+
+        Mail::assertQueued(BookingConfirmed::class, 1);
+        Mail::assertQueued(BookingConfirmed::class, fn ($mail) => $mail->hasTo('maria@example.com'));
+        $this->assertNotNull($booking->fresh()->confirmed_notice_sent_at);
+        (new BookingConfirmed($booking->fresh()->load(['tour', 'departure', 'pickupPoint', 'passengers'])))->assertSeeInHtml('Booking confirmed')->assertSeeInHtml('Balance remaining: CA$70');
+    }
+
+    // 06 — contact, call-back and private-tour requests reach the office and thank the customer.
+    public function test_website_requests_notify_office_and_acknowledge_customer(): void
+    {
+        Mail::fake();
+        $this->settings(['notification_email' => 'jenn@dreamtourpa.com']);
+        foreach (['contact', 'callback', 'private_tour'] as $type) {
+            $this->postJson(route('front.bookings.store'), ['type' => $type, 'first_name' => 'Sam', 'last_name' => 'Lee', 'phone' => '416-555-0199', 'email' => "sam+$type@example.com", 'participant_count' => 3, 'comments' => "Please help with $type"])->assertRedirect();
+        }
+
+        foreach (['contact' => 'Contact message', 'callback' => 'Call-back request', 'private_tour' => 'Private tour request'] as $type => $label) {
+            Mail::assertQueued(EnquiryReceived::class, fn ($mail) => !$mail->forAdmin && $mail->booking->type === $type && $mail->hasTo("sam+$type@example.com"));
+            Mail::assertQueued(EnquiryReceived::class, fn ($mail) => $mail->forAdmin && $mail->booking->type === $type && $mail->hasTo('jenn@dreamtourpa.com') && $mail->label() === $label);
+        }
+        Mail::assertQueuedCount(6);
+        Mail::assertNotQueued(BookingReceived::class);
+
+        $office = new EnquiryReceived(Booking::where('type', 'callback')->first(), forAdmin: true);
+        $office->assertSeeInHtml('Sam Lee')->assertSeeInHtml('416-555-0199')->assertSeeInHtml('Please help with callback')->assertHasReplyTo('sam+callback@example.com');
+        (new EnquiryReceived(Booking::where('type', 'callback')->first()))->assertSeeInHtml('call you back')->assertDontSeeInHtml('sam+callback@example.com');
+    }
+
+    // 06 — admins can preview every automatic email; people without booking access cannot.
+    public function test_admin_can_preview_emails_without_sending_them(): void
+    {
+        $this->submitBooking();
+        Mail::fake();
+        $this->seed(CmsPermissionSeeder::class);
+        Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+
+        $this->actingAs(User::factory()->create())->get(route('email-previews.index'))->assertForbidden();
+        $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
+        $this->get(route('email-previews.index'))->assertOk()->assertSee('Booking request received')->assertSee('no sample yet');
+        $this->get(route('email-previews.show', 'booking-received'))->assertOk()->assertSee('We received your booking request');
+        $this->get(route('email-previews.show', 'booking-confirmed'))->assertOk()->assertSee('Booking confirmed');
+        $this->get(route('email-previews.show', 'visa-enquiry'))->assertNotFound();
+        $this->get(route('email-previews.show', 'nope'))->assertNotFound();
+        Mail::assertNothingOutgoing();
+    }
+
+    // 06 — without a notification email the main email still gets the alerts.
+    public function test_office_alerts_fall_back_to_the_main_email(): void
+    {
+        $this->settings(['notification_email' => '', 'email' => 'info@dreamtourpa.com']);
+        $this->assertSame(['info@dreamtourpa.com'], BookingMail::office());
+        $this->settings(['notification_email' => 'jenn@dreamtourpa.com,  jenn@dreamtourpa.com ,ops@dreamtourpa.com']);
+        $this->assertSame(['jenn@dreamtourpa.com', 'ops@dreamtourpa.com'], BookingMail::office());
     }
 }

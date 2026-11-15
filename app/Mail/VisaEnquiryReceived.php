@@ -3,16 +3,18 @@
 namespace App\Mail;
 
 use App\Models\VisaEnquiry;
+use App\Mail\Concerns\RetriesDelivery;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /** Tells the office about a new visa support enquiry. */
-class VisaEnquiryReceived extends Mailable
+class VisaEnquiryReceived extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RetriesDelivery, SerializesModels;
 
     public function __construct(public VisaEnquiry $enquiry) {}
 

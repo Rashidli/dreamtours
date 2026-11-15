@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\SharesFrontLayout;
-use App\Mail\BookingReceived;
 use App\Models\Booking;
 use App\Models\LegalDocument;
 use App\Models\Tour;
 use App\Models\TourDeparture;
+use App\Support\BookingMail;
 use App\Support\BookingQuote;
 use App\Support\CountryCodes;
 use App\Support\DepartureCalendar;
@@ -16,8 +16,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -228,7 +226,7 @@ class BookingPageController extends Controller
             return $booking;
         });
 
-        $this->sendConfirmation($booking);
+        BookingMail::submitted($booking);
 
         return $this->thankYouRedirect($booking);
     }
@@ -243,22 +241,6 @@ class BookingPageController extends Controller
     private function thankYouRedirect(Booking $booking): RedirectResponse
     {
         return redirect()->to(URL::temporarySignedRoute('front.bookings.thank-you', now()->addDays(30), ['booking' => $booking->reference]));
-    }
-
-    private function sendConfirmation(Booking $booking): void
-    {
-        $booking->load(['tour.translations', 'departure', 'pickupPoint.translations', 'passengers.pickupPoint.translations']);
-
-        try {
-            Mail::to($booking->email)->send(new BookingReceived($booking));
-            if ($office = setting('email')) {
-                Mail::to($office)->send(new BookingReceived($booking, forAdmin: true));
-            }
-            $booking->forceFill(['confirmation_sent_at' => now()])->saveQuietly();
-        } catch (\Throwable $e) {
-            // The booking is already saved; a mail outage must not lose it.
-            Log::error('Booking confirmation email failed', ['booking' => $booking->reference, 'error' => $e->getMessage()]);
-        }
     }
 
     /**

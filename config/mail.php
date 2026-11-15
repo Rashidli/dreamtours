@@ -115,4 +115,10 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | Staging / testing safety: when set, every email goes to this address only,
+    | so a copy of the live database never emails real customers.
+    */
+    'redirect_to' => env('MAIL_REDIRECT_TO'),
+
 ];

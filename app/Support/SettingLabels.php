@@ -26,6 +26,7 @@ class SettingLabels
             'phone_link' => ['Phone link', 'For click-to-call, no spaces: +14167266393'],
             'whatsapp' => ['WhatsApp number', 'Digits only.'],
             'email' => ['Email', null],
+            'notification_email' => ['Notification email', 'New bookings, call-back, contact and private-tour requests are emailed here. Separate several addresses with commas.'],
             'visa_email' => ['Visa email', 'Visa enquiries are sent to this address.'],
             'photos_email' => ['Photos email', 'Where visitors send their gallery photos.'],
             'address' => ['Address', null],

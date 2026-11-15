@@ -1,37 +1,62 @@
 @extends('emails.layout')
+
+@if($forAdmin)
+  @section('audience', 'admin')
+  @section('tone', 'info')
+  @section('status', 'New booking request')
+  @section('title', $booking->tour?->name ?: 'New booking request')
+  @section('preheader', "{$booking->first_name} {$booking->last_name} · {$booking->participant_count} guests · {$booking->reference}")
+  @section('intro')
+    {{ $booking->first_name }} {{ $booking->last_name }} sent a booking request on the website. It is waiting for your review.
+  @endsection
+@else
+  @section('tone', 'pending')
+  @section('status', 'Request received · pending confirmation')
+  @section('title', 'We received your booking request')
+  @section('preheader', "Reference {$booking->reference} — we'll confirm your booking once we've checked your payment.")
+  @section('intro')
+    Hi {{ $booking->first_name }}, thank you for choosing DreamTour! Your spot is <strong>not confirmed yet</strong> — we'll review your request and send a confirmation email once your payment has been checked.
+  @endsection
+@endif
+
 @section('body')
-  @php($departure = $booking->departure)
   @if($forAdmin)
-    <p style="margin-top:0">A new booking was submitted on the website.</p>
-  @else
-    <p style="margin-top:0">Hi {{ $booking->first_name }},</p>
-    <p>Your request has been received. A DreamTour representative will contact you to confirm your booking after checking your payment.</p>
+    @include('emails.partials.rows', ['title' => 'Customer', 'rows' => [
+      'Name' => "{$booking->first_name} {$booking->last_name}",
+      'Email' => $booking->email,
+      'Phone' => $booking->phone,
+      'WhatsApp' => $booking->whatsapp,
+      'Emergency contact' => trim("{$booking->emergency_contact_name} {$booking->emergency_contact_phone}"),
+    ]])
   @endif
-  <table cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
-    <tr><td style="color:#6b7280;width:40%">Booking reference</td><td><strong>{{ $booking->reference }}</strong></td></tr>
-    <tr><td style="color:#6b7280">Tour</td><td>{{ $booking->tour?->name }}</td></tr>
-    <tr><td style="color:#6b7280">Departure</td><td>{{ $departure ? \App\Support\DepartureCalendar::range($departure).' · '.$departure->departs_at->format('g:i A') : '' }}</td></tr>
-    <tr><td style="color:#6b7280">Pickup point</td><td>{{ $booking->hasMixedPickups() ? 'Per passenger, see below' : $booking->pickupPoint?->name }}</td></tr>
-    <tr><td style="color:#6b7280">Passengers</td><td>{{ $booking->participant_count }}</td></tr>
-    <tr><td style="color:#6b7280">Total</td><td>{{ money($booking->total_amount, $booking->currency) }} {{ $booking->tax_included ? '' : setting('price_tax_note') }}</td></tr>
-    <tr><td style="color:#6b7280">Deposit due now</td><td><strong>{{ money($booking->deposit_amount, $booking->currency) }}</strong></td></tr>
-    @if($forAdmin)
-      <tr><td style="color:#6b7280">Customer</td><td>{{ $booking->first_name }} {{ $booking->last_name }} · {{ $booking->phone }} · {{ $booking->email }}@if($booking->whatsapp) · WhatsApp {{ $booking->whatsapp }}@endif</td></tr>
-      <tr><td style="color:#6b7280">Emergency contact</td><td>{{ $booking->emergency_contact_name }} · {{ $booking->emergency_contact_phone }}</td></tr>
-    @endif
-  </table>
-  <p style="margin-bottom:4px"><strong>Passengers</strong></p>
-  <ul style="margin-top:0;padding-left:18px">
-    @foreach($booking->passengers as $passenger)
-      <li>{{ $passenger->first_name }} {{ $passenger->last_name }} — {{ \App\Models\TourDeparturePrice::CODES[$passenger->price_code][0] ?? $passenger->price_code }}@if($passenger->room_number), room {{ $passenger->room_number }}@endif @if($passenger->pickupPoint)· pickup: {{ $passenger->pickupPoint->name }}@endif @if($passenger->meal_selection)· meal: {{ $passenger->meal_selection }}@endif</li>
-    @endforeach
-  </ul>
-  @unless($forAdmin)
+
+  @include('emails.partials.booking-summary')
+
+  @if($forAdmin)
+    @include('emails.partials.rows', ['title' => 'Notes from the customer', 'rows' => [
+      'Comments' => $booking->comments,
+      'Special requests' => $booking->special_requests,
+      'Roommate' => $booking->roommate_request,
+      'Mobility' => $booking->mobility_information,
+      'Food allergies' => $booking->food_allergies,
+    ]])
+    @include('emails.partials.button', ['url' => route('bookings.show', $booking), 'label' => 'Review booking in admin'])
+    <p style="margin:8px 0 0;font-size:13px;color:#6b7280;">The link opens the admin panel; you will be asked to sign in if you aren't already.</p>
+  @else
     @if(setting('payment_instructions'))
-      <p style="margin-bottom:4px"><strong>Payment instructions</strong></p>
-      <p style="margin-top:0">{!! nl2br(e(setting('payment_instructions'))) !!}</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 0;background:#fff4e0;border-radius:12px;">
+        <tr><td style="padding:16px 18px;font-size:14px;line-height:22px;color:#5c3b00;">
+          <strong style="display:block;margin-bottom:4px;color:#3d2700;">How to pay your deposit</strong>
+          {!! nl2br(e(setting('payment_instructions'))) !!}
+          <br>Please include your booking reference <strong>{{ $booking->reference }}</strong>.
+        </td></tr>
+      </table>
     @endif
-    <p>Your seat numbers will be emailed to you 1–2 days before departure once the booking is fully paid.</p>
-    <p>Questions? Reply to this email or message us on WhatsApp.</p>
-  @endunless
+    <p style="margin:22px 0 0;"><strong>What happens next</strong></p>
+    <ol style="margin:6px 0 0;padding-left:20px;color:#4b5263;">
+      <li>We check your request and payment.</li>
+      <li>You receive a <strong>booking confirmation</strong> email.</li>
+      <li>1–2 days before departure we email your seat numbers.</li>
+    </ol>
+  @endif
 @endsection
