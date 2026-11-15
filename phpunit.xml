@@ -12,6 +12,8 @@
     <env name="APP_ENV" value="testing"/>
     <env name="BCRYPT_ROUNDS" value="4"/>
     <env name="CACHE_DRIVER" value="array"/>
+    <!-- Laravel 11+ reads CACHE_STORE; without it tests wrote seed settings into the site's file cache. -->
+    <env name="CACHE_STORE" value="array" force="true"/>
     <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
     <!-- Never the live or staging database: RefreshDatabase wipes whatever it connects to. -->
     <env name="DB_DATABASE" value="websites_tours_test" force="true"/>
