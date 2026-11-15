@@ -45,6 +45,8 @@ class Customer extends Model
     public function status() { return $this->belongsTo(CustomerStatus::class, 'customer_status_id'); }
     public function tags() { return $this->belongsToMany(CustomerTag::class)->orderBy('name'); }
     public function assignedUser() { return $this->belongsTo(User::class, 'assigned_user_id'); }
+    /** Set when this record was merged into another customer (and archived). */
+    public function mergedInto() { return $this->belongsTo(self::class, 'merged_into_id')->withTrashed(); }
 
     public function getFullNameAttribute(): string { return trim("{$this->first_name} {$this->last_name}"); }
     public function getDisplayNameAttribute(): string { return $this->preferred_name ? "{$this->preferred_name} ({$this->full_name})" : $this->full_name; }

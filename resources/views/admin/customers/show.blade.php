@@ -16,7 +16,8 @@
                 </div>
             </div>
 @include('admin.includes.flash')
-@if($customer->trashed())<div class="alert alert-warning d-flex justify-content-between align-items-center">This customer is archived. Their bookings and history are kept.@can('delete-customers')<form method="post" action="{{ route('customers.restore', $customer->id) }}">@csrf<button class="btn btn-sm btn-warning">Restore</button></form>@endcan</div>@endif
+@if($customer->merged_into_id)<div class="alert alert-info">This customer was merged into <a href="{{ route('customers.show', $customer->merged_into_id) }}">{{ $customer->mergedInto?->full_name ?? 'customer #'.$customer->merged_into_id }}</a>. Their bookings and requests are there now.</div>
+@elseif($customer->trashed())<div class="alert alert-warning d-flex justify-content-between align-items-center">This customer is archived. Their bookings and history are kept.@can('delete-customers')<form method="post" action="{{ route('customers.restore', $customer->id) }}">@csrf<button class="btn btn-sm btn-warning">Restore</button></form>@endcan</div>@endif
 
 <div class="row">
   <div class="col-lg-4">
@@ -112,6 +113,14 @@
   </div>
 </div>
 
+@can('merge-customers')@unless($customer->trashed())
+<form class="d-flex justify-content-end align-items-center gap-2 mb-2" method="get" action="{{ route('customer-merge.compare') }}">
+  <input type="hidden" name="keep" value="{{ $customer->id }}">
+  <label class="small text-muted mb-0" for="merge-other">Same person as customer #</label>
+  <input class="form-control form-control-sm" style="width:90px" type="number" min="1" name="other" id="merge-other" required>
+  <button class="btn btn-sm btn-outline-secondary"><i class="ri-git-merge-line"></i> Compare & merge</button>
+</form>
+@endunless @endcan
 @can('delete-customers')@unless($customer->trashed())
 <form method="post" action="{{ route('customers.destroy', $customer) }}" class="text-end mb-4" onsubmit="return confirm('Archive this customer? Their bookings and history are kept and they can be restored.')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">Archive customer</button></form>
 @endunless @endcan

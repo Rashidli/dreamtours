@@ -35,20 +35,27 @@ class Customers
     }
 
     /**
+     * The existing customer for these contact details, without changing anything.
+     * Same email = same person. Same phone only counts when one side has no email: two
+     * different emails on one phone may be a couple or family, so staff merge those after review (§3).
+     */
+    public static function find(?string $email, ?string $phone, ?string $whatsapp = null): ?Customer
+    {
+        $email = mb_strtolower(trim((string) $email));
+        $digits = Customer::phoneDigits($phone) ?? Customer::phoneDigits($whatsapp);
+
+        return ($email !== '' ? Customer::where('email', $email)->oldest('id')->first() : null)
+            ?? ($digits ? Customer::where('phone_digits', $digits)->when($email !== '', fn ($q) => $q->where(fn ($x) => $x->whereNull('email')->orWhere('email', '')))->oldest('id')->first() : null);
+    }
+
+    /**
      * @param  array  $contact  first_name, last_name, email, phone, whatsapp, date_of_birth
      * @param  string|null  $consentSource  set when this contact agreed to marketing, e.g. "Booking DT-…"
      */
     public static function match(array $contact, string $source, ?string $consentSource = null, ?Carbon $at = null): Customer
     {
         $at ??= now();
-        $email = mb_strtolower(trim((string) ($contact['email'] ?? '')));
-        $digits = Customer::phoneDigits($contact['phone'] ?? null) ?? Customer::phoneDigits($contact['whatsapp'] ?? null);
-
-        // Same email = same person. Same phone only counts when one side has no email: two
-        // different emails on one phone may be a couple or family, so staff merge those after review (§3).
-        $customer = ($email !== '' ? Customer::where('email', $email)->oldest('id')->first() : null)
-            ?? ($digits ? Customer::where('phone_digits', $digits)->when($email !== '', fn ($q) => $q->where(fn ($x) => $x->whereNull('email')->orWhere('email', '')))->oldest('id')->first() : null)
-            ?? new Customer(['source' => $source]);
+        $customer = self::find($contact['email'] ?? null, $contact['phone'] ?? null, $contact['whatsapp'] ?? null) ?? new Customer(['source' => $source]);
 
         foreach (['first_name', 'last_name', 'email', 'phone', 'whatsapp', 'date_of_birth'] as $field) {
             if (blank($customer->{$field}) && filled($contact[$field] ?? null)) {

@@ -20,6 +20,8 @@
     <h4 class="card-title mb-0">{{ request()->boolean('archived') ? 'Archived customers' : 'Customer directory' }} <small class="text-muted fw-normal">({{ $customers->total() }})</small></h4>
     <div class="d-flex gap-2">
         @can('manage-customer-labels')<a class="btn btn-light" href="{{ route('customer-labels.index') }}"><i class="ri-price-tag-3-line align-middle me-1"></i> Statuses & tags</a>@endcan
+        @can('merge-customers')<a class="btn btn-light" href="{{ route('customer-merge.index') }}"><i class="ri-git-merge-line align-middle me-1"></i> Duplicates</a>@endcan
+        @can('import-customers')<a class="btn btn-light" href="{{ route('customer-imports.create') }}"><i class="ri-upload-2-line align-middle me-1"></i> Import</a>@endcan
         @can('export-customers')<a class="btn btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'csv', 'page' => null]) }}"><i class="ri-download-2-line align-middle me-1"></i> Export CSV</a>@endcan
         @can('create-customers')<a class="btn btn-primary" href="{{ route('customers.create') }}"><i class="ri-add-line align-middle me-1"></i> New customer</a>@endcan
     </div>

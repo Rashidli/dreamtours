@@ -108,6 +108,17 @@ Route::prefix('admin')->group(function () {
         Route::put('customers/labels/{kind}/{id}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'update'])->name('customer-labels.update');
         Route::post('customers/labels/{kind}/{id}/archive', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'archive'])->name('customer-labels.archive');
         Route::delete('customers/labels/{kind}/{id}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'destroy'])->name('customer-labels.destroy');
+        Route::get('customers/import', [\App\Http\Controllers\Admin\CustomerImportController::class, 'create'])->name('customer-imports.create');
+        Route::post('customers/import', [\App\Http\Controllers\Admin\CustomerImportController::class, 'store'])->name('customer-imports.store');
+        Route::get('customers/import/{import}', [\App\Http\Controllers\Admin\CustomerImportController::class, 'show'])->name('customer-imports.show');
+        Route::get('customers/import/{import}/map', [\App\Http\Controllers\Admin\CustomerImportController::class, 'edit'])->name('customer-imports.edit');
+        Route::put('customers/import/{import}/map', [\App\Http\Controllers\Admin\CustomerImportController::class, 'update'])->name('customer-imports.update');
+        Route::post('customers/import/{import}/commit', [\App\Http\Controllers\Admin\CustomerImportController::class, 'commit'])->name('customer-imports.commit');
+        Route::get('customers/import/{import}/problems', [\App\Http\Controllers\Admin\CustomerImportController::class, 'problems'])->name('customer-imports.problems');
+        Route::get('customers/duplicates', [\App\Http\Controllers\Admin\CustomerMergeController::class, 'index'])->name('customer-merge.index');
+        Route::post('customers/duplicates/dismiss', [\App\Http\Controllers\Admin\CustomerMergeController::class, 'dismiss'])->name('customer-merge.dismiss');
+        Route::get('customers/merge', [\App\Http\Controllers\Admin\CustomerMergeController::class, 'compare'])->name('customer-merge.compare');
+        Route::post('customers/merge', [\App\Http\Controllers\Admin\CustomerMergeController::class, 'merge'])->name('customer-merge.merge');
         Route::post('customers/{customer}/restore', [\App\Http\Controllers\Admin\CustomerController::class, 'restore'])->name('customers.restore');
         Route::resource('customers', \App\Http\Controllers\Admin\CustomerController::class)->withTrashed(['show']);
         Route::get('email-previews', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'index'])->name('email-previews.index');
