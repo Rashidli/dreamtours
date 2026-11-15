@@ -53,7 +53,7 @@ class StaffRolesTest extends TestCase
         foreach (array_keys(StaffRoles::DEFAULTS) as $name) {
             $this->assertTrue(Role::where('name', $name)->exists(), "$name exists");
         }
-        $this->assertSame(['list-assigned-departures'], Role::findByName('Tour Leader')->permissions->pluck('name')->all());
+        $this->assertEqualsCanonicalizing(['list-assigned-departures', 'check-in-passengers'], Role::findByName('Tour Leader')->permissions->pluck('name')->all());
 
         $has = fn (string $role) => Role::findByName($role)->permissions->pluck('name');
         $content = Role::findByName('Content Manager');

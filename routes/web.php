@@ -170,7 +170,8 @@ Route::prefix('admin')->group(function () {
         Route::post('tours/{tour}/departures', [\App\Http\Controllers\Admin\TourDepartureController::class,'store'])->name('tour-departures.store');
         Route::get('tours/{tour}/structure/{section}', [TourStructureController::class,'index'])->name('tour-structure.index');
         Route::put('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'update'])->name('tour-departures.update');
-        Route::get('departures/{departure}/passengers', [\App\Http\Controllers\Admin\TourDepartureController::class,'passengers'])->name('tour-departures.passengers');
+        Route::get('departures/{departure}/passengers', [\App\Http\Controllers\Admin\RosterController::class, 'index'])->name('tour-departures.passengers');
+        Route::post('departures/{departure}/passengers/{passenger}/attendance', [\App\Http\Controllers\Admin\RosterController::class, 'attendance'])->middleware('throttle:120,1')->name('passenger-attendance.update');
         Route::post('departures/{departure}/staff', [\App\Http\Controllers\Admin\DepartureStaffController::class, 'store'])->name('departure-staff.store');
         Route::delete('departures/{departure}/staff/{assignment}', [\App\Http\Controllers\Admin\DepartureStaffController::class, 'destroy'])->name('departure-staff.destroy');
         Route::get('my-trips', [\App\Http\Controllers\Admin\MyTripsController::class, 'index'])->name('my-trips.index');

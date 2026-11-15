@@ -41,7 +41,7 @@ class StaffRoles
             'list-bookings', 'list-payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info',
             'list-customers', 'export-customers', 'list-tours', 'list-tour-departures',
         ],
-        'Tour Leader' => ['list-assigned-departures'],
+        'Tour Leader' => ['list-assigned-departures', 'check-in-passengers'],
     ];
 
     /**

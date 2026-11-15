@@ -57,24 +57,6 @@ class TourDepartureController extends Controller
         return redirect()->to(route('tours.edit', $tour).'#departures')->with('message', 'Date deleted.');
     }
 
-    /** Passenger list for one date: every traveller on a booking that is not cancelled. */
-    public function passengers(Request $request, TourDeparture $departure): View
-    {
-        abort_unless($request->user()->can('list-bookings'), 403);
-        $departure->load(['tour.translations', 'bookings' => fn ($q) => $q->orderBy('created_at'), 'bookings.passengers.pickupPoint.translations']);
-        $passengers = $departure->bookings->where('status', '!=', 'cancelled')
-            ->flatMap(fn ($booking) => $booking->passengers->map(fn ($p) => ['passenger' => $p, 'booking' => $booking]))
-            ->when($request->filled('pickup'), fn ($rows) => $rows->filter(fn ($row) => (string) $row['passenger']->pickup_point_id === $request->pickup))
-            ->values();
-
-        return view('admin.tours.passengers', [
-            'departure' => $departure,
-            'passengers' => $passengers,
-            'pickups' => $departure->bookings->flatMap->passengers->pluck('pickupPoint')->filter()->unique('id')->values(),
-            'cancelled' => $departure->bookings->where('status', 'cancelled'),
-        ]);
-    }
-
     /** Shared by "Add dates" and by creating a tour with its first dates. @return TourDeparture[] */
     public static function createMany(Tour $tour, array $input): array
     {

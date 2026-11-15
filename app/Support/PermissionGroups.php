@@ -8,7 +8,7 @@ class PermissionGroups
     public const SECTIONS = [
         'Access control' => ['users', 'roles', 'permissions', 'activity-log'],
         'Website CMS' => ['pages', 'page-sections', 'navigation', 'settings', 'words', 'images', 'sliders', 'singles'],
-        'Tours & CRM' => ['payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'assign-departure-staff', 'assigned-departures', 'leads', 'lead-stages', 'manage-lead-stages', 'customers', 'import-customers', 'merge-customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
+        'Tours & CRM' => ['payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'assign-departure-staff', 'assigned-departures', 'check-in-passengers', 'undo-check-in', 'leads', 'lead-stages', 'manage-lead-stages', 'customers', 'import-customers', 'merge-customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
         'Content' => ['company-content', 'abouts', 'reviews', 'faqs', 'gallery-albums', 'gallery-categories', 'gallery-media', 'contact_items', 'socials', 'contacts', 'blogs', 'portfolios', 'services', 'tags'],
     ];
 
@@ -37,6 +37,8 @@ class PermissionGroups
         'apply-discounts' => ['Apply discounts', 'Discounts, complimentary seats and price changes on a booking.'],
         'assign-departure-staff' => ['Assign trip staff', 'Choose the leaders, drivers and guides for each departure date.'],
         'list-assigned-departures' => ['My trips', 'See the departures this person is assigned to, with their passenger list. Nothing else.'],
+        'check-in-passengers' => ['Check passengers in', 'Mark Checked in, Boarded, Not arrived or No-show on trips they can open.'],
+        'undo-check-in' => ['Undo check-ins', 'Step back or clear any attendance mark. Without it people can only fix their own marks for 10 minutes.'],
         'export-customers' => ['Export customers', 'Download the customer list as CSV.'],
         'import-customers' => ['Import customers', 'Upload customer lists from CSV or Excel.'],
         'merge-customers' => ['Merge duplicate customers', 'Combine two records of the same person.'],

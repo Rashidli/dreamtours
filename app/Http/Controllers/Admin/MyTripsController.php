@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DepartureStaff;
 use App\Models\TourDeparture;
+use App\Support\Attendance;
+use App\Support\Roster;
+use App\Support\RosterExport;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -27,25 +31,27 @@ class MyTripsController extends Controller
         return view('admin.my_trips.index', ['trips' => $assignments, 'past' => $past]);
     }
 
-    public function show(Request $request, TourDeparture $departure): View
+    public function show(Request $request, TourDeparture $departure): View|Response
     {
         $mine = $departure->staff()->where('user_id', $request->user()->id)->get();
         abort_unless($mine->isNotEmpty() || $request->user()->can('list-bookings'), 403, 'This trip is not assigned to you.');
 
-        $departure->load(['tour.translations', 'tour.itineraryDays.translations', 'staff.user', 'pickupPoints.translations',
-            'bookings' => fn ($q) => $q->where('status', '!=', 'cancelled')->orderBy('created_at'),
-            'bookings.passengers.pickupPoint.translations']);
-        $passengers = $departure->bookings->flatMap(fn ($booking) => $booking->passengers->map(fn ($p) => ['passenger' => $p, 'booking' => $booking]))->values();
-        // Stops in the departure's order (or the tour's), then any stop a passenger chose that is no longer listed.
-        $stops = ($departure->pickupPoints->isNotEmpty() ? $departure->pickupPoints : $departure->tour->pickupPoints()->with('translations')->get())
-            ->concat($passengers->pluck('passenger.pickupPoint')->filter())->unique('id')->values();
+        $f = RosterController::filters($request);
+        $all = Roster::all($departure);
+        $stops = Roster::stops($departure, $all);
+        $rows = Roster::filter($all, $f, $stops, $request->user());
+        if ($format = $request->query('export')) {
+            abort_unless(in_array($format, RosterExport::FORMATS, true), 404);
+
+            // The leader's copy: only what the trip needs (§11), whoever downloads it from here.
+            return RosterExport::download($departure, $rows, Roster::columns($request->user(), office: false), $format);
+        }
+        $departure->loadMissing('tour.itineraryDays.translations');
 
         return view('admin.my_trips.show', [
-            'departure' => $departure,
-            'mine' => $mine,
-            'passengers' => $passengers,
-            'stops' => $stops,
-            'byStop' => $passengers->groupBy(fn ($row) => $row['passenger']->pickup_point_id ?? 0),
+            'departure' => $departure, 'mine' => $mine, 'all' => $all, 'rows' => $rows, 'stops' => $stops, 'f' => $f,
+            'byStop' => $all->groupBy(fn ($row) => $row['passenger']->pickup_point_id ?? 0),
+            'canMark' => Attendance::canMark($request->user(), $departure),
         ]);
     }
 }
