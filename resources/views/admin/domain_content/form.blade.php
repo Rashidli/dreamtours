@@ -218,22 +218,22 @@
                                     </a>
                                 </div>
 
-                                <form class="row g-2 mb-3" method="post" enctype="multipart/form-data" action="{{ route('gallery-media.store', $item) }}">
+                                @include('admin.gallery_media.bulk_upload', ['album' => $item])
+
+                                <form class="row g-2 mb-3" method="post" action="{{ route('gallery-media.store', $item) }}">
                                     @csrf
+                                    <div class="col-12 small text-muted">…or add a photo or video by link</div>
                                     <div class="col-md-2">
                                         <select class="form-select" name="type"><option>image</option><option>video</option></select>
                                     </div>
-                                    <div class="col-md-4">
-                                        <input type="file" class="form-control" name="file" accept="image/*,video/mp4,video/webm,video/quicktime">
+                                    <div class="col-md-6">
+                                        <input class="form-control" name="path" placeholder="https://…" required>
                                     </div>
                                     <div class="col-md-3">
-                                        <input class="form-control" name="path" placeholder="…or a link">
-                                    </div>
-                                    <div class="col-md-2">
                                         <input class="form-control" name="en[caption]" placeholder="Title">
                                     </div>
                                     <div class="col-md-1">
-                                        <button class="btn btn-primary w-100"><i class="ri-add-line"></i></button>
+                                        <button class="btn btn-outline-primary w-100" title="Add link"><i class="ri-add-line"></i></button>
                                     </div>
                                 </form>
 

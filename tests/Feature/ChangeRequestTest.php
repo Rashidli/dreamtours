@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Models\GalleryAlbum;
 use App\Models\Tour;
 use App\Models\TourDeparture;
 use App\Models\User;
 use Database\Seeders\CmsPermissionSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -135,5 +138,60 @@ class ChangeRequestTest extends TestCase
         $order('departure_asc', ['when' => 'upcoming'])->assertSeeInOrder(['Bravo Falls', 'Charlie Coast'])->assertDontSee('Alpha Lakes');
         // Without a sort the admin's own sort_order still applies.
         $this->get(route('tours.index'))->assertOk()->assertSeeInOrder(['Charlie Coast', 'Bravo Falls', 'Alpha Lakes']);
+    }
+
+    private function adminWithAlbum(): GalleryAlbum
+    {
+        Storage::fake('public');
+        $this->seed(CmsPermissionSeeder::class);
+        Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+        $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
+        $album = GalleryAlbum::create(['cover_image' => 'albums/cover.webp', 'is_active' => true, 'en' => ['title' => 'Tobermory']]);
+        $album->media()->create(['type' => 'image', 'path' => 'old-1.webp', 'sort_order' => 1]);
+        $album->media()->create(['type' => 'image', 'path' => 'old-2.webp', 'sort_order' => 2]);
+
+        return $album;
+    }
+
+    // 05 — the album pages offer the multi-file / drag-and-drop uploader.
+    public function test_album_pages_show_bulk_uploader(): void
+    {
+        $album = $this->adminWithAlbum();
+
+        $this->get(route('domain-content.edit', ['gallery-albums', $album]))->assertOk()->assertSee('Drop photos here or click to choose')->assertSee('multiple', false);
+        $this->get(route('gallery-media.index', $album))->assertOk()->assertSee('Drop photos here or click to choose');
+    }
+
+    // 05 — a batch of 12 photos uploads file by file; existing media, order and cover stay intact.
+    public function test_bulk_upload_adds_photos_in_order_and_keeps_existing_media(): void
+    {
+        $album = $this->adminWithAlbum();
+
+        foreach (range(1, 12) as $i) {
+            $this->postJson(route('gallery-media.store', $album), ['type' => 'image', 'file' => UploadedFile::fake()->image("photo-$i.jpg", 1200, 800)])
+                ->assertCreated()->assertJsonStructure(['id', 'type', 'path', 'edit']);
+        }
+
+        $media = $album->media()->orderBy('sort_order')->get();
+        $this->assertCount(14, $media);
+        $this->assertSame(['old-1.webp', 'old-2.webp'], $media->take(2)->map->getRawOriginal('path')->all());
+        $this->assertSame(range(1, 14), $media->pluck('sort_order')->all());
+        $this->assertCount(12, Storage::disk('public')->allFiles());
+        $this->assertSame('albums/cover.webp', $album->fresh()->getRawOriginal('cover_image'));
+    }
+
+    // 05 — an invalid file fails on its own with a readable message; the rest of the batch still uploads.
+    public function test_bulk_upload_reports_invalid_files_without_stopping_the_batch(): void
+    {
+        $album = $this->adminWithAlbum();
+
+        $this->postJson(route('gallery-media.store', $album), ['type' => 'image', 'file' => UploadedFile::fake()->image('good-1.jpg')])->assertCreated();
+        $this->postJson(route('gallery-media.store', $album), ['type' => 'image', 'file' => UploadedFile::fake()->create('notes.pdf', 20, 'application/pdf')])
+            ->assertUnprocessable()->assertJsonValidationErrors('file');
+        $this->postJson(route('gallery-media.store', $album), ['type' => 'image', 'file' => UploadedFile::fake()->image('good-2.jpg')])->assertCreated();
+
+        $this->assertSame(4, $album->media()->count());
+        // The single link form still redirects back as before.
+        $this->post(route('gallery-media.store', $album), ['type' => 'video', 'path' => 'https://youtu.be/abc'])->assertRedirect()->assertSessionHas('message', 'Media added.');
     }
 }
