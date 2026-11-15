@@ -25,7 +25,7 @@
       </div>
     </div>
     <div class="table-responsive mt-3"><table class="table table-sm align-middle">
-      <thead><tr><th>#</th><th>Passenger</th><th>Pickup point</th><th>Meal</th><th>Seat</th><th>Booking</th><th>Contact</th><th>Payment</th></tr></thead>
+      <thead><tr><th>#</th><th>Passenger</th><th>Pickup point</th><th>Meal</th><th>Seat</th><th>Booking</th><th>Contact</th>@can('view-financial-info')<th>Payment</th>@endcan</tr></thead>
       <tbody>
       @forelse($passengers as $i => $row)
         @php([$p, $b] = [$row['passenger'], $row['booking']])
@@ -37,7 +37,7 @@
           <td>{{ $p->seat_number ?: '—' }}</td>
           <td><a href="{{ route('bookings.show', $b) }}">{{ $b->reference }}</a><br><small class="text-muted">{{ \App\Models\Booking::STATUSES[$b->status] ?? $b->status }}</small></td>
           <td><small>{{ $b->first_name }} {{ $b->last_name }}<br>{{ $b->phone }}</small></td>
-          <td><small>{{ \App\Models\Booking::PAYMENT_STATUSES[$b->payment_status] ?? $b->payment_status }}@if($b->total_amount !== null)<br>balance {{ money($b->balance_due, $b->currency) }}@endif</small></td>
+          @can('view-financial-info')<td><small>{{ \App\Models\Booking::PAYMENT_STATUSES[$b->payment_status] ?? $b->payment_status }}@if($b->total_amount !== null)<br>balance {{ money($b->outstanding_amount, $b->currency) }}@endif</small></td>@endcan
         </tr>
       @empty
         <tr><td colspan="8" class="text-muted">No passengers on this date yet.</td></tr>

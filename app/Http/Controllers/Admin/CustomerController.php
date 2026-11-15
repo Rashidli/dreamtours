@@ -23,6 +23,9 @@ class CustomerController extends Controller
 {
     public const SORTS = ['recent' => 'Last activity', 'name' => 'Name (A–Z)', 'newest' => 'Signed up (newest)', 'oldest' => 'Signed up (oldest)', 'spent' => 'Total paid (highest)', 'trips' => 'Trips (most)', 'outstanding' => 'Outstanding (highest)'];
 
+    /** Sorting and filtering by money reveals it, so these need view-financial-info like the columns do. */
+    private const MONEY_SORTS = ['spent', 'outstanding'];
+
     public function __construct()
     {
         $this->middleware('permission:list-customers')->only(['index', 'show']);
@@ -46,7 +49,7 @@ class CustomerController extends Controller
             'tags' => CustomerTag::orderBy('name')->get(),
             'users' => User::orderBy('name')->get(['id', 'name']),
             'destinations' => Destination::withTranslation()->get()->sortBy('name'),
-            'sorts' => self::SORTS,
+            'sorts' => $r->user()->can('view-financial-info') ? self::SORTS : array_diff_key(self::SORTS, array_flip(self::MONEY_SORTS)),
         ]);
     }
 
@@ -185,6 +188,13 @@ class CustomerController extends Controller
             'archived' => ['nullable', 'boolean'],
             'sort' => ['nullable', Rule::in(array_keys(self::SORTS))],
         ]);
+        if (!$r->user()->can('view-financial-info')) {
+            unset($d['min_spent']);
+            $r->query->remove('outstanding');
+            if (in_array($d['sort'] ?? null, self::MONEY_SORTS, true)) {
+                $d['sort'] = 'recent';
+            }
+        }
         // Partial numbers work too: "647 555" finds 647-555-0000.
         $phone = strlen($digits = preg_replace('/\D/', '', (string) ($d['q'] ?? ''))) >= 3 ? $digits : null;
         $query = Customer::query()->select('customers.*')->withStats()
@@ -220,10 +230,11 @@ class CustomerController extends Controller
     private function export(Request $r, Builder $query): StreamedResponse
     {
         $birthdays = $r->user()->can('view-customer-birthdays');
+        $finance = $r->user()->can('view-financial-info');
         $customers = $query->with(['status', 'tags', 'assignedUser'])->get();
         Activity::record('customers_exported', null, ['rows' => $customers->count(), 'filters' => http_build_query($r->except(['export', 'page'])) ?: 'none'], label: 'Customer list');
 
-        return response()->streamDownload(function () use ($customers, $birthdays) {
+        return response()->streamDownload(function () use ($customers, $birthdays, $finance) {
             $columns = [
                 'ID' => fn ($c) => $c->id,
                 'First name' => fn ($c) => $c->first_name,
@@ -249,6 +260,9 @@ class CustomerController extends Controller
             ];
             if (!$birthdays) {
                 unset($columns['Date of birth']);
+            }
+            if (!$finance) {
+                unset($columns['Total paid (CAD)'], $columns['Outstanding (CAD)']);
             }
             $out = fopen('php://output', 'w');
             fputcsv($out, array_keys($columns));

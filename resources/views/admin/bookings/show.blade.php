@@ -54,7 +54,7 @@
             <tbody>
             @forelse($booking->passengers as $i => $p)
               <tr><td>{{ $i + 1 }}</td><td>{{ $p->first_name }} {{ $p->last_name }}@if($p->date_of_birth)<br><small class="text-muted">DOB {{ $p->date_of_birth->format('Y-m-d') }}</small>@endif</td>
-                <td>{{ \App\Models\TourDeparturePrice::CODES[$p->price_code][0] ?? ($p->category ?: '—') }}@if($p->price !== null)<br><small>{{ $money($p->price) }}</small>@endif</td>
+                <td>{{ \App\Models\TourDeparturePrice::CODES[$p->price_code][0] ?? ($p->category ?: '—') }}@if($p->price !== null)@can('view-financial-info')<br><small>{{ $money($p->price) }}</small>@endcan @endif</td>
                 <td>{{ $p->room_number ?: '—' }}</td><td>{{ $p->pickupPoint?->name ?: '—' }}</td><td>{{ $p->meal_selection ?: '—' }}</td>
                 <td>@can('edit-bookings')<input class="form-control form-control-sm" name="seats[{{ $p->id }}]" value="{{ old('seats.'.$p->id, $p->seat_number) }}" placeholder="e.g. 12">@else{{ $p->seat_number ?: '—' }}@endcan</td></tr>
             @empty
@@ -72,7 +72,7 @@
         @endif @endcan
       </div></div>
 
-      @if($booking->tour_departure_id)@include('admin.bookings._ledger')@endif
+      @can('view-financial-info')@if($booking->tour_departure_id)@include('admin.bookings._ledger')@endif @endcan
 
       {{-- Edit contact and passengers --}}
       @can('edit-bookings')
@@ -121,7 +121,7 @@
     </div>
 
     <div class="col-lg-4">
-      @include('admin.bookings._money')
+      @can('view-financial-info')@include('admin.bookings._money')@endcan
 
       @can('edit-bookings')
       <div class="card"><div class="card-body">

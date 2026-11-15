@@ -50,6 +50,7 @@ class CmsPermissionSeeder extends Seeder
             ->each(fn (Permission $permission) => $permission->update(['group_name' => PermissionGroups::sectionFor($permission->name)]));
 
         Role::where('name', 'admin')->first()?->givePermissionTo($permissions);
+        \App\Support\StaffRoles::install(topUp: true);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

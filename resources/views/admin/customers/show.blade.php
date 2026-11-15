@@ -56,7 +56,8 @@
 
   <div class="col-lg-8">
     <div class="row g-3 mb-3">
-      @foreach([['Trips', $stats->trips_count, null], ['Total paid', money($stats->total_paid), null], ['Outstanding', money($stats->outstanding), $stats->outstanding > 0 ? 'text-danger' : null], ['Last trip', $stats->last_trip_at ? \Illuminate\Support\Carbon::parse($stats->last_trip_at)->format('M j, Y') : '—', null]] as [$label, $value, $class])
+      @php($fin = auth()->user()->can('view-financial-info'))
+      @foreach(array_filter([['Trips', $stats->trips_count, null], $fin ? ['Total paid', money($stats->total_paid), null] : null, $fin ? ['Outstanding', money($stats->outstanding), $stats->outstanding > 0 ? 'text-danger' : null] : null, ['Last trip', $stats->last_trip_at ? \Illuminate\Support\Carbon::parse($stats->last_trip_at)->format('M j, Y') : '—', null]]) as [$label, $value, $class])
         <div class="col-6 col-md-3"><div class="card mb-0"><div class="card-body py-3"><p class="text-muted mb-1">{{ $label }}</p><h5 class="mb-0 {{ $class }}">{{ $value }}</h5></div></div></div>
       @endforeach
     </div>
@@ -64,22 +65,25 @@
     <div class="card"><div class="card-body">
       <h5 class="card-title">Bookings & requests <small class="text-muted fw-normal">({{ $customer->bookings->count() }})</small></h5>
       <div class="table-responsive"><table class="table crm-table align-middle mb-0">
-        <thead><tr><th>Reference</th><th>Trip</th><th>Departure</th><th class="text-end">Guests</th><th class="text-end">Total</th><th class="text-end">Paid</th><th class="text-end">Balance</th><th>Status</th></tr></thead>
+        <thead><tr><th>Reference</th><th>Trip</th><th>Departure</th><th class="text-end">Guests</th>@if($fin)<th class="text-end">Total</th><th class="text-end">Paid</th><th class="text-end">Balance</th>@endif<th>Status</th></tr></thead>
         <tbody>
         @forelse($customer->bookings as $booking)
-          @php($balance = $booking->tour_departure_id && $booking->status !== 'cancelled' ? max(0, (float) $booking->total_amount - (float) $booking->amount_paid) : 0)
+          {{-- Ledger figures (BookingMoney): due after discounts, net paid, and the outstanding it computed. --}}
+          @php($balance = $booking->tour_departure_id ? (float) $booking->outstanding_amount : 0)
           <tr>
             <td>@can('list-bookings')<a href="{{ route('bookings.show', $booking) }}">{{ $booking->reference }}</a>@else{{ $booking->reference }}@endcan</td>
             <td>{{ $booking->tour?->name ?? \App\Mail\EnquiryReceived::LABELS[$booking->type] ?? ucfirst($booking->type) }}</td>
             <td>{{ $booking->departure?->departs_at?->format('M j, Y') ?? '—' }}</td>
             <td class="text-end">{{ $booking->participant_count }}</td>
-            <td class="text-end">{{ $booking->tour_departure_id ? money($booking->total_amount) : '—' }}</td>
+            @if($fin)
+            <td class="text-end">{{ $booking->tour_departure_id ? money(bcsub((string) $booking->total_amount, (string) $booking->discount_amount, 2)) : '—' }}</td>
             <td class="text-end">{{ $booking->tour_departure_id ? money($booking->amount_paid) : '—' }}</td>
             <td class="text-end {{ $balance > 0 ? 'text-danger fw-semibold' : 'text-muted' }}">{{ $booking->tour_departure_id ? money($balance) : '—' }}</td>
+            @endif
             <td><span class="badge bg-light text-body">{{ \App\Models\Booking::STATUSES[$booking->status] ?? $booking->status }}</span></td>
           </tr>
         @empty
-          <tr><td colspan="8" class="text-muted">No bookings or requests yet.</td></tr>
+          <tr><td colspan="{{ $fin ? 8 : 5 }}" class="text-muted">No bookings or requests yet.</td></tr>
         @endforelse
         </tbody>
       </table></div>

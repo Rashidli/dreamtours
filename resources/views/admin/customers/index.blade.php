@@ -49,12 +49,12 @@
       <div class="col-sm-6 col-md-3"><label class="form-label">Marketing</label><select class="form-select" name="marketing"><option value="">Any</option><option value="eligible" @selected(request('marketing') === 'eligible')>Can receive promotions</option><option value="not_eligible" @selected(request('marketing') === 'not_eligible')>No promotions</option></select></div>
       <div class="col-sm-6 col-md-3"><label class="form-label">Trip destination</label><select class="form-select" name="destination"><option value="">Any destination</option>@foreach($destinations as $destination)<option value="{{ $destination->id }}" @selected(request('destination') == $destination->id)>{{ $destination->name }}</option>@endforeach</select></div>
       <div class="col-sm-6 col-md-3"><label class="form-label">Trips taken (at least)</label><input class="form-control" type="number" min="0" name="min_trips" value="{{ request('min_trips') }}"></div>
-      <div class="col-sm-6 col-md-3"><label class="form-label">Total paid (at least, CAD)</label><input class="form-control" type="number" min="0" step="1" name="min_spent" value="{{ request('min_spent') }}"></div>
+      @can('view-financial-info')<div class="col-sm-6 col-md-3"><label class="form-label">Total paid (at least, CAD)</label><input class="form-control" type="number" min="0" step="1" name="min_spent" value="{{ request('min_spent') }}"></div>@endcan
       <div class="col-md-6 col-xl-3"><label class="form-label">Signed up</label><div class="input-group"><input class="form-control" type="date" name="signup_from" value="{{ request('signup_from') }}" aria-label="Signed up from"><span class="input-group-text">–</span><input class="form-control" type="date" name="signup_to" value="{{ request('signup_to') }}" aria-label="Signed up to"></div></div>
       <div class="col-md-6 col-xl-3"><label class="form-label">Last trip</label><div class="input-group"><input class="form-control" type="date" name="trip_from" value="{{ request('trip_from') }}" aria-label="Last trip from"><span class="input-group-text">–</span><input class="form-control" type="date" name="trip_to" value="{{ request('trip_to') }}" aria-label="Last trip to"></div></div>
       @can('view-customer-birthdays')<div class="col-sm-6 col-md-3"><label class="form-label">Birthday month</label><select class="form-select" name="birthday_month"><option value="">Any month</option>@foreach(range(1, 12) as $m)<option value="{{ $m }}" @selected(request('birthday_month') == $m)>{{ now()->startOfYear()->month($m)->format('F') }}</option>@endforeach</select></div>@endcan
       <div class="col-sm-6 col-md-3 d-flex flex-column justify-content-end">
-        <div class="form-check"><input class="form-check-input" type="checkbox" id="c-out" name="outstanding" value="1" @checked(request('outstanding'))><label class="form-check-label" for="c-out">Has outstanding balance</label></div>
+        @can('view-financial-info')<div class="form-check"><input class="form-check-input" type="checkbox" id="c-out" name="outstanding" value="1" @checked(request('outstanding'))><label class="form-check-label" for="c-out">Has outstanding balance</label></div>@endcan
         @can('delete-customers')<div class="form-check"><input class="form-check-input" type="checkbox" id="c-arch" name="archived" value="1" @checked(request('archived'))><label class="form-check-label" for="c-arch">Archived only</label></div>@endcan
       </div>
     </div></div>
@@ -63,7 +63,7 @@
 
 <div class="card"><div class="card-body">
   <div class="table-responsive"><table class="table table-hover crm-table mb-0">
-    <thead><tr><th>Customer</th><th>Contact</th><th class="text-end">Trips</th><th class="text-end">Paid</th><th class="text-end">Outstanding</th><th>Last activity</th><th></th></tr></thead>
+    <thead><tr><th>Customer</th><th>Contact</th><th class="text-end">Trips</th>@can('view-financial-info')<th class="text-end">Paid</th><th class="text-end">Outstanding</th>@endcan<th>Last activity</th><th></th></tr></thead>
     <tbody>
     @forelse($customers as $customer)
       <tr>
@@ -75,13 +75,15 @@
         </td>
         <td>{{ $customer->email ?: '—' }}@if($customer->phone)<span class="sub">{{ $customer->phone }}</span>@endif</td>
         <td class="amount fw-normal">{{ $customer->trips_count }}</td>
+        @can('view-financial-info')
         <td class="amount fw-normal">{{ money($customer->total_paid) }}</td>
         <td class="amount {{ $customer->outstanding > 0 ? 'text-danger' : 'text-muted fw-normal' }}">{{ money($customer->outstanding) }}</td>
+        @endcan
         <td class="text-nowrap">{{ $customer->last_activity_at?->timezone(\App\Http\Controllers\Admin\ActivityLogController::DISPLAY_TIMEZONE)->format('M j, Y') ?? '—' }}</td>
         <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('customers.show', $customer->id) }}">Details</a></td>
       </tr>
     @empty
-      <tr><td colspan="7" class="crm-empty"><i class="ri-user-search-line"></i>No customers match these filters.</td></tr>
+      <tr><td colspan="{{ auth()->user()->can('view-financial-info') ? 7 : 5 }}" class="crm-empty"><i class="ri-user-search-line"></i>No customers match these filters.</td></tr>
     @endforelse
     </tbody>
   </table></div>

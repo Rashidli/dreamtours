@@ -34,7 +34,7 @@
   <td>{{$b->first_name}} {{$b->last_name}}<br><small>{{$b->phone}} · {{$b->email}}</small></td>
   <td>{{$b->tour?->name?:'—'}}@if($b->departure)<br><small>{{$b->departure->departs_at->format('M j, Y')}}</small>@endif</td>
   <td>{{$b->participant_count}}@if($b->seat_count !== $b->participant_count)<small class="text-muted d-block">{{$b->seat_count}} seats</small>@endif</td>
-  <td>@if($b->total_amount){{money($b->total_amount,$b->currency)}}<br><small>{{money($b->amount_paid,$b->currency)}} paid</small>@else — @endif</td>
+  <td>@if($b->total_amount && auth()->user()->can('view-financial-info')){{money($b->total_amount,$b->currency)}}<br><small>{{money($b->amount_paid,$b->currency)}} paid</small>@else — @endif</td>
   <td><span class="badge bg-{{$paymentClass}}">{{\App\Models\Booking::PAYMENT_STATUSES[$b->payment_status]??$b->payment_status}}</span></td>
   <td><span class="badge bg-{{['new'=>'warning','payment_pending'=>'info','confirmed'=>'success','cancelled'=>'secondary','completed'=>'dark'][$b->status]??'light'}}">{{\App\Models\Booking::STATUSES[$b->status]??$b->status}}</span></td>
   <td class="text-nowrap"><a class="btn btn-sm btn-info" href="{{route('bookings.show',$b)}}"><i class="ri-eye-line"></i></a> @can('delete-bookings')<form class="d-inline" method="post" action="{{route('bookings.destroy',$b)}}">@csrf @method('DELETE')<button class="btn btn-sm btn-danger" onclick="return confirm('Delete request?')"><i class="ri-delete-bin-line"></i></button></form>@endcan</td>

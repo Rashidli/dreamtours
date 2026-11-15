@@ -19,7 +19,7 @@ use Illuminate\Http\Response;
  */
 class ReceiptController extends Controller
 {
-    public function __construct() { $this->middleware('permission:list-bookings'); }
+    public function __construct() { $this->middleware('permission:list-bookings'); $this->middleware('permission:view-financial-info'); }
 
     public function payment(Request $r, Booking $booking, BookingPayment $payment): Response
     {
