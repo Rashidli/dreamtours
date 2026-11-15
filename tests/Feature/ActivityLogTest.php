@@ -73,11 +73,11 @@ class ActivityLogTest extends TestCase
     {
         $booking = $this->bookingFromWebsite($this->departure());
         $this->superadmin();
-        $this->put(route('bookings.update', $booking), ['status' => 'confirmed', 'payment_status' => 'deposit_paid', 'total_amount' => 210, 'amount_paid' => 105])->assertRedirect();
+        $this->put(route('bookings.update', $booking), ['status' => 'confirmed', 'total_amount' => 210])->assertRedirect();
 
         $status = ActivityLog::where(['subject_type' => Booking::class, 'subject_id' => $booking->id, 'action' => 'updated'])->latest('id')->firstOrFail();
         $this->assertSame(['new', 'confirmed'], $status->changes['status']);
-        $this->assertSame(['unpaid', 'deposit_paid'], $status->changes['payment_status']);
+        $this->assertEquals([null, 210], $status->changes['total_amount']);
         // Queued and actually sent are separate steps (queue runs inline in tests, mail goes to the array mailer).
         $this->assertTrue(ActivityLog::where(['subject_id' => $booking->id, 'action' => 'email_queued'])->where('changes->email', 'BookingConfirmed')->exists());
         $this->assertTrue(ActivityLog::where(['subject_id' => $booking->id, 'action' => 'email_sent'])->where('changes->to', 'maria@example.com')->exists());

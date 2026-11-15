@@ -311,7 +311,8 @@ class ChangeRequestTest extends TestCase
         Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
         $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
         Mail::fake();
-        $update = fn (string $status) => $this->put(route('bookings.update', $booking), ['status' => $status, 'payment_status' => 'deposit_paid', 'total_amount' => 200, 'amount_paid' => 130])->assertRedirect();
+        \App\Support\BookingMoney::record($booking, ['amount' => 130, 'method' => 'etransfer'], auth()->user(), confirmed: true);
+        $update = fn (string $status) => $this->put(route('bookings.update', $booking), ['status' => $status, 'total_amount' => 200])->assertRedirect();
 
         $update('payment_pending');
         Mail::assertNothingQueued();

@@ -74,7 +74,7 @@ class Customer extends Model
         return $query->addSelect([
             'trips_count' => $trips('count(*)'),
             'total_paid' => $trips('coalesce(sum(amount_paid), 0)'),
-            'outstanding' => $trips('coalesce(sum(greatest(total_amount - amount_paid, 0)), 0)'),
+            'outstanding' => $trips('coalesce(sum(outstanding_amount), 0)'), // from the payment ledger (BookingMoney)
             'last_trip_at' => $trips('max(tour_departures.departs_at)')->join('tour_departures', 'tour_departures.id', '=', 'bookings.tour_departure_id')->where('tour_departures.departs_at', '<', DB::raw('now()')),
         ]);
     }

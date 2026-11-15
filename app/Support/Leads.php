@@ -121,7 +121,6 @@ class Leads
                 'pickup_point_id' => $lead->pickup_point_id,
                 'type' => 'tour',
                 'status' => 'payment_pending',
-                'payment_status' => 'unpaid',
                 'first_name' => $lead->first_name,
                 'last_name' => $lead->last_name ?: '-',
                 'email' => $lead->email,
@@ -133,8 +132,7 @@ class Leads
                 'currency' => $departure->currency ?: 'CAD',
                 'tax_included' => (bool) $departure->tour?->tax_included,
                 'total_amount' => $fare * $guests,
-                'deposit_amount' => (float) $departure->tour?->deposit_per_person * $guests,
-                'amount_paid' => 0,
+                'deposit_amount' => $departure->tour?->deposit_per_person ? Money::mul($departure->tour->deposit_per_person, $guests) : BookingMoney::defaultDeposit($fare * $guests),
             ]);
             $lead->update(['booking_id' => $booking->id, 'customer_id' => $lead->customer_id ?: $booking->customer_id, 'tour_id' => $departure->tour_id, 'tour_departure_id' => $departure->id, 'guests' => $guests]);
             self::moveTo($lead, LeadStage::byKey('awaiting_deposit'));

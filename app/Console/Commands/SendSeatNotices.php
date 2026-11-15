@@ -15,7 +15,7 @@ class SendSeatNotices extends Command
     {
         $bookings = Booking::query()
             ->whereNull('seat_notice_sent_at')
-            ->where('payment_status', 'paid')
+            ->whereIn('payment_status', ['paid', 'complimentary'])
             ->whereNotIn('status', ['cancelled'])
             ->whereHas('departure', fn ($q) => $q->whereBetween('departs_at', [now(), now()->addDays((int) $this->option('days'))->endOfDay()]))
             ->get();

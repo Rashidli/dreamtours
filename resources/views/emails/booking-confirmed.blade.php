@@ -11,9 +11,9 @@
 @section('body')
   @include('emails.partials.booking-summary')
 
-  @php($due = max(0, (float) $booking->total_amount - (float) $booking->amount_paid))
+  @php($due = (float) $booking->outstanding_amount) {{-- from the payment ledger --}}
   @php($currency = $booking->currency ?: ($booking->departure?->currency ?: 'CAD'))
-  @if($due > 0 && $booking->payment_status !== 'paid')
+  @if($due > 0)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 0;background:#fff4e0;border-radius:12px;">
       <tr><td style="padding:16px 18px;font-size:14px;line-height:22px;color:#5c3b00;">
         <strong style="color:#3d2700;">Balance remaining: {{ money($due, $currency) }}</strong><br>

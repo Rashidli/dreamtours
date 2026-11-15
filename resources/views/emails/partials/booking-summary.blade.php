@@ -13,10 +13,14 @@
   'Guests' => $booking->participant_count.' '.str('guest')->plural($booking->participant_count),
   'Booking reference' => $booking->reference,
 ]])
+@php($discount = (float) $booking->discount_amount)
 @include('emails.partials.rows', ['title' => 'Payment', 'rows' => [
-  'Total price' => money($booking->total_amount, $currency).$taxNote,
+  'Price' => money($booking->total_amount, $currency).$taxNote,
+  'Discount' => $discount > 0 ? '− '.money($discount, $currency) : null,
+  'Total' => $discount > 0 ? money(\App\Support\Money::max0(\App\Support\Money::sub($booking->total_amount, $discount)), $currency) : null,
   'Deposit' => (float) $booking->deposit_amount > 0 ? money($booking->deposit_amount, $currency) : null,
   'Paid so far' => $paid > 0 ? money($paid, $currency) : null,
+  'Balance due' => $booking->status !== 'cancelled' && (float) $booking->outstanding_amount > 0 ? money($booking->outstanding_amount, $currency).($booking->balance_due_date ? ' by '.$booking->balance_due_date->format('M j, Y') : '') : null,
   'Payment status' => \App\Models\Booking::PAYMENT_STATUSES[$booking->payment_status] ?? null,
 ]])
 @if($booking->passengers->isNotEmpty())

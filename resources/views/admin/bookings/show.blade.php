@@ -72,6 +72,8 @@
         @endif @endcan
       </div></div>
 
+      @if($booking->tour_departure_id)@include('admin.bookings._ledger')@endif
+
       {{-- Edit contact and passengers --}}
       @can('edit-bookings')
       <div class="card"><div class="card-body">
@@ -119,29 +121,18 @@
     </div>
 
     <div class="col-lg-4">
-      <div class="card"><div class="card-body">
-        <h5>Payment</h5>
-        <table class="table table-sm"><tbody>
-          <tr><td>Total <small class="text-muted">{{ $booking->tax_included ? '(taxes included)' : '(taxes extra)' }}</small></td><td class="text-end"><b>{{ $money($booking->total_amount) }}</b></td></tr>
-          <tr><td>Deposit due</td><td class="text-end">{{ $money($booking->deposit_amount) }}</td></tr>
-          <tr><td>Paid so far</td><td class="text-end">{{ $money($booking->amount_paid) }}</td></tr>
-          <tr><td>Balance</td><td class="text-end"><b>{{ $booking->total_amount !== null ? $money($booking->balance_due) : '—' }}</b></td></tr>
-        </tbody></table>
-        @if($booking->payment_proof)<a class="btn btn-outline-primary w-100 mb-2" target="_blank" href="{{ route('bookings.payment-proof', $booking) }}"><i class="ri-file-image-line"></i> View payment screenshot</a><p class="small text-muted">The screenshot does not confirm payment — check it, then record the amount below.</p>@endif
-      </div></div>
+      @include('admin.bookings._money')
 
       @can('edit-bookings')
       <div class="card"><div class="card-body">
-        <h5>Status & payment</h5>
+        <h5>Status & price</h5>
         <form method="post" action="{{ route('bookings.update', $booking) }}">@csrf @method('PUT')
           <div class="mb-2"><label class="form-label">Booking status</label><select class="form-select" name="status">@foreach(\App\Models\Booking::STATUSES as $key => $label)<option value="{{ $key }}" @selected($booking->status === $key)>{{ $label }}</option>@endforeach</select>
             <small class="text-muted">Cancelled bookings free their seats on the date.</small></div>
-          <div class="mb-2"><label class="form-label">Payment status</label><select class="form-select" name="payment_status">@foreach(\App\Models\Booking::PAYMENT_STATUSES as $key => $label)<option value="{{ $key }}" @selected($booking->payment_status === $key)>{{ $label }}</option>@endforeach</select></div>
-          <div class="row g-2 mb-2">
-            <div class="col-6"><label class="form-label">Total ({{ $booking->currency ?: 'CAD' }})</label><input class="form-control" type="number" step="0.01" min="0" name="total_amount" value="{{ old('total_amount', $booking->total_amount) }}"></div>
-            <div class="col-6"><label class="form-label">Deposit / paid</label><input class="form-control" type="number" step="0.01" min="0" name="amount_paid" value="{{ old('amount_paid', $booking->amount_paid) }}"></div>
-          </div>
-          <small class="text-muted d-block mb-2">Balance = total − paid. Correct the total if a discount or extra applies.</small>
+          @if($booking->tour_departure_id)
+          <div class="mb-2"><label class="form-label">Price before discounts ({{ $booking->currency ?: 'CAD' }})</label><input class="form-control" type="number" step="0.01" min="0" name="total_amount" value="{{ old('total_amount', $booking->total_amount) }}">
+            <small class="text-muted">Payments, refunds and discounts are recorded in the payment ledger, never typed here.</small></div>
+          @endif
           <div class="mb-3"><label class="form-label">Internal notes <small class="text-muted">(staff only)</small></label><textarea class="form-control" rows="4" name="internal_notes">{{ old('internal_notes', $booking->internal_notes) }}</textarea></div>
           <button class="btn btn-primary w-100">Save</button>
         </form>

@@ -61,7 +61,10 @@ class CustomerTest extends TestCase
     {
         foreach ([[200, 200], [150, 50], [300, 0]] as $i => [$total, $paid]) {
             $booking = $this->book($this->departure("Trip $i"), ['email' => $i === 1 ? 'Maria@Example.COM' : 'maria@example.com']);
-            $booking->forceFill(['total_amount' => $total, 'amount_paid' => $paid])->saveQuietly();
+            $booking->update(['total_amount' => $total]);
+            if ($paid) {
+                \App\Support\BookingMoney::record($booking, ['amount' => $paid, 'method' => 'cash'], null, confirmed: true);
+            }
         }
 
         $this->assertSame(1, Customer::count());
@@ -122,7 +125,8 @@ class CustomerTest extends TestCase
 
     public function test_directory_filters_and_profile_history(): void
     {
-        $past = $this->bookDirect($this->departure('Algonquin', '-2 months'), ['total_amount' => 200, 'amount_paid' => 100]);
+        $past = $this->bookDirect($this->departure('Algonquin', '-2 months'), ['total_amount' => 200]);
+        \App\Support\BookingMoney::record($past, ['amount' => 100, 'method' => 'cash'], null, confirmed: true);
         $past->passengers()->create(['first_name' => 'Leo', 'last_name' => 'Lopez', 'category' => 'child']);
         $other = $this->book($this->departure('Ottawa'), ['first_name' => 'Sam', 'last_name' => 'Lee', 'email' => 'sam@example.com', 'phone' => '647-555-0000']);
         $vip = CustomerTag::create(['name' => 'VIP bus front', 'color' => 'warning']);

@@ -14,7 +14,7 @@ class SeatNotices
         $booking->loadMissing('passengers');
 
         return match (true) {
-            $booking->payment_status !== 'paid' => 'The booking is not fully paid yet.',
+            !in_array($booking->payment_status, ['paid', 'complimentary'], true) => 'The booking is not fully paid yet.',
             $booking->passengers->isEmpty() => 'The booking has no passengers.',
             $booking->passengers->contains(fn ($p) => blank($p->seat_number)) => 'Every passenger needs a seat number first.',
             default => null,

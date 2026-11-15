@@ -103,6 +103,15 @@ Route::prefix('admin')->group(function () {
         Route::put('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'updateOption'])->name('tour-filter-options.update');
         Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
+        Route::post('bookings/{booking}/payments', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'store'])->name('booking-payments.store');
+        Route::post('bookings/{booking}/payments/{payment}/confirm', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'confirm'])->name('booking-payments.confirm');
+        Route::post('bookings/{booking}/payments/{payment}/reject', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'reject'])->name('booking-payments.reject');
+        Route::post('bookings/{booking}/payments/{payment}/refund', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'refund'])->name('booking-payments.refund');
+        Route::post('bookings/{booking}/payments/{payment}/void', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'void'])->name('booking-payments.void');
+        Route::get('bookings/{booking}/payments/{payment}/proof', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'proof'])->name('booking-payments.proof');
+        Route::post('bookings/{booking}/adjustments', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'adjust'])->name('booking-adjustments.store');
+        Route::post('bookings/{booking}/adjustments/{adjustment}/void', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'voidAdjustment'])->name('booking-adjustments.void');
+        Route::put('bookings/{booking}/payment-terms', [\App\Http\Controllers\Admin\BookingPaymentController::class, 'terms'])->name('booking-payments.terms');
         Route::get('customers/labels', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'index'])->name('customer-labels.index');
         Route::post('customers/labels/{kind}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'store'])->name('customer-labels.store');
         Route::put('customers/labels/{kind}/{id}', [\App\Http\Controllers\Admin\CustomerLabelController::class, 'update'])->name('customer-labels.update');

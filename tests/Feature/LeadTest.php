@@ -134,7 +134,7 @@ class LeadTest extends TestCase
         $this->post(route('leads.convert', $lead), ['tour_departure_id' => $departure->id, 'guests' => 1])->assertStatus(409);
         $this->get(route('bookings.show', $booking))->assertOk()->assertSee($lead->reference);
 
-        $this->put(route('bookings.update', $booking), ['status' => 'confirmed', 'payment_status' => 'deposit_paid', 'total_amount' => 480, 'amount_paid' => 200])->assertRedirect();
+        $this->put(route('bookings.update', $booking), ['status' => 'confirmed', 'total_amount' => 480])->assertRedirect();
         $this->assertSame('confirmed', $lead->fresh()->stage->key);
     }
 

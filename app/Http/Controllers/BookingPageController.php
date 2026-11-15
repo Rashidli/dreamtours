@@ -8,6 +8,7 @@ use App\Models\LegalDocument;
 use App\Models\Tour;
 use App\Models\TourDeparture;
 use App\Support\BookingMail;
+use App\Support\BookingMoney;
 use App\Support\Leads;
 use App\Support\BookingQuote;
 use App\Support\CountryCodes;
@@ -202,6 +203,9 @@ class BookingPageController extends Controller
                 'waiver_accepted_at' => $agreements['waiver'] ? $now : null,
                 'waiver_text' => $tour->hasWaiver() ? trim(($tour->waiver_title ? $tour->waiver_title."\n\n" : '').$tour->waiver) : null,
             ]);
+
+            // The deposit screenshot is a claim, not money received (§7): staff verify it in the payment ledger.
+            BookingMoney::record($booking, ['amount' => $quote->deposit, 'method' => 'etransfer', 'proof_path' => $booking->payment_proof, 'note' => 'Screenshot uploaded by the customer with the booking.'], null, confirmed: false);
 
             // The exact central document versions accepted; later edits never change these.
             $booking->legalAcceptances()->attach(

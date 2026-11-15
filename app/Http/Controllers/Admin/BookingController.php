@@ -57,13 +57,14 @@ class BookingController extends Controller
 
     public function show(Booking $booking): View
     {
-        $booking->load(['tour.translations', 'departure.pickupPoints.translations', 'departure.tour.pickupPoints.translations', 'pickupPoint.translations', 'passengers.pickupPoint.translations', 'updatedBy', 'legalAcceptances']);
+        $booking->load(['tour.translations', 'departure.pickupPoints.translations', 'departure.tour.pickupPoints.translations', 'pickupPoint.translations', 'passengers.pickupPoint.translations', 'updatedBy', 'legalAcceptances', 'payments.refundOf', 'payments.recorder', 'payments.confirmer', 'adjustments.passenger', 'adjustments.creator']);
 
         return view('admin.bookings.show', [
             'booking' => $booking,
             'seatBlocker' => SeatNotices::blocker($booking),
             'pickupOptions' => $booking->departure?->availablePickupPoints() ?? PickupPoint::where('is_active', true)->withTranslation()->orderBy('sort_order')->get(),
             'mealOptions' => $booking->tour?->mealChoices() ?? [],
+            'moneySummary' => \App\Support\BookingMoney::summary($booking),
             // This booking's own history, including its passengers (their labels end with the booking reference).
             'activity' => \App\Models\ActivityLog::where(fn ($q) => $q->where(['subject_type' => Booking::class, 'subject_id' => $booking->id])
                 ->orWhere(fn ($x) => $x->where('subject_type', \App\Models\BookingPassenger::class)->where('subject_label', 'like', '% · '.$booking->reference)))
@@ -76,12 +77,10 @@ class BookingController extends Controller
     {
         $d = $r->validate([
             'status' => ['required', Rule::in(array_keys(Booking::STATUSES))],
-            'payment_status' => ['required', Rule::in(array_keys(Booking::PAYMENT_STATUSES))],
+            // Paid amounts and payment status come from the payment ledger, never from this form (§7).
             'total_amount' => ['nullable', 'numeric', 'min:0'],
-            'amount_paid' => ['nullable', 'numeric', 'min:0'],
             'internal_notes' => ['nullable', 'string', 'max:5000'],
         ]);
-        $d['amount_paid'] = $d['amount_paid'] ?? 0;
 
         DB::transaction(function () use ($booking, $d) {
             // Re-activating a cancelled booking needs its seats back.
