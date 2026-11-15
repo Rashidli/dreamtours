@@ -220,6 +220,22 @@ class ChangeRequestTest extends TestCase
         $this->assertSame([2400, 3200], [$width, $height]);
     }
 
+    // Photos straight from a phone (often 5–10 MB) are accepted for tours, reviews and other photo fields, up to 50 MB.
+    public function test_photo_fields_accept_phone_sized_photos_up_to_50_mb(): void
+    {
+        Storage::fake('public');
+        $this->seed(CmsPermissionSeeder::class);
+        Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+        $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
+        [$tour] = $this->bookableTour();
+        $payload = ['duration_days' => 1, 'duration_nights' => 0, 'status' => 'published', 'en' => ['name' => 'Niagara Day Trip', 'slug' => 'niagara-day-trip']];
+
+        $this->put(route('tours.update', $tour), $payload + ['main_image' => UploadedFile::fake()->image('phone.jpg', 4032, 3024)->size(9000)])->assertSessionHasNoErrors();
+        $this->assertStringEndsWith('.webp', $tour->fresh()->getRawOriginal('main_image'));
+
+        $this->put(route('tours.update', $tour), $payload + ['main_image' => UploadedFile::fake()->image('huge.jpg', 100, 100)->size(52000)])->assertSessionHasErrors('main_image');
+    }
+
     private function settings(array $values): void
     {
         foreach ($values as $key => $value) {

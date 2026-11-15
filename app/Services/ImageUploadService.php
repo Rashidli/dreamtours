@@ -20,6 +20,13 @@ class ImageUploadService
     public const PHOTO_RULE = 'mimes:jpg,jpeg,png,gif,webp,bmp,heic,heif';
 
     /**
+     * Largest photo accepted, in kilobytes (Laravel's "max" unit). Photos are scaled
+     * to 2400px WebP, so the original size only matters while uploading; Nginx and
+     * PHP accept 64 MB.
+     */
+    public const PHOTO_MAX_KB = 51200;
+
+    /**
      * Store an uploaded image as WebP on the public disk and return its stored name.
      */
     public function upload($file, bool $trim = false): string
