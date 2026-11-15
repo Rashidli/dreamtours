@@ -11,7 +11,7 @@
 <div class="col-md-4"><label class="form-label small mb-0">What customers will see</label><textarea class="form-control" rows="2" name="en[sights]">{{ $stop?->sights }}</textarea></div>
 <div class="col-md-4"><label class="form-label small mb-0">Available activities</label><textarea class="form-control" rows="2" name="en[activities]">{{ $stop?->activities }}</textarea></div>
 <div class="col-md-4"><label class="form-label small mb-0">Additional notes</label><textarea class="form-control" rows="2" name="en[notes]">{{ $stop?->notes }}</textarea></div>
-<div class="col-md-6"><label class="form-label small mb-0">Photos <small class="text-muted">— URLs, one per line; remove a line to remove the photo</small></label><textarea class="form-control" rows="2" name="images_text">{{ implode("\n", $images) }}</textarea><input type="file" class="form-control mt-1" name="images[]" accept="image/*" multiple></div>
+<div class="col-md-6"><label class="form-label small mb-0">Photos <small class="text-muted">— URLs, one per line; remove a line to remove the photo</small></label><textarea class="form-control" rows="2" name="images_text">{{ implode("\n", $images) }}</textarea><input type="file" class="form-control mt-1" name="images[]" accept="image/*,.heic,.heif" multiple></div>
 <div class="col-md-6 d-flex flex-wrap align-items-end gap-3 pb-1">
   <label class="small"><input type="checkbox" name="entrance_included" value="1" @checked($stop?->entrance_included)> Ticket included</label>
   <label class="small"><input type="checkbox" name="is_optional" value="1" @checked($stop?->is_optional)> Optional</label>

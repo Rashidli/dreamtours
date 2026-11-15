@@ -21,7 +21,7 @@ class DomainContentController extends Controller{
   $isVideo=$r->input('type')==='video';
   $d=$r->validate($this->mediaRules('thumbnail')+[
    'type'=>['required','in:image,video'],
-   'file'=>['nullable','file','max:51200',$isVideo?'mimetypes:video/mp4,video/webm,video/quicktime':'image'],
+   'file'=>['nullable','file','max:51200',$isVideo?'mimetypes:video/mp4,video/webm,video/quicktime':\App\Services\ImageUploadService::PHOTO_RULE],
    'path'=>[$medium||$r->hasFile('file')?'nullable':'required','string','max:500'],
    'en.alt_text'=>['nullable','string','max:255'],
    'en.caption'=>['nullable','string','max:255'],

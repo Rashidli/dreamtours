@@ -204,6 +204,22 @@ class ChangeRequestTest extends TestCase
         $this->post(route('gallery-media.store', $album), ['type' => 'video', 'path' => 'https://youtu.be/abc'])->assertRedirect()->assertSessionHas('message', 'Media added.');
     }
 
+    // 05 — iPhone HEIC photos are accepted and stored as WebP like every other photo.
+    public function test_bulk_upload_accepts_iphone_heic_photos(): void
+    {
+        $album = $this->adminWithAlbum();
+        $heic = new UploadedFile(base_path('tests/Fixtures/iphone-portrait.heic'), 'IMG_0042.HEIC', null, null, true);
+
+        $this->get(route('domain-content.edit', ['gallery-albums', $album]))->assertSee('.heic,.heif', false);
+        $response = $this->postJson(route('gallery-media.store', $album), ['type' => 'image', 'file' => $heic])->assertCreated();
+
+        $stored = $album->media()->findOrFail($response->json('id'))->getRawOriginal('path');
+        $this->assertStringEndsWith('.webp', $stored);
+        [$width, $height, $type] = getimagesizefromstring(Storage::disk('public')->get($stored));
+        $this->assertSame(IMAGETYPE_WEBP, $type);
+        $this->assertSame([2400, 3200], [$width, $height]);
+    }
+
     private function settings(array $values): void
     {
         foreach ($values as $key => $value) {

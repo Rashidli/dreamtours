@@ -4,10 +4,10 @@
 @can('create-gallery-media')
 <div class="bulk-upload mb-4" data-url="{{ route('gallery-media.store', $album) }}" data-token="{{ csrf_token() }}">
     <label class="bulk-upload-drop d-block border border-2 border-dashed rounded-3 p-4 text-center mb-2" style="border-style:dashed!important;cursor:pointer">
-        <input type="file" class="d-none" multiple accept="image/*,video/mp4,video/webm,video/quicktime">
+        <input type="file" class="d-none" multiple accept="image/*,.heic,.heif,video/mp4,video/webm,video/quicktime">
         <i class="ri-upload-cloud-2-line fs-1 text-primary d-block"></i>
         <span class="fw-semibold">Drop photos here or click to choose</span>
-        <span class="d-block text-muted small">Select as many as you like — JPG, PNG or WebP photos and MP4 / WebM / MOV videos, up to 50 MB each.</span>
+        <span class="d-block text-muted small">Select as many as you like — JPG, PNG, WebP or iPhone HEIC photos and MP4 / WebM / MOV videos, up to 50 MB each.</span>
     </label>
     <div class="bulk-upload-bar d-none d-flex flex-wrap align-items-center gap-2 mb-2">
         <button type="button" class="btn btn-primary btn-sm" data-action="start"><i class="ri-upload-2-line align-middle me-1"></i> Upload <span data-count></span></button>
@@ -26,6 +26,8 @@
     const bar = root.querySelector('.bulk-upload-bar');
     const MAX_BYTES = 50 * 1024 * 1024;
     const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+    // Some browsers (Chrome on Windows) report HEIC photos with an empty type.
+    const isHeic = file => /\.(heic|heif)$/i.test(file.name);
     const items = [];
     let running = false;
     let added = 0;
@@ -35,7 +37,7 @@
     function addFiles(files) {
         for (const file of files) {
             const item = { file, status: 'queued', error: '' };
-            if (!file.type.startsWith('image/') && !VIDEO_TYPES.includes(file.type)) {
+            if (!file.type.startsWith('image/') && !VIDEO_TYPES.includes(file.type) && !isHeic(file)) {
                 item.status = 'failed'; item.error = 'Not a photo or a supported video.';
             } else if (file.size > MAX_BYTES) {
                 item.status = 'failed'; item.error = 'Larger than 50 MB.';

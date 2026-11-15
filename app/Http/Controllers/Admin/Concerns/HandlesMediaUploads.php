@@ -25,7 +25,7 @@ trait HandlesMediaUploads
     protected function mediaRules(string $field, int $maxKilobytes = 4096): array
     {
         return [
-            $field => ['nullable', 'image', 'max:'.$maxKilobytes],
+            $field => ['nullable', ImageUploadService::PHOTO_RULE, 'max:'.$maxKilobytes],
             $field.'_path' => ['nullable', 'string', 'max:500'],
         ];
     }

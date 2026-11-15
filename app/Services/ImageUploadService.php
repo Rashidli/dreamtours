@@ -13,13 +13,23 @@ use Intervention\Image\ImageManager;
 class ImageUploadService
 {
     /**
+     * Validation rule for uploaded photos: the usual web formats plus HEIC / HEIF,
+     * the default on iPhones. Use it instead of Laravel's "image" rule, which
+     * rejects HEIC.
+     */
+    public const PHOTO_RULE = 'mimes:jpg,jpeg,png,gif,webp,bmp,heic,heif';
+
+    /**
      * Store an uploaded image as WebP on the public disk and return its stored name.
      */
     public function upload($file, bool $trim = false): string
     {
         $manager = new ImageManager(new Driver());
 
-        $image = $file instanceof SplFileInfo ? $manager->decodeSplFileInfo($file) : $manager->decodePath((string) $file);
+        $path = $file instanceof SplFileInfo ? $file->getRealPath() : (string) $file;
+        $image = $this->isHeic($path)
+            ? $manager->decodeBinary($this->heicToJpeg($path))
+            : ($file instanceof SplFileInfo ? $manager->decodeSplFileInfo($file) : $manager->decodePath($path));
         if ($trim) {
             // Logos often arrive with wide transparent margins that make them render tiny.
             $this->cropToVisible($image);
@@ -30,6 +40,24 @@ class ImageUploadService
         Storage::disk('public')->put($filename, (string) $image->encode(new WebpEncoder(quality: 70)));
 
         return $filename;
+    }
+
+    private function isHeic(string $path): bool
+    {
+        return in_array(@mime_content_type($path), ['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence'], true);
+    }
+
+    /** GD cannot read HEIC: turn the primary image into an upright JPEG with Imagick (libheif) first. */
+    private function heicToJpeg(string $path): string
+    {
+        $image = new \Imagick($path.'[0]');
+        $image->autoOrient();
+        $image->setImageFormat('jpeg');
+        $image->setImageCompressionQuality(92);
+        $jpeg = $image->getImageBlob();
+        $image->clear();
+
+        return $jpeg;
     }
 
     /** Crop away the (near-)transparent border around an image's visible pixels. */
