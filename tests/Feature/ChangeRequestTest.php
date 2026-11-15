@@ -85,4 +85,55 @@ class ChangeRequestTest extends TestCase
             ->assertDontSee(': Draft Carousel Tour"', false);
         $this->assertMatchesRegularExpression('/aria-label="1 of \d+: Niagara Day Trip"/', $this->get('/')->getContent());
     }
+
+    /** Three tours: Alpha (past only), Bravo (past + upcoming), Charlie (upcoming, draft). */
+    private function adminWithDatedTours(): void
+    {
+        $this->seed(CmsPermissionSeeder::class);
+        Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+        $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
+        $dates = ['Alpha Lakes' => ['2025-03-14'], 'Bravo Falls' => ['2025-07-02', now()->addMonths(2)->format('Y-m-d')], 'Charlie Coast' => [now()->addMonths(4)->format('Y-m-d')]];
+        foreach (array_keys($dates) as $i => $name) {
+            $tour = Tour::create(['duration_days' => 1, 'duration_nights' => 0, 'status' => $name === 'Charlie Coast' ? 'draft' : 'published', 'sort_order' => 3 - $i, 'en' => ['name' => $name, 'slug' => str($name)->slug()]]);
+            $tour->forceFill(['created_at' => now()->subDays(10 - $i)])->save();
+            foreach ($dates[$name] as $date) {
+                TourDeparture::create(['tour_id' => $tour->id, 'departs_at' => $date.' 08:00', 'price' => 100, 'currency' => 'CAD', 'capacity' => 10, 'reserved_seats' => 0, 'status' => 'available']);
+            }
+        }
+    }
+
+    // 04 — month / year, exact date and All / Upcoming / Past find any tour; past tours stay visible.
+    public function test_admin_tour_list_filters_by_departure_period(): void
+    {
+        $this->adminWithDatedTours();
+        $list = fn (array $query) => $this->get(route('tours.index', $query))->assertOk();
+
+        $list(['month' => 3, 'year' => 2025])->assertSee('Alpha Lakes')->assertDontSee('Bravo Falls')->assertDontSee('Charlie Coast')->assertSee('Mar 14, 2025');
+        $list(['year' => 2025])->assertSee('Alpha Lakes')->assertSee('Bravo Falls')->assertDontSee('Charlie Coast');
+        $list(['date' => '2025-07-02'])->assertSee('Bravo Falls')->assertDontSee('Alpha Lakes');
+        $list(['when' => 'past'])->assertSee('Alpha Lakes')->assertSee('Bravo Falls')->assertDontSee('Charlie Coast');
+        $list(['when' => 'upcoming'])->assertDontSee('Alpha Lakes')->assertSee('Bravo Falls')->assertSee('Charlie Coast');
+        $list(['when' => 'upcoming', 'status' => 'published'])->assertSee('Bravo Falls')->assertDontSee('Charlie Coast');
+        $list(['when' => 'all'])->assertSee('Alpha Lakes')->assertSee('Bravo Falls')->assertSee('Charlie Coast');
+        $list(['q' => 'Bravo', 'year' => 2025])->assertSee('Bravo Falls')->assertDontSee('Alpha Lakes');
+        $this->get(route('tours.index', ['month' => 13]))->assertSessionHasErrors('month');
+    }
+
+    // 04 — sorting by name, date added and departure date, combined with filters.
+    public function test_admin_tour_list_sorts_by_name_date_added_and_departure(): void
+    {
+        $this->adminWithDatedTours();
+        $order = fn (string $sort, array $query = []) => $this->get(route('tours.index', $query + ['sort' => $sort]))->assertOk();
+
+        $order('name_asc')->assertSeeInOrder(['Alpha Lakes', 'Bravo Falls', 'Charlie Coast']);
+        $order('name_desc')->assertSeeInOrder(['Charlie Coast', 'Bravo Falls', 'Alpha Lakes']);
+        $order('created_desc')->assertSeeInOrder(['Charlie Coast', 'Bravo Falls', 'Alpha Lakes']);
+        $order('created_asc')->assertSeeInOrder(['Alpha Lakes', 'Bravo Falls', 'Charlie Coast']);
+        $order('departure_asc')->assertSeeInOrder(['Alpha Lakes', 'Bravo Falls', 'Charlie Coast']);
+        $order('departure_desc')->assertSeeInOrder(['Charlie Coast', 'Bravo Falls', 'Alpha Lakes']);
+        // Upcoming view sorts by the upcoming dates only: Bravo's next date comes before Charlie's.
+        $order('departure_asc', ['when' => 'upcoming'])->assertSeeInOrder(['Bravo Falls', 'Charlie Coast'])->assertDontSee('Alpha Lakes');
+        // Without a sort the admin's own sort_order still applies.
+        $this->get(route('tours.index'))->assertOk()->assertSeeInOrder(['Charlie Coast', 'Bravo Falls', 'Alpha Lakes']);
+    }
 }
