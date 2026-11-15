@@ -378,22 +378,19 @@ class ChangeRequestTest extends TestCase
         $this->assertNotSame($og['og:image'], $this->ogTags('/')['og:image']);
     }
 
-    // Link previews — a tour shares its own photo as a JPEG; tours without a photo share the logo card.
-    public function test_tour_pages_share_their_photo_as_a_jpeg(): void
+    // Link previews — tour pages share the logo card too, with the tour's own title.
+    public function test_tour_pages_share_the_logo_card(): void
     {
         Storage::fake('public');
         Storage::disk('public')->put('cover.webp', (string) UploadedFile::fake()->image('cover.webp', 2400, 1600)->getContent());
         Storage::disk('public')->put('logo.webp', (string) UploadedFile::fake()->image('logo.webp', 1200, 200)->getContent());
         $this->settings(['logo' => 'logo.webp']);
-        [$tour] = $this->bookableTour(['main_image' => 'cover.webp']);
+        $this->bookableTour(['main_image' => 'cover.webp']);
 
         $og = $this->ogTags('/tours/niagara-day-trip');
         $this->assertSame('Niagara Day Trip', $og['og:title']);
-        $this->assertMatchesRegularExpression('#/storage/social/photo-[a-f0-9]{16}\.jpg$#', $og['og:image']);
+        $this->assertMatchesRegularExpression('#/storage/social/brand-[a-f0-9]{16}\.jpg$#', $og['og:image']);
         $this->assertSame(1, substr_count($this->get('/tours/niagara-day-trip')->getContent(), 'property="og:image"'));
-
-        $tour->forceFill(['main_image' => null])->save();
-        $this->assertMatchesRegularExpression('#/storage/social/brand-#', $this->ogTags('/tours/niagara-day-trip')['og:image']);
     }
 
     // Security — nobody can open an admin account from the website; admins add users in Admin > Users.

@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Link-preview images (Open Graph) for Facebook, Instagram, WhatsApp, Telegram, X…
- * Those apps want a 1200×630 JPEG or PNG; many ignore WebP and fall back to the
- * favicon. Images are built once and cached on the public disk under social/,
- * keyed by their source file, so a new logo or tour photo makes a new image.
+ * Link-preview image (Open Graph) for Facebook, Instagram, WhatsApp, Telegram, X…
+ * Those apps want a 1200×630 JPEG or PNG well under 300 KB; many ignore WebP and
+ * fall back to the favicon. The card is built once and cached on the public disk
+ * under social/, keyed by the logo file, so uploading a new logo makes a new card.
  */
 class SocialImage
 {
@@ -25,19 +25,6 @@ class SocialImage
             $scale = min(860 / imagesx($logo), 300 / imagesy($logo), 1);
             [$w, $h] = [(int) round(imagesx($logo) * $scale), (int) round(imagesy($logo) * $scale)];
             imagecopyresampled($card, $logo, intdiv(self::WIDTH - $w, 2), intdiv(self::HEIGHT - 12 - $h, 2), 0, 0, $w, $h, imagesx($logo), imagesy($logo));
-
-            return $card;
-        });
-    }
-
-    /** A photo (e.g. a tour cover) cropped to fill 1200×630. */
-    public static function photo(?string $source): ?string
-    {
-        return self::build((string) $source, 'photo', function (\GdImage $photo) {
-            $card = self::canvas();
-            $scale = max(self::WIDTH / imagesx($photo), self::HEIGHT / imagesy($photo));
-            [$w, $h] = [(int) ceil(self::WIDTH / $scale), (int) ceil(self::HEIGHT / $scale)];
-            imagecopyresampled($card, $photo, 0, 0, intdiv(imagesx($photo) - $w, 2), intdiv(imagesy($photo) - $h, 2), self::WIDTH, self::HEIGHT, $w, $h);
 
             return $card;
         });
