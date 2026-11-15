@@ -196,7 +196,7 @@
             @if($p->proof_path)<a class="btn btn-sm btn-light" target="_blank" href="{{ route('booking-payments.proof', [$p->booking_id, $p]) }}" title="View proof"><i class="ri-attachment-2"></i> Proof</a>@endif
             @can('confirm-payments')
               <form class="d-inline" method="post" action="{{ route('booking-payments.confirm', [$p->booking_id, $p]) }}" onsubmit="return confirm('Confirm {{ money($p->amount, $p->currency) }} arrived for {{ $p->booking?->reference }}?')">@csrf<button class="btn btn-sm btn-success"><i class="ri-check-line"></i> Confirm</button></form>
-              <a class="btn btn-sm btn-outline-danger" href="{{ route('bookings.show', $p->booking_id) }}" title="Reject on the booking page (a reason is required)"><i class="ri-close-line"></i></a>
+              <button type="button" class="btn btn-sm btn-outline-danger" data-reject="{{ route('booking-payments.reject', [$p->booking_id, $p]) }}" data-what="{{ money($p->amount, $p->currency) }} · {{ $p->booking?->reference }} · {{ trim($p->booking?->first_name.' '.$p->booking?->last_name) }}" title="Funds did not arrive"><i class="ri-close-line"></i> Reject</button>
             @endcan
           </td>
         </tr>
@@ -206,5 +206,32 @@
       </tbody>
     </table></div>
   </div></div>
+  @can('confirm-payments')
+  {{-- Reject right here: a reason is required, and the list stays open afterwards. --}}
+  <div class="modal fade" id="rejectPayment" tabindex="-1" aria-labelledby="rejectPaymentTitle" aria-hidden="true"><div class="modal-dialog"><form class="modal-content" method="post" action="">@csrf
+    <div class="modal-header"><h5 class="modal-title" id="rejectPaymentTitle">Reject this payment?</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <p class="small text-muted mb-2" data-what></p>
+      <div class="d-flex flex-wrap gap-1 mb-2">@foreach(['Not received in the bank account', 'Wrong amount', 'Screenshot unreadable', 'Duplicate of another payment'] as $reason)<button type="button" class="btn btn-sm btn-light" data-reason="{{ $reason }}">{{ $reason }}</button>@endforeach</div>
+      <label class="form-label">Reason</label><input class="form-control" name="reason" maxlength="255" required>
+      <p class="small text-muted mt-2 mb-0">It stays in the booking's ledger as rejected and no longer counts as pending.</p>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger">Reject payment</button></div>
+  </form></div></div>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('rejectPayment');
+    const form = el.querySelector('form');
+    el.querySelectorAll('[data-reason]').forEach(b => b.addEventListener('click', () => { form.reason.value = b.dataset.reason; form.reason.focus(); }));
+    document.querySelectorAll('[data-reject]').forEach(btn => btn.addEventListener('click', () => {
+      form.action = btn.dataset.reject;
+      form.reason.value = '';
+      el.querySelector('[data-what]').textContent = btn.dataset.what;
+      bootstrap.Modal.getOrCreateInstance(el).show();
+      setTimeout(() => form.reason.focus(), 300);
+    }));
+  });
+  </script>
+  @endcan
 @endif
 </div></div></div>@include('admin.includes.footer')

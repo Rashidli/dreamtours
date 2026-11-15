@@ -168,6 +168,19 @@ class PaymentReportTest extends TestCase
         $this->assertSame('40.00', (string) $this->b['A']->fresh()->outstanding_amount); // 120 − 80
     }
 
+    public function test_reject_from_the_pending_list_stays_on_the_list(): void
+    {
+        $pendingUrl = route('payments.index', ['tab' => 'pending']);
+        $this->report(['tab' => 'pending'])->assertSee('data-reject="'.route('booking-payments.reject', [$this->b['A'], $this->p['pending']]).'"', false)->assertSee('Reject this payment?');
+
+        $this->actingAs($this->admin)->from($pendingUrl)->post(route('booking-payments.reject', [$this->b['A'], $this->p['pending']]), ['reason' => ''])->assertRedirect($pendingUrl)->assertSessionHasErrors('reason');
+        $this->actingAs($this->admin)->from($pendingUrl)->post(route('booking-payments.reject', [$this->b['A'], $this->p['pending']]), ['reason' => 'Not received in the bank account'])->assertRedirect($pendingUrl);
+
+        $this->assertSame(['rejected', 'Not received in the bank account'], [$this->p['pending']->fresh()->status, $this->p['pending']->fresh()->reason]);
+        $this->assertSame(['0.00', '120.00'], [(string) $this->b['A']->fresh()->pending_amount, (string) $this->b['A']->fresh()->outstanding_amount], 'a rejected payment never reduces the balance');
+        $this->report(['tab' => 'pending'])->assertSee('Nothing waiting for verification');
+    }
+
     public function test_receipts_and_statements(): void
     {
         $this->actingAs($this->admin);
