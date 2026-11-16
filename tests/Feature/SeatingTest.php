@@ -275,4 +275,32 @@ class SeatingTest extends TestCase
         $this->actingAs($stranger)->get(route('seating.export', [$this->trip, 'pdf']))->assertOk();
         $this->assertSame(3, ActivityLog::where('action', 'seating_exported')->count());
     }
+
+    public function test_vehicles_page_lists_upcoming_dates_by_what_needs_doing(): void
+    {
+        $mk = fn (string $when, string $status = 'available') => TourDeparture::create(['tour_id' => $this->trip->tour_id, 'departs_at' => now()->modify($when), 'price' => 150, 'currency' => 'CAD', 'capacity' => 10, 'reserved_seats' => 0, 'status' => $status]);
+        $noBus = $mk('+10 days');
+        $b = Booking::create(['tour_id' => $noBus->tour_id, 'tour_departure_id' => $noBus->id, 'type' => 'tour', 'status' => 'new', 'first_name' => 'Zoe', 'last_name' => 'Zed', 'email' => 'z@example.com', 'phone' => '416-555-0199', 'participant_count' => 1, 'currency' => 'CAD', 'total_amount' => '150.00', 'deposit_amount' => '0.00']);
+        BookingPassenger::create(['booking_id' => $b->id, 'first_name' => 'Zoe', 'last_name' => 'Zed', 'category' => 'adult']);
+        $empty = $mk('+20 days');
+        $mk('-2 days');
+        $mk('+3 days', 'cancelled');
+
+        $page = $this->actingAs($this->admin)->get(route('vehicle-layouts.index'))->assertOk();
+        $rows = $page->viewData('departures');
+        $this->assertSame([$noBus->id, $this->trip->id], $rows->pluck('id')->all(), 'no bus first, then seats to assign; empty, past and cancelled dates hidden');
+        $page->assertSeeInOrder(['0 / 1', 'No bus yet', '0 / 5', 'Seats to assign']); // table rows, after the summary tiles
+        $this->assertSame([$noBus->id, $this->trip->id, $empty->id], $this->get(route('vehicle-layouts.index', ['all' => 1]))->viewData('departures')->pluck('id')->all());
+
+        $this->postJson(route('seating.autofill', $this->trip), []);
+        $this->get(route('vehicle-layouts.index'))->assertSeeInOrder(['0 / 1', 'No bus yet', '5 / 5', 'Draft']);
+        $this->post(route('seating.publish', $this->trip));
+        $this->get(route('vehicle-layouts.index'))->assertSeeInOrder(['0 / 1', 'No bus yet', '5 / 5', 'Published']);
+
+        // People without booking access see the templates only.
+        $content = User::factory()->create();
+        $content->assignRole('Content Manager');
+        $content->givePermissionTo('list-vehicle-layouts');
+        $this->assertNull($this->actingAs($content)->get(route('vehicle-layouts.index'))->assertOk()->assertDontSee('Upcoming departures')->viewData('departures'));
+    }
 }
