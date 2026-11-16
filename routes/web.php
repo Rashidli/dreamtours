@@ -187,6 +187,11 @@ Route::prefix('admin')->group(function () {
         Route::post('departures/{departure}/vehicles', [\App\Http\Controllers\Admin\SeatingController::class, 'storeVehicle'])->name('departure-vehicles.store');
         Route::put('departures/{departure}/vehicles/{vehicle}', [\App\Http\Controllers\Admin\SeatingController::class, 'updateVehicle'])->name('departure-vehicles.update');
         Route::delete('departures/{departure}/vehicles/{vehicle}', [\App\Http\Controllers\Admin\SeatingController::class, 'destroyVehicle'])->name('departure-vehicles.destroy');
+        Route::get('alerts', [\App\Http\Controllers\Admin\AlertController::class, 'index'])->name('alerts.index');
+        Route::get('alerts/dropdown', [\App\Http\Controllers\Admin\AlertController::class, 'dropdown'])->name('alerts.dropdown');
+        Route::post('alerts/done', [\App\Http\Controllers\Admin\AlertController::class, 'completeAll'])->name('alerts.complete-all');
+        Route::post('alerts/settings', [\App\Http\Controllers\Admin\AlertController::class, 'settings'])->name('alerts.settings');
+        Route::post('alerts/{alert}/done', [\App\Http\Controllers\Admin\AlertController::class, 'complete'])->name('alerts.complete');
         Route::get('my-trips', [\App\Http\Controllers\Admin\MyTripsController::class, 'index'])->name('my-trips.index');
         Route::get('my-trips/{departure}', [\App\Http\Controllers\Admin\MyTripsController::class, 'show'])->name('my-trips.show');
         Route::delete('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'destroy'])->name('tour-departures.destroy');

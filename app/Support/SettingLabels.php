@@ -33,6 +33,11 @@ class SettingLabels
             'working_hours' => ['Working hours', null],
             'map_embed' => ['Map embed', 'Google Maps embed code or links.'],
         ],
+        'Staff alerts' => [
+            'alert_almost_full_seats' => ['“Almost full” at (seats left)', 'Alert staff when a departure has this many seats or fewer left.'],
+            'alert_balance_due_days' => ['Balance due alert (days ahead)', 'Alert when an unpaid balance is due within this many days.'],
+            'alert_upcoming_tour_days' => ['Upcoming tour alert (days ahead)', 'Alert about departures leaving within this many days.'],
+        ],
         'Booking & payments' => [
             'default_deposit_percent' => ['Default deposit (%)', 'Deposit asked when a tour has no per-person deposit. 100 = full price at booking; 50 = half now, the rest by the balance due date.'],
             'balance_due_days' => ['Balance due (days before departure)', 'Default for every tour; a tour can set its own. Bookings made later than this are due the day they are made.'],

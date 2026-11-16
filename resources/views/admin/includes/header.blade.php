@@ -89,6 +89,36 @@
                     </div>
                 </div>
 
+                @auth
+                {{-- Staff alerts (CRM §15): only the count is rendered here; the list loads when the bell is opened. --}}
+                @php
+                  \App\Support\Alerts::sweepIfDue();
+                  $alertCount = \App\Models\StaffAlert::visibleTo(auth()->user())->open()->count();
+                @endphp
+                <div class="dropdown d-inline-block" id="alerts-bell">
+                    <button type="button" class="btn header-item noti-icon waves-effect" id="page-header-alerts" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Alerts ({{ $alertCount }} open)">
+                        <i class="ri-notification-3-line"></i>
+                        @if($alertCount)<span class="noti-dot" style="width:auto;height:auto;min-width:18px;padding:0 5px;border-radius:9px;top:14px;right:4px;font-size:11px;line-height:18px;color:#fff;background:#f32f53;text-align:center">{{ $alertCount > 99 ? '99+' : $alertCount }}</span>@endif
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-alerts" style="min-width:340px" data-src="{{ route('alerts.dropdown') }}">
+                        <div class="p-3 d-flex justify-content-between align-items-center border-bottom"><h6 class="m-0">Alerts</h6><a href="{{ route('alerts.index') }}">See all</a></div>
+                        <div data-alerts-list><div class="p-4 text-center text-muted">Loading…</div></div>
+                    </div>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                  const bell = document.getElementById('alerts-bell');
+                  if (!bell) return;
+                  bell.addEventListener('show.bs.dropdown', () => {
+                    const menu = bell.querySelector('[data-src]');
+                    fetch(menu.dataset.src, { headers: { 'Accept': 'text/html' } }).then(r => r.ok ? r.text() : Promise.reject())
+                      .then(html => { bell.querySelector('[data-alerts-list]').innerHTML = html; })
+                      .catch(() => { bell.querySelector('[data-alerts-list]').innerHTML = '<div class="p-4 text-center text-muted">Could not load alerts.</div>'; });
+                  });
+                });
+                </script>
+                @endauth
+
                 <div class="dropdown d-none d-lg-inline-block ms-1">
                     <button type="button" class="btn header-item noti-icon waves-effect" data-toggle="fullscreen">
                         <i class="ri-fullscreen-line"></i>

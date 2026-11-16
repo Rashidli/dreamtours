@@ -29,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
         // Lets the activity history tell staff and visitors (HTTP) apart from the system (queue, artisan).
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Routing\Events\RouteMatched::class, fn () => app()->instance('activity.http', true));
 
+        // Staff alerts follow model events, so every path (website, admin, commands) raises them (CRM §15).
+        \App\Support\Alerts::listen();
+
         if ($redirect = config('mail.redirect_to')) {
             Mail::alwaysTo($redirect);
         }

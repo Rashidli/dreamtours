@@ -117,5 +117,6 @@ class TourDeparture extends Model
     public function recountSeats(): void
     {
         $this->forceFill(['reserved_seats' => $this->held_seats + $this->bookedSeats()])->saveQuietly();
+        \App\Support\Alerts::checkCapacity($this);
     }
 }
