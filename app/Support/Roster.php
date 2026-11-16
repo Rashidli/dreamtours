@@ -26,7 +26,7 @@ class Roster
             'tour.translations', 'tour.pickupPoints.translations', 'pickupPoints.translations', 'staff.user',
             'bookings' => fn ($q) => $q->orderBy('created_at')->orderBy('id'),
             'bookings.passengers' => fn ($q) => $q->orderBy('id'),
-            'bookings.passengers.pickupPoint.translations', 'bookings.passengers.attendanceBy',
+            'bookings.passengers.pickupPoint.translations', 'bookings.passengers.attendanceBy', 'bookings.passengers.departureVehicle', 'vehicles',
         ]);
     }
 
@@ -66,6 +66,7 @@ class Roster
                 'expected' => $row['passenger']->attendance_status === null,
                 default => $row['passenger']->attendance_status === $a,
             }))
+            ->when(($f['vehicle'] ?? '') !== '', fn ($r) => $r->filter(fn ($row) => (string) ($row['passenger']->departure_vehicle_id ?? 0) === (string) $f['vehicle']))
             ->when($f['meal'] ?? null, fn ($r, $m) => $r->filter(fn ($row) => $m === '—' ? blank($row['passenger']->meal_selection) : $row['passenger']->meal_selection === $m))
             ->when($f['booking_status'] ?? null, fn ($r, $s) => $r->filter(fn ($row) => $row['booking']->status === $s));
 
@@ -99,7 +100,7 @@ class Roster
             'Category' => fn ($p, $b) => $p->category && $p->category !== 'adult' ? $p->category : '',
             'Phone' => fn ($p, $b) => $p->phone ?: $b->phone,
             'Pickup' => fn ($p, $b) => $p->pickupPoint?->name,
-            'Seat' => fn ($p, $b) => $p->seat_number,
+            'Seat' => fn ($p, $b) => Seating::label($p->departureVehicle, $p->seat_number),
             'Meal' => fn ($p, $b) => $p->meal_selection,
             'Note' => fn ($p, $b) => $p->notes,
             'Booking' => fn ($p, $b) => $b->reference,

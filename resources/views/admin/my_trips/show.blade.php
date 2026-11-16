@@ -47,7 +47,7 @@
           <i class="{{ \App\Models\DepartureStaff::ROLES[$s->role][1] ?? 'ri-user-line' }} fs-4 text-primary"></i>
           <div>
             <div class="fw-semibold">{{ $s->user?->name }}@if($s->user_id === auth()->id()) <span class="text-muted fw-normal">(you)</span>@endif</div>
-            <div class="text-muted">{{ $s->role_label }}@if($s->note) · {{ $s->note }}@endif</div>
+            <div class="text-muted">{{ $s->role_label }}@if($s->vehicle) · {{ $s->vehicle->label }}@endif @if($s->note) · {{ $s->note }}@endif</div>
             @if($s->user?->phone)<a href="tel:{{ preg_replace('/[^\d+]/', '', $s->user->phone) }}" class="d-block"><i class="ri-phone-line me-1"></i>{{ $s->user->phone }}</a>@endif
             @if($s->user?->email)<a href="mailto:{{ $s->user->email }}" class="d-block text-break"><i class="ri-mail-line me-1"></i>{{ $s->user->email }}</a>@endif
           </div>
@@ -96,6 +96,7 @@
       <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Passengers <span class="text-muted fw-normal">({{ $rows->count() }}{{ $rows->count() !== $all->count() ? ' of '.$all->count() : '' }})</span></h5>
         <div class="d-flex gap-2 d-print-none">
+          <a class="btn btn-outline-primary" href="{{ route('seating.show', $departure) }}"><i class="ri-layout-grid-line me-1"></i>Seat chart</a>
           <div class="btn-group"><a class="btn btn-light" href="{{ request()->fullUrlWithQuery(['export' => 'pdf']) }}"><i class="ri-file-pdf-2-line me-1"></i>PDF</a><a class="btn btn-light" href="{{ request()->fullUrlWithQuery(['export' => 'xlsx']) }}">Excel</a></div>
           <button class="btn btn-light" onclick="window.print()"><i class="ri-printer-line me-1"></i>Print</button>
         </div>
@@ -115,7 +116,7 @@
             <div>
               <span class="text-muted me-1">{{ $i + 1 }}.</span><span class="fw-semibold fs-6">{{ $p->first_name }} {{ $p->last_name }}</span>@if($p->category && $p->category !== 'adult') <span class="badge rounded-pill bg-light text-body">{{ $p->category }}</span>@endif
               <div class="text-muted">
-                <i class="ri-map-pin-2-line"></i> {{ $p->pickupPoint?->name ?? 'No stop' }} · Seat {{ $p->seat_number ?: '—' }}@if($p->meal_selection) · {{ $p->meal_selection }}@endif
+                <i class="ri-map-pin-2-line"></i> {{ $p->pickupPoint?->name ?? 'No stop' }} · Seat {{ \App\Support\Seating::label($p->departureVehicle, $p->seat_number, $departure->vehicles->count() > 1) ?? '—' }}@if($p->meal_selection) · {{ $p->meal_selection }}@endif
                 · @if($office)<a href="{{ route('bookings.show', $b) }}">{{ $b->reference }}</a>@else{{ $b->reference }}@endif
               </div>
               @if($p->notes)<div class="text-muted"><i class="ri-sticky-note-line"></i> {{ $p->notes }}</div>@endif

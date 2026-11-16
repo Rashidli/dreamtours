@@ -60,6 +60,7 @@ class RosterController extends Controller
         return $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'pickup' => ['nullable', 'integer'],
+            'vehicle' => ['nullable', 'integer'],
             'attendance' => ['nullable', Rule::in(array_keys(Roster::ATTENDANCE_FILTERS))],
             'meal' => ['nullable', 'string', 'max:100'],
             'booking_status' => ['nullable', Rule::in(array_keys(Booking::STATUSES))],

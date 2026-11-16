@@ -28,7 +28,7 @@
       <tr>
         <td style="padding:10px 18px;font-size:14px;color:#141824;border-top:1px solid #f1eee8;">{{ $passenger->first_name }} {{ $passenger->last_name }}</td>
         @if($mixed)<td style="padding:10px 18px;font-size:14px;color:#4b5263;border-top:1px solid #f1eee8;">{{ $passenger->pickupPoint?->name }}<br><span style="font-size:12px;color:#9aa0ad;">{{ $passenger->pickupPoint?->address }}</span></td>@endif
-        <td align="right" style="padding:10px 18px;border-top:1px solid #f1eee8;"><span style="display:inline-block;min-width:34px;text-align:center;background:#141824;color:#ffffff;font-size:15px;font-weight:800;border-radius:8px;padding:6px 8px;">{{ $passenger->seat_number }}</span></td>
+        <td align="right" style="padding:10px 18px;border-top:1px solid #f1eee8;"><span style="display:inline-block;min-width:34px;text-align:center;background:#141824;color:#ffffff;font-size:15px;font-weight:800;border-radius:8px;padding:6px 8px;">{{ $passenger->seat_number }}</span>@if(($booking->departure?->vehicles?->count() ?? 0) > 1 && $passenger->departureVehicle)<br><span style="font-size:12px;color:#4b5263;">{{ $passenger->departureVehicle->label }}</span>@endif</td>
       </tr>
     @endforeach
   </table>

@@ -175,6 +175,17 @@ Route::prefix('admin')->group(function () {
         Route::post('departures/{departure}/passengers/{passenger}/attendance', [\App\Http\Controllers\Admin\RosterController::class, 'attendance'])->middleware('throttle:120,1')->name('passenger-attendance.update');
         Route::post('departures/{departure}/staff', [\App\Http\Controllers\Admin\DepartureStaffController::class, 'store'])->name('departure-staff.store');
         Route::delete('departures/{departure}/staff/{assignment}', [\App\Http\Controllers\Admin\DepartureStaffController::class, 'destroy'])->name('departure-staff.destroy');
+        Route::get('departures/{departure}/seating', [\App\Http\Controllers\Admin\SeatingController::class, 'show'])->name('seating.show');
+        Route::middleware('throttle:240,1')->group(function () {
+            Route::post('departures/{departure}/seating/place', [\App\Http\Controllers\Admin\SeatingController::class, 'place'])->name('seating.place');
+            Route::post('departures/{departure}/seating/block', [\App\Http\Controllers\Admin\SeatingController::class, 'block'])->name('seating.block');
+            Route::post('departures/{departure}/seating/autofill', [\App\Http\Controllers\Admin\SeatingController::class, 'autofill'])->name('seating.autofill');
+        });
+        Route::post('departures/{departure}/seating/publish', [\App\Http\Controllers\Admin\SeatingController::class, 'publish'])->name('seating.publish');
+        Route::get('departures/{departure}/seating/export/{format}', [\App\Http\Controllers\Admin\SeatingController::class, 'export'])->name('seating.export');
+        Route::post('departures/{departure}/vehicles', [\App\Http\Controllers\Admin\SeatingController::class, 'storeVehicle'])->name('departure-vehicles.store');
+        Route::put('departures/{departure}/vehicles/{vehicle}', [\App\Http\Controllers\Admin\SeatingController::class, 'updateVehicle'])->name('departure-vehicles.update');
+        Route::delete('departures/{departure}/vehicles/{vehicle}', [\App\Http\Controllers\Admin\SeatingController::class, 'destroyVehicle'])->name('departure-vehicles.destroy');
         Route::get('my-trips', [\App\Http\Controllers\Admin\MyTripsController::class, 'index'])->name('my-trips.index');
         Route::get('my-trips/{departure}', [\App\Http\Controllers\Admin\MyTripsController::class, 'show'])->name('my-trips.show');
         Route::delete('tours/{tour}/departures/{departure}', [\App\Http\Controllers\Admin\TourDepartureController::class,'destroy'])->name('tour-departures.destroy');

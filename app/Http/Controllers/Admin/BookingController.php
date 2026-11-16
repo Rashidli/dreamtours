@@ -57,7 +57,7 @@ class BookingController extends Controller
 
     public function show(Booking $booking): View
     {
-        $booking->load(['tour.translations', 'departure.pickupPoints.translations', 'departure.tour.pickupPoints.translations', 'pickupPoint.translations', 'passengers.pickupPoint.translations', 'updatedBy', 'legalAcceptances', 'payments.refundOf', 'payments.recorder', 'payments.confirmer', 'adjustments.passenger', 'adjustments.creator']);
+        $booking->load(['tour.translations', 'departure.pickupPoints.translations', 'departure.tour.pickupPoints.translations', 'pickupPoint.translations', 'passengers.pickupPoint.translations', 'passengers.departureVehicle', 'updatedBy', 'legalAcceptances', 'payments.refundOf', 'payments.recorder', 'payments.confirmer', 'adjustments.passenger', 'adjustments.creator']);
 
         return view('admin.bookings.show', [
             'booking' => $booking,
@@ -87,7 +87,11 @@ class BookingController extends Controller
             if ($booking->status === 'cancelled' && $d['status'] !== 'cancelled') {
                 $this->ensureSeats($booking, $booking->seat_count);
             }
+            $cancelling = $booking->status !== 'cancelled' && $d['status'] === 'cancelled';
             $booking->update($d + ['updated_by' => auth()->id()]);
+            if ($cancelling) {
+                \App\Support\Seating::release($booking); // its seats go back to the board
+            }
         });
         // Setting a booking to Confirmed emails the customer (once per booking).
         BookingMail::confirmed($booking);
@@ -165,10 +169,25 @@ class BookingController extends Controller
 
     public function updateSeats(Request $r, Booking $booking): RedirectResponse
     {
+        // Dates with buses are seated on the seating board, which keeps every seat unique.
+        if ($booking->departure?->vehicles()->exists()) {
+            return redirect()->route('seating.show', $booking->tour_departure_id)->withErrors(['seats' => 'This date has buses — choose seats on the seating board.']);
+        }
         $d = $r->validate(['seats' => ['array'], 'seats.*' => ['nullable', 'string', 'max:10']]);
+        $wanted = collect($d['seats'] ?? [])->map(fn ($s) => trim((string) $s))->filter();
+        if ($wanted->count() !== $wanted->map(fn ($s) => mb_strtoupper($s))->unique()->count()) {
+            throw ValidationException::withMessages(['seats' => 'Two passengers were given the same seat.']);
+        }
+        if ($booking->tour_departure_id && $wanted->isNotEmpty()) {
+            $taken = \App\Models\BookingPassenger::whereHas('booking', fn ($q) => $q->where('tour_departure_id', $booking->tour_departure_id)->where('status', '!=', 'cancelled')->whereKeyNot($booking->id))
+                ->whereNull('departure_vehicle_id')->whereIn('seat_number', $wanted->values())->with('booking')->first();
+            if ($taken) {
+                throw ValidationException::withMessages(['seats' => "Seat {$taken->seat_number} is already taken by ".trim("{$taken->first_name} {$taken->last_name}")." ({$taken->booking->reference})."]);
+            }
+        }
         foreach ($booking->passengers as $passenger) {
             if (array_key_exists($passenger->id, $d['seats'] ?? [])) {
-                $passenger->update(['seat_number' => $d['seats'][$passenger->id] ?: null]);
+                $passenger->update(['seat_number' => $wanted[$passenger->id] ?? null]);
             }
         }
 

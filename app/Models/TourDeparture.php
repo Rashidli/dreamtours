@@ -17,6 +17,9 @@ class TourDeparture extends Model
     /** Leaders, drivers, guides and coordinators on this date, leaders first. */
     public function staff() { return $this->hasMany(DepartureStaff::class)->orderByRaw("field(role, 'leader', 'guide', 'driver', 'coordinator')")->orderBy('id'); }
 
+    /** Buses of this date, in the order staff set (CRM §5: one departure, several vehicles). */
+    public function vehicles() { return $this->hasMany(DepartureVehicle::class)->orderBy('sort_order')->orderBy('id'); }
+
     public function hasStaff(?User $user): bool { return $user && $this->staff()->where('user_id', $user->id)->exists(); }
 
     public function activityLabel(): string { return trim(($this->tour?->name ?? 'Tour').' — '.$this->departs_at?->format('M j, Y g:i A')); }

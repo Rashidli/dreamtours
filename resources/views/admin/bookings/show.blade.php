@@ -48,6 +48,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">Passengers & seats</h5>
           @if($booking->seat_notice_sent_at)<span class="badge bg-success">Seat numbers sent {{ $booking->seat_notice_sent_at->format('M j, H:i') }}</span>@endif
         </div>
+        @php($hasBuses = $booking->departure && $booking->departure->vehicles()->exists())
         <form method="post" action="{{ route('bookings.seats', $booking) }}">@csrf @method('PUT')
           <div class="table-responsive"><table class="table align-middle">
             <thead><tr><th>#</th><th>Name</th><th>Fare</th><th>Room</th><th>Pickup</th><th>Meal</th><th style="width:110px">Seat</th></tr></thead>
@@ -56,13 +57,17 @@
               <tr><td>{{ $i + 1 }}</td><td>{{ $p->first_name }} {{ $p->last_name }}@if($p->date_of_birth)<br><small class="text-muted">DOB {{ $p->date_of_birth->format('Y-m-d') }}</small>@endif</td>
                 <td>{{ \App\Models\TourDeparturePrice::CODES[$p->price_code][0] ?? ($p->category ?: '—') }}@if($p->price !== null)@can('view-financial-info')<br><small>{{ $money($p->price) }}</small>@endcan @endif</td>
                 <td>{{ $p->room_number ?: '—' }}</td><td>{{ $p->pickupPoint?->name ?: '—' }}</td><td>{{ $p->meal_selection ?: '—' }}</td>
-                <td>@can('edit-bookings')<input class="form-control form-control-sm" name="seats[{{ $p->id }}]" value="{{ old('seats.'.$p->id, $p->seat_number) }}" placeholder="e.g. 12">@else{{ $p->seat_number ?: '—' }}@endcan</td></tr>
+                <td>@if($hasBuses){{ \App\Support\Seating::label($p->departureVehicle, $p->seat_number) ?? '—' }}@elseif(auth()->user()->can('edit-bookings'))<input class="form-control" name="seats[{{ $p->id }}]" value="{{ old('seats.'.$p->id, $p->seat_number) }}" placeholder="e.g. 12">@else{{ $p->seat_number ?: '—' }}@endif</td></tr>
             @empty
               <tr><td colspan="7" class="text-muted">No passenger details.</td></tr>
             @endforelse
             </tbody>
           </table></div>
-          @can('edit-bookings')@if($booking->passengers->isNotEmpty())<button class="btn btn-primary"><i class="ri-save-line"></i> Save seat numbers</button>@endif @endcan
+          @if($hasBuses)
+            <a class="btn btn-outline-primary" href="{{ route('seating.show', $booking->tour_departure_id) }}"><i class="ri-layout-grid-line me-1"></i>Seating board</a>
+          @else
+            @can('edit-bookings')@if($booking->passengers->isNotEmpty())<button class="btn btn-primary"><i class="ri-save-line"></i> Save seat numbers</button>@endif @endcan
+          @endif
         </form>
         @can('edit-bookings')@if($booking->passengers->isNotEmpty())
           <form class="mt-3" method="post" action="{{ route('bookings.seat-notice', $booking) }}">@csrf

@@ -21,16 +21,17 @@ class DepartureStaffController extends Controller
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'role' => ['required', Rule::in(array_keys(DepartureStaff::ROLES))],
             'note' => ['nullable', 'string', 'max:255'],
+            'departure_vehicle_id' => ['nullable', 'integer', Rule::exists('departure_vehicles', 'id')->where('tour_departure_id', $departure->id)],
         ]);
         $assignment = DepartureStaff::firstOrNew(['tour_departure_id' => $departure->id, 'user_id' => $data['user_id'], 'role' => $data['role']]);
         $new = !$assignment->exists;
-        $assignment->fill(['note' => $data['note'] ?? null] + ($new ? ['assigned_by' => $request->user()->id] : []))->save();
+        $assignment->fill(['note' => $data['note'] ?? null, 'departure_vehicle_id' => $data['departure_vehicle_id'] ?? null] + ($new ? ['assigned_by' => $request->user()->id] : []))->save();
         $assignment->load('user');
         if ($new) {
             Activity::record('staff_assigned', $departure, ['staff' => [null, $assignment->user->name.' · '.$assignment->role_label]]);
         }
 
-        return $this->back($departure, $new ? "{$assignment->user->name} assigned as {$assignment->role_label}." : 'Note updated.');
+        return $this->back($departure, $new ? "{$assignment->user->name} assigned as {$assignment->role_label}." : 'Assignment updated.');
     }
 
     public function destroy(TourDeparture $departure, DepartureStaff $assignment): RedirectResponse

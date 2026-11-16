@@ -17,11 +17,13 @@ class DepartureStaff extends Model
         'coordinator' => ['Coordinator', 'ri-customer-service-2-line'],
     ];
 
-    protected $fillable = ['tour_departure_id', 'user_id', 'role', 'note', 'assigned_by'];
+    protected $fillable = ['tour_departure_id', 'departure_vehicle_id', 'user_id', 'role', 'note', 'assigned_by'];
 
     public function departure() { return $this->belongsTo(TourDeparture::class, 'tour_departure_id'); }
 
     public function user() { return $this->belongsTo(User::class); }
+
+    public function vehicle() { return $this->belongsTo(DepartureVehicle::class, 'departure_vehicle_id'); }
 
     public function assignedBy() { return $this->belongsTo(User::class, 'assigned_by'); }
 
