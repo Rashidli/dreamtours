@@ -1,6 +1,6 @@
 # DreamTour CRM: iş jurnalı və davam etmək üçün qeydlər
 
-Son yenilənmə: **16 noyabr 2026**. Production commit: **`c9d5965`**. Staging (`develop`): **`5bd696d`** (Modul 7, production-a çıxmayıb).
+Son yenilənmə: **16 noyabr 2026**. Production commit: **`c9d5965`**. Staging (`develop`): **`352ea62`** (Modul 7 və 8, production-a çıxmayıb).
 
 Bu sənəd yeni sessiyada (və ya yeni developer üçün) işi qaldığı yerdən davam etdirmək üçündür. Hər modul bitəndə yenilənir.
 
@@ -97,7 +97,9 @@ sudo -u www-data php artisan up
 | 5 | Çıxışa işçi təyini + My trips (§5, §12) | ✅ production | `a2906aa` |
 | 6 | Sərnişin siyahısı, check-in, no-show (§11) | ✅ production | `f8be481` |
 | 7 | Avtobuslar və oturacaq sxemi (§9, AT-03, AT-06) | 🟦 staging-də hazır | `e08e2be`, `5bd696d` |
-| 8 | Dashboard, export-lar, admin bildirişləri (§2, §15) | ⏳ gözləyir | — |
+| 8 | Dashboard, admin bildirişləri, lead/bron export-ları (§2, §15, §25) | 🟦 staging-də hazır | `3b3919a`, `6fbe6ae`, `352ea62` |
+| — | `/admin` daxil olmuşu dashboard-a yönləndirir, session regenerate | 🟦 staging | `7cfc5cd` |
+| — | Vehicles & seating: yaxınlaşan tarixlər cədvəli | 🟦 staging | `5584671` |
 
 ### Modulların qısa xəritəsi (hansı kod harada)
 
@@ -141,6 +143,9 @@ sudo -u www-data php artisan up
   - `SeatNotices::blocker`: avtobuslu tarixdə qaralama varsa e-poçt göndərilmir;
   - icazələr: `list/create/edit/delete-vehicle-layouts`, `manage-seating` (yalnız admin);
   - səhifələr: Admin › Vehicles & seating; tarix › Seating (`/admin/departures/{id}/seating`).
+- **Dashboard (Modul 8a):** `App\Support\Dashboard::for($user)` — hər kart yalnız icazə varsa və öz filtrli linki ilə; bron siyahısına `booked_from/booked_to` filtri əlavə olunub.
+- **Admin bildirişləri (Modul 8b):** `staff_alerts` (unique `dedupe_key`), `App\Support\Alerts` (`TYPES` = növ → icazə, `raise`, `resolve`, `listen()` model hadisələri, `checkCapacity`, `sweep`/`sweepIfDue` 10 dəq-dən bir, əmr `crm:alerts`). Header zəngi sayı göstərir, siyahı `alerts.dropdown`-dan yüklənir. Hədlər: Settings › Staff alerts; növləri açıb-söndürmək: Alerts səhifəsi (`alerts_off`). Yalnız in-app.
+- **Export-lar (Modul 8c):** `App\Support\TableExport` (csv/xlsx); `export-leads`, `export-bookings`; bron export-unda pul sütunları yalnız `view-financial-info` ilə.
 
 ### Rollar (production)
 
@@ -182,7 +187,7 @@ sudo -u www-data php artisan up
 
 ## 7. Açıq məsələlər və növbəti addımlar
 
-- **Modul 7 staging-dədir, production deploy gözləyir.** Deploy: migrate `2026_11_16_000001`, `000002` → `permission:cache-reset` → `cache:clear`.
+- **Modul 7 və 8 staging-dədir, production deploy gözləyir.** Deploy: migrate `2026_11_16_000001`…`000004` (hamısı əlavə edir) → `permission:cache-reset` → `cache:clear`.
 - **Laravel scheduler heç yerdə işləmir** (cron yoxdur): `bookings:send-seat-notices` (hər gün 09:00) heç vaxt işə düşmür. Qoşmaq üçün istifadəçinin razılığı lazımdır (`* * * * * www-data php artisan schedule:run`), çünki qonaqlara e-poçt göndərməyə başlayacaq.
 - **Modul 8:** dashboard (yalnız sayların olduğu köhnə `PageController::home`), export-lar, admin bildirişləri (§15).
 - **Check-in oflayn rejimi** (§11 "tövsiyə") hələ yoxdur.
