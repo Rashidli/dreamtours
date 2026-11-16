@@ -68,8 +68,9 @@ Route::get('booking/{booking}', [BookingPageController::class, 'thankYou'])->mid
 Route::post('tours/{slug}/reviews', [FrontReviewController::class, 'store'])->middleware('throttle:5,1')->name('front.reviews.store');
 
 Route::prefix('admin')->group(function () {
-    Route::get('/', [PageController::class, 'login'])->name('login');
-    Route::post('/login', [AuthController::class, 'login_submit'])->name('login_submit');
+    // Someone already signed in goes straight to the dashboard (redirectUsersTo in bootstrap/app.php).
+    Route::get('/', [PageController::class, 'login'])->middleware('guest')->name('login');
+    Route::post('/login', [AuthController::class, 'login_submit'])->middleware('guest')->name('login_submit');
 
     Route::middleware('auth')->group(function () {
         Route::get('/home', [PageController::class, 'home'])->name('home');
