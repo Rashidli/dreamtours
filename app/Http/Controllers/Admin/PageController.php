@@ -38,6 +38,6 @@ class PageController extends Controller
             'users' => User::count(),
         ];
 
-        return view('home', compact('stats'));
+        return view('home', ['stats' => $stats, 'dash' => \App\Support\Dashboard::for($user)]);
     }
 }

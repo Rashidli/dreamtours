@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -45,6 +46,9 @@ class BookingController extends Controller
             ->when($r->filled('pickup_point_id'), fn ($q) => $q->whereHas('passengers', fn ($p) => $p->where('pickup_point_id', $r->integer('pickup_point_id'))))
             ->when($r->filled('status'), fn ($q) => $q->where('status', $r->status))
             ->when($r->filled('payment_status'), fn ($q) => $q->where('payment_status', $r->payment_status))
+            // Booked between two dates, in the office's time zone (the dashboard's "bookings today" opens this).
+            ->when($r->date('booked_from'), fn ($q, $d) => $q->where('created_at', '>=', Carbon::parse($d->toDateString(), ActivityLogController::DISPLAY_TIMEZONE)->startOfDay()->utc()))
+            ->when($r->date('booked_to'), fn ($q, $d) => $q->where('created_at', '<=', Carbon::parse($d->toDateString(), ActivityLogController::DISPLAY_TIMEZONE)->endOfDay()->utc()))
             ->latest()->paginate(25)->withQueryString();
 
         return view('admin.bookings.index', [
