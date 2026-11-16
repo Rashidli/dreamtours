@@ -1,6 +1,6 @@
 # DreamTour CRM: iş jurnalı və davam etmək üçün qeydlər
 
-Son yenilənmə: **15 noyabr 2026**. Production commit: **`f8be481`**.
+Son yenilənmə: **16 noyabr 2026**. Production commit: **`c9d5965`**. Staging (`develop`): **`5bd696d`** (Modul 7, production-a çıxmayıb).
 
 Bu sənəd yeni sessiyada (və ya yeni developer üçün) işi qaldığı yerdən davam etdirmək üçündür. Hər modul bitəndə yenilənir.
 
@@ -96,7 +96,7 @@ sudo -u www-data php artisan up
 | 5 | Rollar və icazə redaktoru (§16) | ✅ production | `8ae96ea` |
 | 5 | Çıxışa işçi təyini + My trips (§5, §12) | ✅ production | `a2906aa` |
 | 6 | Sərnişin siyahısı, check-in, no-show (§11) | ✅ production | `f8be481` |
-| 7 | Avtobuslar və oturacaq sxemi (§9) | ⏸ sonraya saxlanıb (istifadəçinin qərarı) | — |
+| 7 | Avtobuslar və oturacaq sxemi (§9, AT-03, AT-06) | 🟦 staging-də hazır | `e08e2be`, `5bd696d` |
 | 8 | Dashboard, export-lar, admin bildirişləri (§2, §15) | ⏳ gözləyir | — |
 
 ### Modulların qısa xəritəsi (hansı kod harada)
@@ -133,6 +133,14 @@ sudo -u www-data php artisan up
   - `App\Support\Roster`: filtrlər, sıralama, export sütunları; liderin nüsxəsində bron statusu və pul yoxdur.
   - `App\Support\RosterExport`: csv, xlsx (openspout), pdf (dompdf); hər yükləmə activity log-a yazılır.
   - Tarixçə: `passenger_attendance_events`.
+- **Avtobuslar və oturacaqlar (Modul 7):**
+  - `vehicle_layouts`: şablonlar, `VehicleLayout::generate/clean/seatLabels`; layout JSON = `{rows, cols, cells[[{t, l?}]]}`, növlər: seat, leader, driver, door, aisle, empty;
+  - `departure_vehicles`: tarixin avtobusları; şablonun **kopyası**, `blocked`, `seats_changed_at` (publish-dən sonrakı dəyişiklik = qaralama), `published_at`;
+  - `booking_passengers.departure_vehicle_id` + `seat_number`; **unique(departure_vehicle_id, seat_number)**; `seat_notified` = qonağa son göndərilən yer;
+  - `App\Support\Seating`: `place()` (bütün dəyişikliklər, kilid + toqquşma yoxlaması), `block`, `autofill`, `release` (ləğvdə), `publish`, `state` (lövhə JSON);
+  - `SeatNotices::blocker`: avtobuslu tarixdə qaralama varsa e-poçt göndərilmir;
+  - icazələr: `list/create/edit/delete-vehicle-layouts`, `manage-seating` (yalnız admin);
+  - səhifələr: Admin › Vehicles & seating; tarix › Seating (`/admin/departures/{id}/seating`).
 
 ### Rollar (production)
 
@@ -174,12 +182,8 @@ sudo -u www-data php artisan up
 
 ## 7. Açıq məsələlər və növbəti addımlar
 
-- **Modul 7: avtobuslar və oturacaq sxemi (§9, AT-03, AT-06).** İstifadəçi sonraya saxlamağı qərara aldı. Başlayanda:
-  - `vehicles` və oturacaq şablonu;
-  - bir çıxışa bir neçə avtobus, hər avtobusun ayrıca lideri və roster-i (§5);
-  - sürüklə-burax ilə oturacaq dəyişmək, eyni oturacaq iki dəfə verilməməlidir;
-  - Roster filtrinə "bus" əlavə et.
-  - Hazırda `booking_passengers.seat_number` sadə mətn sahəsidir.
+- **Modul 7 staging-dədir, production deploy gözləyir.** Deploy: migrate `2026_11_16_000001`, `000002` → `permission:cache-reset` → `cache:clear`.
+- **Laravel scheduler heç yerdə işləmir** (cron yoxdur): `bookings:send-seat-notices` (hər gün 09:00) heç vaxt işə düşmür. Qoşmaq üçün istifadəçinin razılığı lazımdır (`* * * * * www-data php artisan schedule:run`), çünki qonaqlara e-poçt göndərməyə başlayacaq.
 - **Modul 8:** dashboard (yalnız sayların olduğu köhnə `PageController::home`), export-lar, admin bildirişləri (§15).
 - **Check-in oflayn rejimi** (§11 "tövsiyə") hələ yoxdur.
 - **Referral Partner rolu** Faza 2-yə (partnyor portalı) aiddir.
