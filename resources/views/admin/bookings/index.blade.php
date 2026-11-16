@@ -14,7 +14,7 @@
                 </div>
             </div>
 <div class="card"><div class="card-body">@if(session('message'))<div class="alert alert-success">{{session('message')}}</div>@endif
-<h4 class="card-title mb-3">Bookings & requests</h4>
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3"><h4 class="card-title mb-0">Bookings & requests</h4>@can('create-bookings')<a class="btn btn-primary" href="{{ route('bookings.create') }}"><i class="ri-add-line me-1"></i>New booking</a>@endcan</div>
 <form class="row g-2 my-3">
  <div class="col-md-3"><input class="form-control" name="q" value="{{request('q')}}" placeholder="Reference, customer, passenger, email or phone"></div>
  <div class="col-md-2"><select class="form-select" name="tour_id" onchange="this.form.tour_departure_id && (this.form.tour_departure_id.value='');this.form.submit()"><option value="">All trips</option>@foreach($tours as $t)<option value="{{$t->id}}" @selected((string)request('tour_id')===(string)$t->id)>{{$t->name}}</option>@endforeach</select></div>

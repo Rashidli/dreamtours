@@ -110,9 +110,10 @@ class Leads
      * pickup and message are copied; the price starts from the departure's adult
      * fare and can be adjusted on the booking page.
      */
-    public static function convert(Lead $lead, TourDeparture $departure, int $guests): Booking
+    public static function convert(Lead $lead, TourDeparture $departure, int $guests, ?\App\Models\User $by = null, ?string $overrideReason = null): Booking
     {
-        return DB::transaction(function () use ($lead, $departure, $guests) {
+        return DB::transaction(function () use ($lead, $departure, $guests, $by, $overrideReason) {
+            Capacity::claim($departure, $guests, $by, $overrideReason, 'Lead '.$lead->reference);
             $fare = (float) ($departure->fares()->firstWhere('code', 'adult')?->price ?? $departure->price);
             $booking = Booking::create([
                 'customer_id' => $lead->customer_id,

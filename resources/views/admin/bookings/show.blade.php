@@ -7,6 +7,12 @@
   </div></div></div>
   @if(session('message'))<div class="alert alert-success">{{ session('message') }}</div>@endif
   @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+  @if($booking->splitFrom || $booking->splits->isNotEmpty())
+    <div class="alert alert-info py-2"><i class="ri-git-branch-line me-1"></i>
+      @if($booking->splitFrom)Split from <a href="{{ route('bookings.show', $booking->splitFrom) }}">{{ $booking->splitFrom->reference }}</a>. @endif
+      @if($booking->splits->isNotEmpty())Passengers split off: @foreach($booking->splits as $sp)<a href="{{ route('bookings.show', $sp) }}">{{ $sp->reference }}</a>{{ $sp->status === 'cancelled' ? ' (cancelled)' : ' ('.$sp->departure?->departs_at?->format('M j').')' }}{{ $loop->last ? '' : ', ' }}@endforeach @endif
+    </div>
+  @endif
 
   <div class="row">
     <div class="col-lg-8">
@@ -51,15 +57,16 @@
         @php($hasBuses = $booking->departure && $booking->departure->vehicles()->exists())
         <form method="post" action="{{ route('bookings.seats', $booking) }}">@csrf @method('PUT')
           <div class="table-responsive"><table class="table align-middle">
-            <thead><tr><th>#</th><th>Name</th><th>Fare</th><th>Room</th><th>Pickup</th><th>Meal</th><th style="width:110px">Seat</th></tr></thead>
+            @php($canSplit = auth()->user()->can('edit-bookings') && $booking->tour_departure_id && $booking->status !== 'cancelled')
+            <thead><tr><th>#</th><th>Name</th><th>Fare</th><th>Room</th><th>Pickup</th><th>Meal</th><th style="width:110px">Seat</th>@if($canSplit)<th></th>@endif</tr></thead>
             <tbody>
             @forelse($booking->passengers as $i => $p)
               <tr><td>{{ $i + 1 }}</td><td>{{ $p->first_name }} {{ $p->last_name }}@if($p->date_of_birth)<br><small class="text-muted">DOB {{ $p->date_of_birth->format('Y-m-d') }}</small>@endif</td>
                 <td>{{ \App\Models\TourDeparturePrice::CODES[$p->price_code][0] ?? ($p->category ?: '—') }}@if($p->price !== null)@can('view-financial-info')<br><small>{{ $money($p->price) }}</small>@endcan @endif</td>
                 <td>{{ $p->room_number ?: '—' }}</td><td>{{ $p->pickupPoint?->name ?: '—' }}</td><td>{{ $p->meal_selection ?: '—' }}</td>
-                <td>@if($hasBuses){{ \App\Support\Seating::label($p->departureVehicle, $p->seat_number) ?? '—' }}@elseif(auth()->user()->can('edit-bookings'))<input class="form-control" name="seats[{{ $p->id }}]" value="{{ old('seats.'.$p->id, $p->seat_number) }}" placeholder="e.g. 12">@else{{ $p->seat_number ?: '—' }}@endif</td></tr>
+                <td>@if($hasBuses){{ \App\Support\Seating::label($p->departureVehicle, $p->seat_number) ?? '—' }}@elseif(auth()->user()->can('edit-bookings'))<input class="form-control" name="seats[{{ $p->id }}]" value="{{ old('seats.'.$p->id, $p->seat_number) }}" placeholder="e.g. 12">@else{{ $p->seat_number ?: '—' }}@endif</td>@if($canSplit)<td class="text-end text-nowrap"><button type="button" class="btn btn-sm btn-light" data-split="move" data-pax="{{ $p->id }}" data-name="{{ $p->first_name }} {{ $p->last_name }}" title="Move to another date"><i class="ri-arrow-left-right-line"></i></button>@if($booking->passengers->count() > 1) <button type="button" class="btn btn-sm btn-light text-danger" data-split="cancel" data-pax="{{ $p->id }}" data-name="{{ $p->first_name }} {{ $p->last_name }}" title="Cancel this passenger only"><i class="ri-user-unfollow-line"></i></button>@endif</td>@endif</tr>
             @empty
-              <tr><td colspan="7" class="text-muted">No passenger details.</td></tr>
+              <tr><td colspan="8" class="text-muted">No passenger details.</td></tr>
             @endforelse
             </tbody>
           </table></div>
@@ -118,7 +125,8 @@
               @endforeach
               </tbody>
             </table></div>
-            <button class="btn btn-primary"><i class="ri-save-line"></i> Save details</button>
+            @include('admin.includes.capacity_override', ['id' => 'cap-details'])
+            <button class="btn btn-primary mt-2"><i class="ri-save-line"></i> Save details</button>
           </form>
         </details>
       </div></div>
@@ -139,7 +147,8 @@
             <small class="text-muted">Payments, refunds and discounts are recorded in the payment ledger, never typed here.</small></div>
           @endif
           <div class="mb-3"><label class="form-label">Internal notes <small class="text-muted">(staff only)</small></label><textarea class="form-control" rows="4" name="internal_notes">{{ old('internal_notes', $booking->internal_notes) }}</textarea></div>
-          <button class="btn btn-primary w-100">Save</button>
+          @include('admin.includes.capacity_override', ['id' => 'cap-status'])
+          <button class="btn btn-primary w-100 mt-2">Save</button>
         </form>
       </div></div>
       @endcan
@@ -173,5 +182,50 @@
       <p class="text-muted small mb-0">No recorded activity yet. Changes made from now on appear here.</p>
     @endforelse
   </div></div>
+@if(auth()->user()->can('edit-bookings') && $booking->tour_departure_id && $booking->status !== 'cancelled')
+{{-- Inline @php only: this view already uses @php(...) at the top, and Blade cannot mix the two forms. --}}
+@php($moveTo = \App\Models\TourDeparture::with('tour.translations')->where('departs_at', '>=', now())->whereNotIn('status', ['cancelled'])->whereKeyNot($booking->tour_departure_id)->orderBy('departs_at')->get()->sortBy(fn ($d) => [$d->tour_id === $booking->tour_id ? 0 : 1, $d->departs_at->timestamp]))
+{{-- Move or cancel one passenger (CRM §6). One dialog, filled by the buttons in the passenger table. --}}
+<div class="modal fade" id="splitPassenger" tabindex="-1" aria-labelledby="splitTitle" aria-hidden="true"><div class="modal-dialog"><form class="modal-content" method="post" action="">@csrf
+  <div class="modal-header"><h5 class="modal-title" id="splitTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+  <div class="modal-body">
+    <div data-mode="move">
+      <label class="form-label" for="split-dep">New date</label>
+      <select class="form-select mb-2" id="split-dep" name="tour_departure_id">
+        @foreach($moveTo->groupBy(fn ($d) => $d->tour?->name) as $tourName => $dates)
+          <optgroup label="{{ $tourName }}{{ $dates->first()->tour_id === $booking->tour_id ? ' (same trip)' : '' }}">@foreach($dates as $d)<option value="{{ $d->id }}">{{ $d->departs_at->format('D, M j, Y g:i A') }} · {{ max(0, $d->available_seats) }} left</option>@endforeach</optgroup>
+        @endforeach
+      </select>
+      <p class="text-muted" data-move-note></p>
+      @include('admin.includes.capacity_override', ['id' => 'cap-move'])
+    </div>
+    <p class="text-muted" data-mode="cancel">The other passengers stay on this booking. The cancelled passenger is kept on a cancelled booking of their own, and this booking's price is recalculated without them. Refund any overpayment from Payments.</p>
+    <label class="form-label mt-2" for="split-reason">Reason</label>
+    <input class="form-control" id="split-reason" name="reason" maxlength="255" required placeholder="e.g. Asked to travel a week later">
+    <p class="text-muted mt-2 mb-0">Kept in the activity history of both bookings.</p>
+  </div>
+  <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button><button class="btn btn-primary" data-submit></button></div>
+</form></div></div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('splitPassenger'), form = el.querySelector('form');
+  const urls = { move: @json(route('booking-passengers.move', [$booking, '__P__'])), cancel: @json(route('booking-passengers.cancel', [$booking, '__P__'])) };
+  const single = {{ $booking->passengers->count() === 1 ? 'true' : 'false' }};
+  document.querySelectorAll('[data-split]').forEach(btn => btn.addEventListener('click', () => {
+    const mode = btn.dataset.split;
+    form.action = urls[mode].replace('__P__', btn.dataset.pax);
+    el.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('d-none', x.dataset.mode !== mode));
+    form.tour_departure_id.disabled = mode !== 'move';
+    el.querySelector('#splitTitle').textContent = (mode === 'move' ? 'Move ' : 'Cancel ') + btn.dataset.name + (mode === 'move' ? ' to another date' : ' only');
+    el.querySelector('[data-move-note]').textContent = single ? 'This is the only passenger, so the whole booking moves; its price changes to the new date’s fare and its payments stay with it.' : 'They get a booking of their own on the new date, at that date’s fare. This booking keeps its payments and is recalculated without them.';
+    const submit = el.querySelector('[data-submit]');
+    submit.textContent = mode === 'move' ? 'Move passenger' : 'Cancel passenger';
+    submit.className = 'btn ' + (mode === 'move' ? 'btn-primary' : 'btn-danger');
+    form.reason.value = '';
+    bootstrap.Modal.getOrCreateInstance(el).show();
+  }));
+});
+</script>
+@endif
 </div></div></div>
 @include('admin.includes.footer')

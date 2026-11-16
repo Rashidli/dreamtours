@@ -121,7 +121,7 @@ class LeadTest extends TestCase
         $lead = $this->request(['type' => 'private_tour', 'comments' => 'Family of four']);
         $this->staff();
 
-        $this->post(route('leads.convert', $lead), ['tour_departure_id' => $departure->id, 'guests' => 25])->assertSessionHasErrors('guests'); // only 20 seats
+        $this->post(route('leads.convert', $lead), ['tour_departure_id' => $departure->id, 'guests' => 25])->assertSessionHasErrors('capacity'); // only 20 seats
         $response = $this->post(route('leads.convert', $lead), ['tour_departure_id' => $departure->id, 'guests' => 4]);
         $booking = Booking::where('source', 'lead')->firstOrFail();
         $response->assertRedirect(route('bookings.show', $booking));

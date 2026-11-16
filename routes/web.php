@@ -103,6 +103,12 @@ Route::prefix('admin')->group(function () {
         Route::post('tour-filters/{tour_filter}/options', [\App\Http\Controllers\Admin\TourFilterController::class, 'storeOption'])->name('tour-filter-options.store');
         Route::put('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'updateOption'])->name('tour-filter-options.update');
         Route::delete('tour-filter-options/{option}', [\App\Http\Controllers\Admin\TourFilterController::class, 'destroyOption'])->name('tour-filter-options.destroy');
+        // Staff-made bookings (CRM §6); registered before the resource so "new" is not read as a booking id.
+        Route::get('bookings/new', [\App\Http\Controllers\Admin\ManualBookingController::class, 'create'])->name('bookings.create');
+        Route::post('bookings', [\App\Http\Controllers\Admin\ManualBookingController::class, 'store'])->name('bookings.store');
+        Route::post('bookings/{booking}/passengers/{passenger}/move', [\App\Http\Controllers\Admin\ManualBookingController::class, 'movePassenger'])->name('booking-passengers.move');
+        Route::post('bookings/{booking}/passengers/{passenger}/cancel', [\App\Http\Controllers\Admin\ManualBookingController::class, 'cancelPassenger'])->name('booking-passengers.cancel');
+        Route::get('bookings/customer-lookup', [\App\Http\Controllers\Admin\ManualBookingController::class, 'customers'])->name('bookings.customer-lookup');
         Route::resource('bookings', AdminBookingController::class)->only(['index','show','update','destroy']);
         Route::get('payments', [\App\Http\Controllers\Admin\PaymentReportController::class, 'index'])->name('payments.index');
         Route::get('bookings/{booking}/statement', [\App\Http\Controllers\Admin\ReceiptController::class, 'statement'])->name('receipts.statement');

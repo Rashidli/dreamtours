@@ -34,6 +34,7 @@ class PermissionGroups
         'record-payments' => ['Record payments', 'Add a payment received by e-Transfer, cash, cheque or card.'],
         'confirm-payments' => ['Confirm or reject payments', 'Mark a pending payment as arrived, or reject it with a reason.'],
         'refund-payments' => ['Refund and void payments', 'Issue refunds and void payments entered by mistake.'],
+        'override-capacity' => ['Book over capacity', 'Go past a date’s seat limit, with a reason that is kept in the activity history.'],
         'apply-discounts' => ['Apply discounts', 'Discounts, complimentary seats and price changes on a booking.'],
         'assign-departure-staff' => ['Assign trip staff', 'Choose the leaders, drivers and guides for each departure date.'],
         'list-assigned-departures' => ['My trips', 'See the departures this person is assigned to, with their passenger list. Nothing else.'],

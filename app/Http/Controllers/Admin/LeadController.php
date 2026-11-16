@@ -150,10 +150,8 @@ class LeadController extends Controller
         abort_if($lead->booking_id, 409, 'This lead already has a booking.');
         $d = $r->validate(['tour_departure_id' => ['required', 'exists:tour_departures,id'], 'guests' => ['required', 'integer', 'min:1', 'max:99']]);
         $departure = TourDeparture::with('tour')->findOrFail($d['tour_departure_id']);
-        if ($departure->available_seats < $d['guests'] && !$r->boolean('allow_over')) {
-            return back()->withInput()->withErrors(['guests' => "Only {$departure->available_seats} seats are left on this departure."]);
-        }
-        $booking = Leads::convert($lead, $departure, $d['guests']);
+        // Seats are checked under a lock inside the conversion; going over needs override-capacity and a reason.
+        $booking = Leads::convert($lead, $departure, $d['guests'], $r->user(), $r->input('override_reason'));
 
         return redirect()->route('bookings.show', $booking)->with('message', "Booking {$booking->reference} created from lead {$lead->reference}. Add the passengers and check the price.");
     }

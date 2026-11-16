@@ -28,6 +28,7 @@
           @if($customer->status)<span class="badge bg-{{ $customer->status->color }}">{{ $customer->status->name }}</span>@endif
           @foreach($customer->tags as $tag)<span class="badge bg-{{ $tag->color }} bg-opacity-10 text-{{ $tag->color }} border border-{{ $tag->color }}">{{ $tag->name }}</span>@endforeach
         </div>
+        @can('create-bookings')@unless($customer->trashed())<a class="btn btn-sm btn-outline-primary" href="{{ route('bookings.create', ['customer' => $customer->id]) }}"><i class="ri-add-line"></i> Book for this customer</a>@endunless @endcan
         @can('edit-customers')@unless($customer->trashed())<a class="btn btn-sm btn-primary" href="{{ route('customers.edit', $customer) }}"><i class="ri-pencil-line"></i> Edit</a>@endunless @endcan
       </div>
       <p class="mt-3 mb-1">

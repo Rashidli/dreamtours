@@ -268,11 +268,11 @@ class BookingController extends Controller
     }
 
     /** Refuse a change that would put more people on the date than it has seats. */
+    /** Extra seats for this booking, within capacity unless an authorised override with a reason (AT-05). */
     private function ensureSeats(Booking $booking, int $extra): void
     {
-        $departure = $booking->tour_departure_id ? TourDeparture::lockForUpdate()->find($booking->tour_departure_id) : null;
-        if ($departure && $departure->available_seats < $extra) {
-            throw ValidationException::withMessages(['status' => "Only {$departure->available_seats} seats are left on this date; {$extra} needed."]);
+        if ($booking->departure) {
+            \App\Support\Capacity::claim($booking->departure, $extra, auth()->user(), request('override_reason'), 'Booking '.$booking->reference);
         }
     }
 }

@@ -18,7 +18,7 @@ class StaffRoles
         'Sales Manager' => [
             'list-leads', 'create-leads', 'edit-leads',
             'list-customers', 'create-customers', 'edit-customers', 'merge-customers', 'view-customer-birthdays',
-            'list-bookings', 'edit-bookings', 'list-payments', 'record-payments', 'view-financial-info',
+            'list-bookings', 'create-bookings', 'edit-bookings', 'list-payments', 'record-payments', 'view-financial-info',
             'list-tours', 'list-tour-departures', 'list-visa-enquiries', 'edit-visa-enquiries', 'list-contacts',
         ],
         'Content Manager' => [

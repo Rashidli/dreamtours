@@ -194,6 +194,7 @@
     </select>
     <label class="form-label">Guests</label>
     <input class="form-control" type="number" min="1" max="99" name="guests" value="{{ old('guests', $lead->guests ?: 1) }}" required>
+    @include('admin.includes.capacity_override', ['id' => 'cap-convert'])
   </div>
   <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Create booking</button></div>
 </form></div></div>
