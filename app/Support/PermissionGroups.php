@@ -8,7 +8,7 @@ class PermissionGroups
     public const SECTIONS = [
         'Access control' => ['users', 'roles', 'permissions', 'activity-log'],
         'Website CMS' => ['pages', 'page-sections', 'navigation', 'settings', 'words', 'images', 'sliders', 'singles'],
-        'Tours & CRM' => ['payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'assign-departure-staff', 'assigned-departures', 'check-in-passengers', 'undo-check-in', 'leads', 'lead-stages', 'manage-lead-stages', 'customers', 'import-customers', 'merge-customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
+        'Tours & CRM' => ['payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'assign-departure-staff', 'assigned-departures', 'check-in-passengers', 'undo-check-in', 'leads', 'lead-stages', 'manage-lead-stages', 'customers', 'import-customers', 'merge-customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'vehicle-layouts', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
         'Content' => ['company-content', 'abouts', 'reviews', 'faqs', 'gallery-albums', 'gallery-categories', 'gallery-media', 'contact_items', 'socials', 'contacts', 'blogs', 'portfolios', 'services', 'tags'],
     ];
 
@@ -24,7 +24,7 @@ class PermissionGroups
         'activity-log' => 'Activity history', 'words' => 'UI copy', 'navigation' => 'Navigation & footer', 'pages' => 'Pages & SEO',
         'tour-content' => 'Tour content blocks', 'tour-departures' => 'Departure dates', 'bookings' => 'Bookings & enquiries',
         'company-content' => 'Homepage & company content', 'abouts' => 'About content', 'contact_items' => 'Contact information',
-        'socials' => 'Social links', 'contacts' => 'Contact requests', 'visa-services' => 'Visa support pricing',
+        'socials' => 'Social links', 'contacts' => 'Contact requests', 'visa-services' => 'Visa support pricing', 'vehicle-layouts' => 'Vehicle seating templates',
     ];
 
     /** Permissions that are not plain View / Create / Edit / Delete of one area: name => [label, what it allows]. */

@@ -23,7 +23,7 @@
     @can('list-settings')<li><a href="{{route('settings.index')}}"><i class="ri-settings-3-line"></i><span>Global settings</span></a></li>@endcan
     @can('list-words')<li><a href="{{route('words.index')}}"><i class="ri-translate-2"></i><span>UI copy</span></a></li>@endcan
 
-    @canany(['list-tours', 'list-tour-categories', 'list-tour-filters', 'list-inclusions', 'list-destinations', 'list-transportations', 'list-pickup-points', 'list-leads', 'list-payments', 'list-customers', 'list-bookings', 'list-visa-services', 'list-visa-enquiries'])<li class="menu-title">Tours & CRM</li>@endcanany
+    @canany(['list-tours', 'list-tour-categories', 'list-tour-filters', 'list-inclusions', 'list-destinations', 'list-transportations', 'list-pickup-points', 'list-vehicle-layouts', 'list-leads', 'list-payments', 'list-customers', 'list-bookings', 'list-visa-services', 'list-visa-enquiries'])<li class="menu-title">Tours & CRM</li>@endcanany
     @can('list-tours')<li><a href="{{route('tours.index')}}"><i class="ri-suitcase-line"></i><span>Tours & cruises</span></a></li>@endcan
     @can('list-tour-categories')<li><a href="{{route('tour-catalogue.index','categories')}}"><i class="ri-price-tag-3-line"></i><span>Tour categories</span></a></li>@endcan
     @can('list-tour-filters')<li><a href="{{route('tour-filters.index')}}"><i class="ri-filter-3-line"></i><span>Tour filters</span></a></li>@endcan
@@ -31,6 +31,7 @@
     @can('list-destinations')<li><a href="{{route('tour-catalogue.index','destinations')}}"><i class="ri-map-pin-line"></i><span>Destinations</span></a></li>@endcan
     @can('list-transportations')<li><a href="{{route('tour-catalogue.index','transportations')}}"><i class="ri-bus-line"></i><span>Transportation</span></a></li>@endcan
     @can('list-pickup-points')<li><a href="{{route('tour-catalogue.index','pickup-points')}}"><i class="ri-map-pin-2-line"></i><span>Pickup points</span></a></li>@endcan
+    @can('list-vehicle-layouts')<li><a href="{{route('vehicle-layouts.index')}}"><i class="ri-bus-2-line"></i><span>Vehicles & seating</span></a></li>@endcan
     @can('list-leads')
       {{-- New leads and overdue reminders, so nothing waits unnoticed. --}}
       @php($leadsWaiting = \App\Models\Lead::whereHas('stage', fn ($q) => $q->where('key', 'new'))->count() + \App\Models\Lead::followUpDue()->count())

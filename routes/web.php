@@ -160,6 +160,7 @@ Route::prefix('admin')->group(function () {
         Route::put('reviews/{review}/moderate', [ReviewController::class, 'moderate'])->name('reviews.moderate');
         Route::post('departures/{departure}/prices', [TourStructureController::class, 'storePrice'])->name('tour-departure-prices.store');
         Route::delete('departures/{departure}/prices/{price}', [TourStructureController::class, 'destroyPrice'])->name('tour-departure-prices.destroy');
+        Route::resource('vehicle-layouts', \App\Http\Controllers\Admin\VehicleLayoutController::class)->except('show');
         Route::resource('company-content', CompanyContentController::class)->except('show');
         Route::prefix('content/{resource}')->group(function(){Route::get('/',[DomainContentController::class,'index'])->name('domain-content.index');Route::get('create',[DomainContentController::class,'create'])->name('domain-content.create');Route::post('/',[DomainContentController::class,'store'])->name('domain-content.store');Route::get('{item}/edit',[DomainContentController::class,'edit'])->name('domain-content.edit');Route::put('{item}',[DomainContentController::class,'update'])->name('domain-content.update');Route::delete('{item}',[DomainContentController::class,'destroy'])->name('domain-content.destroy');});
         Route::post('gallery-albums/{album}/media',[DomainContentController::class,'storeMedia'])->name('gallery-media.store');

@@ -26,3 +26,20 @@ small, .small { font-size: .92em; }
 .table { font-size: .875rem; }
 .table th { font-weight: 600; }
 .form-label { font-weight: 600; }
+
+/* Seating plans (CRM §9): the vehicle outline with its grid of cells. .sm is the thumbnail size. */
+.seat-plan { display: inline-grid; gap: 6px; padding: 14px 12px 12px; background: #f6f7f9; border: 2px solid #ced4da; border-radius: 26px 26px 10px 10px; }
+.seat-plan .cell { width: 46px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: .8rem; user-select: none; }
+.seat-plan .cell.t-seat { background: #fff; border: 1px solid #b9c0ca; }
+.seat-plan .cell.t-leader { background: rgba(15, 156, 243, .15); color: #0b7bc0; border: 1px dashed #0f9cf3; }
+.seat-plan .cell.t-driver { background: #0a1832; color: #fff; }
+.seat-plan .cell.t-door { background: rgba(255, 187, 68, .3); color: #9a6a00; }
+.seat-plan .cell.t-aisle, .seat-plan .cell.t-empty { background: transparent; }
+.seat-plan .cell.t-empty { border: 1px dashed transparent; }
+.seat-plan.editing .cell { cursor: pointer; }
+.seat-plan.editing .cell.t-aisle, .seat-plan.editing .cell.t-empty { border: 1px dashed #d5d9e0; }
+.seat-plan.editing .cell:hover { outline: 2px solid #0f9cf3; outline-offset: 1px; }
+.seat-plan.sm { gap: 2px; padding: 6px 5px 5px; border-radius: 12px 12px 5px 5px; }
+.seat-plan.sm .cell { width: 15px; height: 13px; border-radius: 3px; font-size: 0; }
+.seat-legend span { display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; }
+.seat-legend i { width: 18px; height: 16px; border-radius: 4px; display: inline-block; }
