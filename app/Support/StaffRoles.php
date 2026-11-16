@@ -38,7 +38,7 @@ class StaffRoles
             'list-visa-services', 'edit-visa-services',
         ],
         'Accountant' => [
-            'list-bookings', 'list-payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info',
+            'list-bookings', 'list-payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'export-bookings',
             'list-customers', 'export-customers', 'list-tours', 'list-tour-departures',
         ],
         'Tour Leader' => ['list-assigned-departures', 'check-in-passengers'],

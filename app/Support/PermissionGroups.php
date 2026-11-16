@@ -8,7 +8,7 @@ class PermissionGroups
     public const SECTIONS = [
         'Access control' => ['users', 'roles', 'permissions', 'activity-log'],
         'Website CMS' => ['pages', 'page-sections', 'navigation', 'settings', 'words', 'images', 'sliders', 'singles'],
-        'Tours & CRM' => ['payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'assign-departure-staff', 'assigned-departures', 'check-in-passengers', 'undo-check-in', 'leads', 'lead-stages', 'manage-lead-stages', 'customers', 'import-customers', 'merge-customers', 'export-customers', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'vehicle-layouts', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
+        'Tours & CRM' => ['payments', 'record-payments', 'confirm-payments', 'refund-payments', 'apply-discounts', 'view-financial-info', 'assign-departure-staff', 'assigned-departures', 'check-in-passengers', 'undo-check-in', 'leads', 'lead-stages', 'manage-lead-stages', 'customers', 'import-customers', 'merge-customers', 'export-customers', 'export-leads', 'export-bookings', 'view-customer-birthdays', 'manage-customer-labels', 'tours', 'tour-categories', 'tour-filters', 'destinations', 'transportations', 'pickup-points', 'vehicle-layouts', 'tour-departures', 'tour-itineraries', 'tour-content', 'bookings', 'visa-enquiries', 'visa-services'],
         'Content' => ['company-content', 'abouts', 'reviews', 'faqs', 'gallery-albums', 'gallery-categories', 'gallery-media', 'contact_items', 'socials', 'contacts', 'blogs', 'portfolios', 'services', 'tags'],
     ];
 
@@ -40,6 +40,8 @@ class PermissionGroups
         'check-in-passengers' => ['Check passengers in', 'Mark Checked in, Boarded, Not arrived or No-show on trips they can open.'],
         'undo-check-in' => ['Undo check-ins', 'Step back or clear any attendance mark. Without it people can only fix their own marks for 10 minutes.'],
         'export-customers' => ['Export customers', 'Download the customer list as CSV.'],
+        'export-leads' => ['Export leads', 'Download the lead list (with its filters) as CSV or Excel.'],
+        'export-bookings' => ['Export bookings', 'Download the booking list as CSV or Excel; amounts only with “View financial information”.'],
         'import-customers' => ['Import customers', 'Upload customer lists from CSV or Excel.'],
         'merge-customers' => ['Merge duplicate customers', 'Combine two records of the same person.'],
         'view-customer-birthdays' => ['See birthdays', 'Date of birth on customer records and the birthday filter.'],

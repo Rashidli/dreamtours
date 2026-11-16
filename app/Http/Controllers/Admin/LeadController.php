@@ -35,9 +35,15 @@ class LeadController extends Controller
         $this->middleware('permission:delete-leads')->only(['destroy']);
     }
 
-    public function index(Request $r): View
+    public function index(Request $r): View|\Symfony\Component\HttpFoundation\Response
     {
         $query = $this->filtered($r)->with(['stage', 'assignedUser', 'tour.translations', 'departure']);
+        if ($format = $r->query('export')) {
+            abort_unless($r->user()->can('export-leads'), 403);
+            abort_unless(in_array($format, \App\Support\TableExport::FORMATS, true), 404);
+
+            return $this->export($r, $query, $format);
+        }
         $stages = LeadStage::active()->get();
         $view = $r->input('view') === 'list' ? 'list' : 'board';
 
@@ -187,6 +193,34 @@ class LeadController extends Controller
             'utm_campaign' => ['nullable', 'string', 'max:150'],
             'assigned_user_id' => ['nullable', 'exists:users,id'],
         ], ['email.required_without_all' => 'Enter an email, phone or WhatsApp number so the lead can be contacted.']);
+    }
+
+    /** The filtered list as CSV or Excel (CRM §25); logged like every export. */
+    private function export(Request $r, Builder $query, string $format): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $tz = ActivityLogController::DISPLAY_TIMEZONE;
+        $leads = $query->latest('id')->get();
+        Activity::record('leads_exported', null, ['rows' => [null, (string) $leads->count()], 'format' => [null, strtoupper($format)], 'filters' => [null, http_build_query($r->except(['export', 'page', 'view'])) ?: 'none']], label: 'Lead list');
+
+        return \App\Support\TableExport::download('dreamtour-leads-'.now($tz)->format('Y-m-d'), $leads, [
+            'Reference' => fn ($l) => $l->reference,
+            'Received' => fn ($l) => $l->created_at?->timezone($tz)->format('Y-m-d H:i'),
+            'Stage' => fn ($l) => $l->stage?->name,
+            'First name' => fn ($l) => $l->first_name,
+            'Last name' => fn ($l) => $l->last_name,
+            'Email' => fn ($l) => $l->email,
+            'Phone' => fn ($l) => $l->phone,
+            'WhatsApp' => fn ($l) => $l->whatsapp,
+            'Tour' => fn ($l) => $l->tour?->name,
+            'Trip date' => fn ($l) => $l->departure?->departs_at?->format('Y-m-d'),
+            'Guests' => fn ($l) => $l->guests,
+            'Source' => fn ($l) => $l->sourceLabel(),
+            'Campaign' => fn ($l) => $l->utm_campaign,
+            'Assigned to' => fn ($l) => $l->assignedUser?->name,
+            'Last contacted' => fn ($l) => $l->last_contacted_at?->timezone($tz)->format('Y-m-d H:i'),
+            'Next follow-up' => fn ($l) => $l->next_follow_up_at?->timezone($tz)->format('Y-m-d H:i'),
+            'Lost reason' => fn ($l) => $l->lost_reason,
+        ], $format);
     }
 
     private function filtered(Request $r): Builder

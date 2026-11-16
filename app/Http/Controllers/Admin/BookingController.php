@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Support\Activity;
 use App\Models\PickupPoint;
 use App\Models\Tour;
 use App\Models\TourDeparture;
@@ -33,9 +34,61 @@ class BookingController extends Controller
         $this->middleware('permission:delete-bookings')->only('destroy');
     }
 
-    public function index(Request $r): View
+    public function index(Request $r): View|\Symfony\Component\HttpFoundation\Response
     {
-        $bookings = Booking::with(['tour.translations', 'departure'])
+        $query = $this->filtered($r);
+        if ($format = $r->query('export')) {
+            abort_unless($r->user()->can('export-bookings'), 403);
+            abort_unless(in_array($format, \App\Support\TableExport::FORMATS, true), 404);
+
+            return $this->export($r, $query, $format);
+        }
+
+        return view('admin.bookings.index', [
+            'bookings' => $query->latest()->paginate(25)->withQueryString(),
+            'tours' => Tour::withTranslation()->orderBy('sort_order')->get(),
+            'departures' => $r->filled('tour_id') ? TourDeparture::where('tour_id', $r->integer('tour_id'))->orderBy('departs_at')->get() : collect(),
+            'pickups' => PickupPoint::withTranslation()->orderBy('sort_order')->get(),
+        ]);
+    }
+
+    /** The list as CSV or Excel (CRM §25). Amounts are included only with view-financial-info. */
+    private function export(Request $r, \Illuminate\Database\Eloquent\Builder $query, string $format): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $tz = ActivityLogController::DISPLAY_TIMEZONE;
+        $bookings = $query->withCount('passengers')->latest()->get();
+        $columns = [
+            'Reference' => fn ($b) => $b->reference,
+            'Booked on' => fn ($b) => $b->created_at?->timezone($tz)->format('Y-m-d H:i'),
+            'Type' => fn ($b) => str($b->type)->replace('_', ' ')->title(),
+            'Status' => fn ($b) => Booking::STATUSES[$b->status] ?? $b->status,
+            'First name' => fn ($b) => $b->first_name,
+            'Last name' => fn ($b) => $b->last_name,
+            'Email' => fn ($b) => $b->email,
+            'Phone' => fn ($b) => $b->phone,
+            'Tour' => fn ($b) => $b->tour?->name,
+            'Trip date' => fn ($b) => $b->departure?->departs_at?->format('Y-m-d'),
+            'Guests' => fn ($b) => $b->participant_count,
+        ];
+        if ($r->user()->can('view-financial-info')) {
+            $amount = fn ($v) => $v === null ? '' : number_format((float) $v, 2, '.', '');
+            $columns += [
+                'Total (CAD)' => fn ($b) => $b->tour_departure_id ? $amount($b->total_amount) : '',
+                'Discounts (CAD)' => fn ($b) => $b->tour_departure_id ? $amount($b->discount_amount) : '',
+                'Paid, net (CAD)' => fn ($b) => $b->tour_departure_id ? $amount($b->amount_paid) : '',
+                'Outstanding (CAD)' => fn ($b) => $b->tour_departure_id ? $amount($b->outstanding_amount) : '',
+                'Payment status' => fn ($b) => Booking::PAYMENT_STATUSES[$b->payment_status] ?? $b->payment_status,
+                'Balance due' => fn ($b) => $b->balance_due_date?->format('Y-m-d'),
+            ];
+        }
+        Activity::record('bookings_exported', null, ['rows' => [null, (string) $bookings->count()], 'format' => [null, strtoupper($format)], 'filters' => [null, http_build_query($r->except(['export', 'page'])) ?: 'none']], label: 'Booking list');
+
+        return \App\Support\TableExport::download('dreamtour-bookings-'.now($tz)->format('Y-m-d'), $bookings, $columns, $format);
+    }
+
+    private function filtered(Request $r): \Illuminate\Database\Eloquent\Builder
+    {
+        return Booking::with(['tour.translations', 'departure'])
             ->when($r->filled('q'), fn ($q) => $q->where(fn ($x) => $x->where('reference', 'like', '%'.$r->q.'%')
                 ->orWhere('first_name', 'like', '%'.$r->q.'%')->orWhere('last_name', 'like', '%'.$r->q.'%')
                 ->orWhere('email', 'like', '%'.$r->q.'%')->orWhere('phone', 'like', '%'.$r->q.'%')->orWhere('whatsapp', 'like', '%'.$r->q.'%')
@@ -48,15 +101,7 @@ class BookingController extends Controller
             ->when($r->filled('payment_status'), fn ($q) => $q->where('payment_status', $r->payment_status))
             // Booked between two dates, in the office's time zone (the dashboard's "bookings today" opens this).
             ->when($r->date('booked_from'), fn ($q, $d) => $q->where('created_at', '>=', Carbon::parse($d->toDateString(), ActivityLogController::DISPLAY_TIMEZONE)->startOfDay()->utc()))
-            ->when($r->date('booked_to'), fn ($q, $d) => $q->where('created_at', '<=', Carbon::parse($d->toDateString(), ActivityLogController::DISPLAY_TIMEZONE)->endOfDay()->utc()))
-            ->latest()->paginate(25)->withQueryString();
-
-        return view('admin.bookings.index', [
-            'bookings' => $bookings,
-            'tours' => Tour::withTranslation()->orderBy('sort_order')->get(),
-            'departures' => $r->filled('tour_id') ? TourDeparture::where('tour_id', $r->integer('tour_id'))->orderBy('departs_at')->get() : collect(),
-            'pickups' => PickupPoint::withTranslation()->orderBy('sort_order')->get(),
-        ]);
+            ->when($r->date('booked_to'), fn ($q, $d) => $q->where('created_at', '<=', Carbon::parse($d->toDateString(), ActivityLogController::DISPLAY_TIMEZONE)->endOfDay()->utc()));
     }
 
     public function show(Booking $booking): View

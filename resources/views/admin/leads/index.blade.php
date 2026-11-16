@@ -30,6 +30,7 @@
     <div class="d-flex flex-wrap gap-2">
       @if($due)<a class="btn btn-sm {{ request()->boolean('due') ? 'btn-danger' : 'btn-outline-danger' }}" href="{{ request()->fullUrlWithQuery(['due' => request()->boolean('due') ? null : 1]) }}"><i class="ri-alarm-warning-line align-middle"></i> {{ $due }} follow-up{{ $due === 1 ? '' : 's' }} due</a>@endif
       @can('manage-lead-stages')<a class="btn btn-sm btn-light" href="{{ route('lead-stages.index') }}"><i class="ri-settings-3-line align-middle"></i> Stages</a>@endcan
+      @can('export-leads')<div class="btn-group"><a class="btn btn-sm btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'xlsx', 'page' => null]) }}" title="Download the leads matching these filters"><i class="ri-file-excel-2-line"></i> Excel</a><a class="btn btn-sm btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'csv', 'page' => null]) }}">CSV</a></div>@endcan
       @can('create-leads')<a class="btn btn-sm btn-primary" href="{{ route('leads.create') }}"><i class="ri-add-line align-middle"></i> New lead</a>@endcan
     </div>
   </div>
