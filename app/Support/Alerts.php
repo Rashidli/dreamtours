@@ -29,6 +29,8 @@ class Alerts
         'tour_almost_full' => ['Tour almost full', 'ri-bus-line', 'warning', 'list-bookings'],
         'tour_full' => ['Tour full', 'ri-bus-fill', 'danger', 'list-bookings'],
         'upcoming_tour' => ['Upcoming tour', 'ri-map-2-line', 'info', 'list-bookings'],
+        'waitlist_joined' => ['Joined the waitlist', 'ri-user-add-line', 'primary', 'list-bookings'],
+        'waitlist_seat_free' => ['Seat free for the waitlist', 'ri-user-star-line', 'success', 'list-bookings'],
         'email_failed' => ['Email not delivered', 'ri-mail-close-line', 'danger', 'list-bookings'],
         'support_request' => ['Contact request', 'ri-mail-line', 'primary', 'list-contacts'],
     ];
@@ -124,6 +126,7 @@ class Alerts
             return;
         }
         self::resolve("full:{$d->id}", 'Seats freed up');
+        Waitlist::seatsFreed($d);
         if ($left <= (int) setting('alert_almost_full_seats', 5)) {
             self::raise('tour_almost_full', "almost-full:{$d->id}", 'Almost full: '.$what, "{$left} of {$d->capacity} seats left", route('tour-departures.passengers', $d), $d);
         }

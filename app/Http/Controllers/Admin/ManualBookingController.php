@@ -56,8 +56,14 @@ class ManualBookingController extends Controller
     public function create(Request $request): View
     {
         $customer = $request->filled('customer') ? Customer::find($request->integer('customer')) : null;
+        // Booking someone off the waitlist: their details, date and party size are filled in.
+        $entry = $request->filled('waitlist') ? \App\Models\WaitlistEntry::active()->find($request->integer('waitlist')) : null;
+        $customer ??= $entry?->customer;
 
-        return view('admin.bookings.create', ['departures' => self::departureOptions(), 'customer' => $customer]);
+        return view('admin.bookings.create', [
+            'departures' => self::departureOptions(), 'customer' => $customer, 'waitlist' => $entry,
+            'prefill' => $entry ? array_merge([['first_name' => $entry->first_name, 'last_name' => $entry->last_name, 'phone' => $entry->phone]], array_fill(0, max(0, $entry->guests - 1), ['last_name' => $entry->last_name])) : [],
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -82,6 +88,7 @@ class ManualBookingController extends Controller
             'comments' => ['nullable', 'string', 'max:2000'],
             'internal_notes' => ['nullable', 'string', 'max:5000'],
             'send_confirmation' => ['nullable', 'boolean'],
+            'waitlist_entry_id' => ['nullable', 'integer', 'exists:waitlist_entries,id'],
         ]);
         $option = $departures[$d['tour_departure_id']];
         $fares = collect($option['fares'])->keyBy('code');
@@ -145,6 +152,9 @@ class ManualBookingController extends Controller
 
             return $booking;
         });
+        if (!empty($d['waitlist_entry_id']) && ($entry = \App\Models\WaitlistEntry::active()->find($d['waitlist_entry_id']))) {
+            \App\Support\Waitlist::booked($entry, $booking);
+        }
         if ($booking->status === 'confirmed' && $request->boolean('send_confirmation')) {
             BookingMail::confirmed($booking);
         }

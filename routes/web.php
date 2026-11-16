@@ -63,6 +63,8 @@ Route::get('docs/{name}.md', function (string $name) {
 Route::post('visa-enquiries', [\App\Http\Controllers\VisaEnquiryController::class, 'store'])->middleware('throttle:10,1')->name('front.visa-enquiries.store');
 Route::get('tours/{slug}', [TourPageController::class,'show'])->middleware('frontend.copy')->name('front.tours.show');
 Route::get('tours/{slug}/book', [BookingPageController::class, 'create'])->middleware('frontend.copy')->name('front.tours.book');
+Route::get('tours/{slug}/waitlist', [\App\Http\Controllers\WaitlistPageController::class, 'create'])->middleware('frontend.copy')->name('front.waitlist.create');
+Route::post('tours/{slug}/waitlist', [\App\Http\Controllers\WaitlistPageController::class, 'store'])->middleware('throttle:6,1')->name('front.waitlist.store');
 Route::post('tours/{slug}/book', [BookingPageController::class, 'store'])->middleware('throttle:10,1')->name('front.tours.book.store');
 Route::get('booking/{booking}', [BookingPageController::class, 'thankYou'])->middleware(['signed', 'frontend.copy'])->name('front.bookings.thank-you');
 Route::post('tours/{slug}/reviews', [FrontReviewController::class, 'store'])->middleware('throttle:5,1')->name('front.reviews.store');
@@ -193,6 +195,11 @@ Route::prefix('admin')->group(function () {
         Route::post('departures/{departure}/vehicles', [\App\Http\Controllers\Admin\SeatingController::class, 'storeVehicle'])->name('departure-vehicles.store');
         Route::put('departures/{departure}/vehicles/{vehicle}', [\App\Http\Controllers\Admin\SeatingController::class, 'updateVehicle'])->name('departure-vehicles.update');
         Route::delete('departures/{departure}/vehicles/{vehicle}', [\App\Http\Controllers\Admin\SeatingController::class, 'destroyVehicle'])->name('departure-vehicles.destroy');
+        Route::get('waitlist', [\App\Http\Controllers\Admin\WaitlistController::class, 'index'])->name('waitlist.index');
+        Route::post('waitlist', [\App\Http\Controllers\Admin\WaitlistController::class, 'store'])->name('waitlist.store');
+        Route::post('waitlist/{entry}/offer', [\App\Http\Controllers\Admin\WaitlistController::class, 'offer'])->name('waitlist.offer');
+        Route::post('waitlist/{entry}/remove', [\App\Http\Controllers\Admin\WaitlistController::class, 'remove'])->name('waitlist.remove');
+        Route::post('waitlist/{entry}/move', [\App\Http\Controllers\Admin\WaitlistController::class, 'move'])->name('waitlist.move');
         Route::get('alerts', [\App\Http\Controllers\Admin\AlertController::class, 'index'])->name('alerts.index');
         Route::get('alerts/dropdown', [\App\Http\Controllers\Admin\AlertController::class, 'dropdown'])->name('alerts.dropdown');
         Route::post('alerts/done', [\App\Http\Controllers\Admin\AlertController::class, 'completeAll'])->name('alerts.complete-all');

@@ -43,6 +43,10 @@
     @endcan
     @can('list-customers')<li><a href="{{route('customers.index')}}"><i class="ri-contacts-book-line"></i><span>Customers</span></a></li>@endcan
     @can('list-bookings')<li><a href="{{route('bookings.index')}}"><i class="ri-calendar-check-line"></i><span>Bookings & enquiries</span></a></li>@endcan
+    @can('list-bookings')
+      @php($waiting = \App\Models\WaitlistEntry::where('status', 'waiting')->whereHas('departure', fn ($q) => $q->where('departs_at', '>=', now()))->count())
+      <li><a href="{{route('waitlist.index')}}"><i class="ri-list-ordered"></i>@if($waiting)<span class="badge rounded-pill bg-secondary float-end" title="People waiting for a seat">{{ $waiting }}</span>@endif<span>Waitlist</span></a></li>
+    @endcan
     @can('list-bookings')<li><a href="{{route('email-previews.index')}}"><i class="ri-mail-open-line"></i><span>Email previews</span></a></li>@endcan
     @can('list-visa-services')<li><a href="{{route('domain-content.index','visa-services')}}"><i class="ri-passport-line"></i><span>Visa Support Pricing</span></a></li>@endcan
     @can('list-visa-enquiries')<li><a href="{{route('visa-enquiries.index')}}"><i class="ri-question-answer-line"></i><span>Visa enquiries</span></a></li>@endcan

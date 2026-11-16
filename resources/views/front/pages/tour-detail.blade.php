@@ -201,6 +201,8 @@
                       <div class="border-t border-ink-100 bg-white p-4">
                         @if($departure->is_bookable && !$tour->is_private)
                           <a href="{{ route('front.tours.book', ['slug' => $tour->slug, 'departure' => $departure->id]) }}" class="btn btn-primary w-full">Book Now — {{ $departure->departs_at->format('M j') }}</a>
+                        @elseif($departure->public_status === 'sold_out' && !$tour->is_private && $departure->departs_at->isFuture())
+                          <a href="{{ route('front.waitlist.create', ['slug' => $tour->slug, 'departure' => $departure->id]) }}" class="btn btn-ghost w-full">Sold out — join the waitlist</a>
                         @else
                           <span class="btn w-full cursor-not-allowed bg-ink-100 text-ink-400">{{ $departure->status_label }}</span>
                         @endif

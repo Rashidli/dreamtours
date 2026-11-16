@@ -18,6 +18,10 @@
 
 <form method="post" action="{{ route('bookings.store') }}" id="new-booking">@csrf
 <input type="hidden" name="customer_id" id="customer-id" value="{{ old('customer_id', $customer?->id) }}">
+@if($waitlist)
+  <input type="hidden" name="waitlist_entry_id" value="{{ $waitlist->id }}">
+  <div class="alert alert-info"><i class="ri-list-ordered me-1"></i>Booking <b>{{ $waitlist->full_name }}</b> from the waitlist ({{ $waitlist->guests }} {{ str('seat')->plural($waitlist->guests) }}). Their waitlist entry closes when this booking is saved.</div>
+@endif
 <div class="row g-3">
   <div class="col-xl-8">
     <div class="card crm-filters"><div class="card-body">
@@ -27,10 +31,10 @@
       <div class="alert alert-info py-2 {{ old('customer_id', $customer?->id) ? '' : 'd-none' }}" id="customer-linked"><i class="ri-links-line me-1"></i>Linked to customer <b id="customer-linked-name">{{ $customer?->full_name }}</b>. <a href="#" id="customer-unlink">Unlink</a></div>
       @endcan
       <div class="row g-3">
-        <div class="col-md-6"><label class="form-label" for="b-first">First name</label><input class="form-control" id="b-first" name="first_name" value="{{ old('first_name', $customer?->first_name) }}" required maxlength="100"></div>
-        <div class="col-md-6"><label class="form-label" for="b-last">Last name</label><input class="form-control" id="b-last" name="last_name" value="{{ old('last_name', $customer?->last_name) }}" required maxlength="100"></div>
-        <div class="col-md-4"><label class="form-label" for="b-email">Email</label><input class="form-control" type="email" id="b-email" name="email" value="{{ old('email', $customer?->email) }}" required></div>
-        <div class="col-md-4"><label class="form-label" for="b-phone">Phone</label><input class="form-control" id="b-phone" name="phone" value="{{ old('phone', $customer?->phone) }}" required maxlength="30"></div>
+        <div class="col-md-6"><label class="form-label" for="b-first">First name</label><input class="form-control" id="b-first" name="first_name" value="{{ old('first_name', $customer?->first_name ?? $waitlist?->first_name) }}" required maxlength="100"></div>
+        <div class="col-md-6"><label class="form-label" for="b-last">Last name</label><input class="form-control" id="b-last" name="last_name" value="{{ old('last_name', $customer?->last_name ?? $waitlist?->last_name) }}" required maxlength="100"></div>
+        <div class="col-md-4"><label class="form-label" for="b-email">Email</label><input class="form-control" type="email" id="b-email" name="email" value="{{ old('email', $customer?->email ?? $waitlist?->email) }}" required></div>
+        <div class="col-md-4"><label class="form-label" for="b-phone">Phone</label><input class="form-control" id="b-phone" name="phone" value="{{ old('phone', $customer?->phone ?? $waitlist?->phone) }}" required maxlength="30"></div>
         <div class="col-md-4"><label class="form-label" for="b-wa">WhatsApp <span class="text-muted fw-normal">(optional)</span></label><input class="form-control" id="b-wa" name="whatsapp" value="{{ old('whatsapp', $customer?->whatsapp) }}" maxlength="30"></div>
       </div>
     </div></div>
@@ -41,7 +45,7 @@
       <select class="form-select" id="b-dep" name="tour_departure_id" required>
         <option value="">Choose a date…</option>
         @foreach(collect($departures)->groupBy('tour') as $tourName => $dates)
-          <optgroup label="{{ $tourName }}">@foreach($dates as $o)<option value="{{ $o['id'] }}" @selected(old('tour_departure_id', request('departure')) == $o['id'])>{{ $o['label'] }} · {{ $o['left'] }} {{ str('seat')->plural($o['left']) }} left{{ $o['left'] ? '' : ' (full)' }}</option>@endforeach</optgroup>
+          <optgroup label="{{ $tourName }}">@foreach($dates as $o)<option value="{{ $o['id'] }}" @selected(old('tour_departure_id', $waitlist?->tour_departure_id ?? request('departure')) == $o['id'])>{{ $o['label'] }} · {{ $o['left'] }} {{ str('seat')->plural($o['left']) }} left{{ $o['left'] ? '' : ' (full)' }}</option>@endforeach</optgroup>
         @endforeach
       </select>
       <div class="form-text" id="dep-info"></div>
@@ -80,7 +84,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const deps = @json($departures);
-  const old = @json(old('passengers', []));
+  const old = @json(old('passengers', $prefill));
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = (n, cur) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: cur || 'CAD' }).format(n);
