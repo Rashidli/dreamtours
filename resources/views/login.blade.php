@@ -6,6 +6,7 @@
     <meta charset="utf-8" />
     <title>{{ config('app.name') }} - Giriş</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <meta content="{{ config('app.name') }} Admin Panel" name="description" />
     <meta content="{{ config('app.name') }}" name="author" />
     <!-- App favicon -->

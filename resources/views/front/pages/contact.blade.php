@@ -8,6 +8,7 @@
   $mapLink     = $address
       ? 'https://www.google.com/maps/search/'.rawurlencode($address)
       : 'https://www.google.com/maps/search/pick-up+points+Greater+Toronto+Area';
+  $seoSchema = $showSection('faq') ? [\App\Support\Seo::faq($frontendData['faqs'] ?? [])] : [];
 @endphp
 <!doctype html>
 <html lang="en" class="scroll-smooth">

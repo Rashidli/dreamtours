@@ -53,6 +53,8 @@ foreach ($frontPages as $uri => $view) {
         ->middleware('frontend.copy')
         ->name("front.{$view}");
 }
+Route::get('sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'sitemap'])->name('sitemap');
+Route::get('robots.txt', [\App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
 Route::post('booking-requests', [FrontBookingController::class,'store'])->name('front.bookings.store');
 // Project reports kept in docs/ (Markdown), shown in the browser as plain UTF-8 text.
 Route::get('docs/{name}.md', function (string $name) {

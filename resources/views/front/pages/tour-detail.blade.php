@@ -2,9 +2,22 @@
 <html lang="en" class="scroll-smooth">
 <head>
   @php
-    // Link previews: the tour's name and summary with the logo card, like every other page.
+    // Link previews: the tour's name, summary and its own photo (logo card if it has none).
     $ogTitle = $tour->name;
     $ogDescription = $tour->short_description;
+    $ogImage = \App\Support\SocialImage::photo($tour->main_image);
+    // Rich results: the trip with its departures as offers, breadcrumbs and the tour's FAQ.
+    $seoCategory = $tour->categories->first();
+    $seoHome = rtrim(config('app.url'), '/');
+    $seoSchema = [
+      \App\Support\Seo::tour($tour, $photos, $rating, $tour->reviews->count()),
+      \App\Support\Seo::breadcrumbs(array_values(array_filter([
+        ['Home', $seoHome.'/'],
+        $seoCategory ? [$seoCategory->name, $seoHome.match($seoCategory->slug) { 'multi-day' => '/multi-day-tours', 'international' => '/international-tours', 'cruises' => '/cruises', 'private' => '/private-tours', default => '/one-day-tours' }] : null,
+        [$tour->name, \App\Support\Seo::canonical()],
+      ]))),
+      \App\Support\Seo::faq($tour->contentItems->where('type', 'faq')->map(fn ($f) => ['q' => $f->title, 'a' => $f->description])),
+    ];
   @endphp
   @include('front.partials.head_assets')
   <title>{{ $tour->name }} | {{ $siteSettings->get('site_name', 'DreamTour') }}</title>
