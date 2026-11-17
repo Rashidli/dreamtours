@@ -29,7 +29,10 @@ class SeoTest extends TestCase
         $response = $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml; charset=utf-8');
         $xml = simplexml_load_string($response->getContent());
         $this->assertNotFalse($xml);
-        $locs = collect($xml->url)->map(fn ($u) => (string) $u->loc);
+        $locs = [];
+        foreach ($xml->url as $url) {
+            $locs[] = (string) $url->loc;
+        }
 
         $this->assertContains($base.'/', $locs);
         $this->assertContains($base.'/one-day-tours', $locs);
