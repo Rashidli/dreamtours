@@ -5,7 +5,7 @@
     // Link previews: the tour's name, summary and its own photo (logo card if it has none).
     $ogTitle = $tour->name;
     $ogDescription = $tour->short_description;
-    $ogImage = \App\Support\SocialImage::photo($tour->main_image);
+    $ogImage = \App\Support\SocialImage::photo($tour->getRawOriginal('main_image'));
     // Rich results: the trip with its departures as offers, breadcrumbs and the tour's FAQ.
     $seoCategory = $tour->categories->first();
     $seoHome = rtrim(config('app.url'), '/');
