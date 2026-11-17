@@ -30,6 +30,20 @@ class SocialImage
         });
     }
 
+    /** A photo (e.g. a tour's main image) cropped to fill the 1200×630 card, centred. */
+    public static function photo(?string $path): ?string
+    {
+        return self::build((string) $path, 'photo', function (\GdImage $photo) {
+            $card = self::canvas();
+            [$sw, $sh] = [imagesx($photo), imagesy($photo)];
+            $scale = max(self::WIDTH / $sw, self::HEIGHT / $sh);
+            [$cw, $ch] = [(int) round(self::WIDTH / $scale), (int) round(self::HEIGHT / $scale)];
+            imagecopyresampled($card, $photo, 0, 0, intdiv($sw - $cw, 2), intdiv($sh - $ch, 2), self::WIDTH, self::HEIGHT, $cw, $ch);
+
+            return $card;
+        });
+    }
+
     /** Public URL of the cached JPEG, building it on first use; null when the source can't be read. */
     private static function build(string $source, string $kind, callable $draw): ?string
     {

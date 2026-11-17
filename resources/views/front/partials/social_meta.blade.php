@@ -10,7 +10,7 @@
 @endphp
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ $ogSite }}">
-<meta property="og:url" content="{{ url()->current() }}">
+<meta property="og:url" content="{{ \App\Support\Seo::canonical() }}">
 <meta property="og:title" content="{{ $ogTitle }}">
 <meta property="og:description" content="{{ str($ogDescription)->squish()->limit(200) }}">
 <meta property="og:image" content="{{ $ogImage }}">
@@ -24,3 +24,7 @@
 <meta name="twitter:title" content="{{ $ogTitle }}">
 <meta name="twitter:description" content="{{ str($ogDescription)->squish()->limit(200) }}">
 <meta name="twitter:image" content="{{ $ogImage }}">
+{{-- One address per page for search engines (no www., /index.php or ?utm=…), and the
+     company + website schema on every page. A page may add blocks via $seoSchema. --}}
+<link rel="canonical" href="{{ \App\Support\Seo::canonical() }}">
+{!! \App\Support\Seo::jsonLd(array_merge([\App\Support\Seo::organization(), \App\Support\Seo::website()], $seoSchema ?? [])) !!}

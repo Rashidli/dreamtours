@@ -7,7 +7,7 @@
     <title>{{ $cmsPage->meta_title ?: $cmsPage->title }}</title>
     <meta
       name="description"
-      content="{{ $cmsPage->meta_description ?: 'DreamTour — day trips, multi-day tours, cruises and private journeys.' }}"
+      content="{{ $cmsPage->meta_description ?: 'Guided day trips, multi-day tours, cruises and private journeys from the Greater Toronto Area — escorted coach tours across Ontario, Québec and beyond with DreamTour.' }}"
     />
     @if($cmsPage->meta_keywords)<meta name="keywords" content="{{ $cmsPage->meta_keywords }}" />@endif
 
@@ -593,7 +593,6 @@
           </div>
 
           <div
-            x-data="{ photos: window.DreamTourData.gallery }"
             class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
           >
             @foreach($frontendData['gallery'] as $p)
