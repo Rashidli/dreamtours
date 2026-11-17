@@ -163,6 +163,22 @@ sudo -u www-data php artisan up
 | Tour Leader | Yalnız My trips + check-in |
 | editor, test | Köhnə rollar, istifadəçisi yoxdur |
 
+### Texniki SEO (2026-11-17, production-da)
+
+- **Branch:** `seo`, `phase-1-tz-fixes`-dən ayrılıb (modul 7–9 production-a getməsin deyə). Production-a fast-forward ilə çıxıb, `develop`-a merge olunub.
+- **Kod:**
+  - `App\Support\Seo`: canonical (APP_URL + path, query-siz) və JSON-LD. Sayt üzrə TravelAgency + WebSite; tur səhifəsində Product/TouristTrip (offers, aggregateRating), BreadcrumbList, FAQPage; Contact-da FAQPage.
+  - Səhifə əlavə blokları `$seoSchema` ilə ötürür, `social_meta` hamısını çap edir.
+  - `SitemapController`: `/sitemap.xml` və `/robots.txt` (production-dan başqa yerdə `Disallow: /`). `public/robots.txt` silinib.
+  - `SocialImage::photo()`: turun öz şəkli 1200×630 kart olur. Xam yolu `getRawOriginal('main_image')` ilə ver, çünki accessor URL qaytarır.
+  - `front.partials.data`: `gallery` göndərilmir, `galleryAlbums` yalnız Gallery səhifəsində göndərilir (~95 KB qənaət). Admin login `noindex`-dir. Testlər: `tests/Feature/SeoTest.php`.
+- **nginx** (repoda deyil, backup: `/root/backups/nginx-*-before-seo-20261117-070629*`):
+  - `snippets/dreamtour-performance.conf` (CSS/JS/JSON/SVG üçün gzip);
+  - HSTS;
+  - `/index.php` → təmiz URL;
+  - statik fayllar 30 gün keşlənir, `/assets/` (admin) keşlənmir;
+  - production-da `www` → `https://dreamtourpa.com` 301.
+
 ## 5. UI qaydaları (ortaq CSS)
 
 - **Fayl:** `public/assets/css/admin-crm.css`. `admin/includes/header` vasitəsilə bütün admin səhifələrinə yüklənir.
