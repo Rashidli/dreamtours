@@ -93,11 +93,16 @@
 .tl-filter-btn { border: 1px solid #dee2e6; background: #fff; color: #74788d; border-radius: 6px; width: 30px; height: 28px; display: grid; place-items: center; padding: 0; }
 .tl-filter-btn:hover { border-color: var(--bs-primary); color: var(--bs-primary); }
 .tl-filter-btn.active { background: var(--bs-primary); border-color: var(--bs-primary); color: #fff; }
-.tl-menu { width: 290px; padding: .75rem; white-space: normal; font-weight: 400; }
+.tl-menu-wrap { position: relative; }
+.tl-menu { display: none; position: fixed; z-index: 1060; width: 290px; padding: .75rem; white-space: normal; font-weight: 400; text-align: left;
+  background: #fff; border: 1px solid #e9ebec; border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 23, 42, .15); overflow-y: auto; color: #495057; }
+.tl-menu.tl-open { display: block; }
+.tl-menu .dropdown-divider { margin: .5rem 0; border-top: 1px solid #eef0f3; }
+.tl-menu .dropdown-item { display: block; color: #495057; text-decoration: none; }
+.tl-menu .dropdown-item:hover { background: #f3f6f9; }
 .tl-menu-wide { width: 340px; }
 .tl-menu .dropdown-item { border-radius: 6px; padding: .4rem .5rem; }
 .tl-menu .dropdown-item i { margin-right: .35rem; color: #74788d; }
 .tl-checklist-items { max-height: 240px; overflow: auto; }
 .tl-checklist .form-check { padding-top: .2rem; padding-bottom: .2rem; }
 .tl-menu-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #eef0f3; }
-.tl-menu { z-index: 1060; box-shadow: 0 10px 30px rgba(15, 23, 42, .15); }

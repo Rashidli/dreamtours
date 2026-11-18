@@ -81,8 +81,8 @@
       {{-- Tour --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('name') }}" class="tl-sort {{ $sort === 'name' ? 'active' : '' }}">Tour <i class="{{ $sortIcon('name') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['name'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter tours"><i class="ri-filter-3-line"></i></button>
-          <div class="dropdown-menu tl-menu">
+        <div class="tl-menu-wrap"><button type="button" class="tl-filter-btn {{ $columnActive['name'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter tours"><i class="ri-filter-3-line"></i></button>
+          <div class="tl-menu" role="dialog">
             <a class="dropdown-item" href="{{ $sortUrl('name', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('name', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
             <div class="form-check"><input class="form-check-input" type="checkbox" form="tour-list-filters" name="home" value="1" id="f-home" @checked(request()->boolean('home'))><label class="form-check-label" for="f-home">On the home page</label></div>
@@ -94,8 +94,8 @@
       {{-- Destination --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('destination') }}" class="tl-sort {{ $sort === 'destination' ? 'active' : '' }}">Destination <i class="{{ $sortIcon('destination') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['destination'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by destination"><i class="ri-filter-3-line"></i></button>
-          <div class="dropdown-menu tl-menu">
+        <div class="tl-menu-wrap"><button type="button" class="tl-filter-btn {{ $columnActive['destination'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by destination"><i class="ri-filter-3-line"></i></button>
+          <div class="tl-menu" role="dialog">
             <a class="dropdown-item" href="{{ $sortUrl('destination', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('destination', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
             @include('admin.tours._list_checklist', ['name' => 'destination_id', 'options' => $destinations->map(fn ($d) => [$d->id, $d->name, $d->tours_count])->push([0, 'No destination', null]), 'picked' => $picked['destination_id']])
@@ -105,8 +105,8 @@
       {{-- Categories --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('category') }}" class="tl-sort {{ $sort === 'category' ? 'active' : '' }}">Categories <i class="{{ $sortIcon('category') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['category'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by category"><i class="ri-filter-3-line"></i></button>
-          <div class="dropdown-menu tl-menu">
+        <div class="tl-menu-wrap"><button type="button" class="tl-filter-btn {{ $columnActive['category'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by category"><i class="ri-filter-3-line"></i></button>
+          <div class="tl-menu" role="dialog">
             <a class="dropdown-item" href="{{ $sortUrl('category', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('category', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
             @include('admin.tours._list_checklist', ['name' => 'category_id', 'options' => $categories->map(fn ($c) => [$c->id, $c->name, $c->tours_count])->push([0, 'No category', null]), 'picked' => $picked['category_id']])
@@ -116,8 +116,8 @@
       {{-- Dates --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('dates') }}" class="tl-sort {{ $sort === 'dates' ? 'active' : '' }}">Dates <i class="{{ $sortIcon('dates') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['dates'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by departure date"><i class="ri-filter-3-line"></i></button>
-          <div class="dropdown-menu tl-menu tl-menu-wide">
+        <div class="tl-menu-wrap"><button type="button" class="tl-filter-btn {{ $columnActive['dates'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by departure date"><i class="ri-filter-3-line"></i></button>
+          <div class="tl-menu tl-menu-wide" role="dialog">
             <a class="dropdown-item" href="{{ $sortUrl('dates', 'asc') }}"><i class="ri-sort-asc"></i> Earliest date first</a><a class="dropdown-item" href="{{ $sortUrl('dates', 'desc') }}"><i class="ri-sort-desc"></i> Latest date first</a>
             <div class="dropdown-divider"></div>
             <div class="tf-label mb-2">Departs between</div>
@@ -136,8 +136,8 @@
       {{-- Status --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('status') }}" class="tl-sort {{ $sort === 'status' ? 'active' : '' }}">Status <i class="{{ $sortIcon('status') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['status'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by status"><i class="ri-filter-3-line"></i></button>
-          <div class="dropdown-menu tl-menu">
+        <div class="tl-menu-wrap"><button type="button" class="tl-filter-btn {{ $columnActive['status'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by status"><i class="ri-filter-3-line"></i></button>
+          <div class="tl-menu" role="dialog">
             <a class="dropdown-item" href="{{ $sortUrl('status', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('status', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
             @include('admin.tours._list_checklist', ['name' => 'status', 'options' => collect($statusLabels)->map(fn ($label, $value) => [$value, $label, null])->values(), 'picked' => $picked['status'], 'searchable' => false])
@@ -178,44 +178,51 @@
   {{$tours->links('admin.vendor.pagination.bootstrap-5')}}
 </div></div></div></div></div>
 <script>
-// Header filter menus. Their own small toggle (not Bootstrap's): the admin footer loads Bootstrap JS 5.0.2
-// (the theme CSS is 5.1.3), which has no data-bs-auto-close and positions menus inside the scrolling table.
+// Header filter menus with their own toggle (not Bootstrap's dropdown: the admin loads Bootstrap JS 5.0.2
+// while the theme CSS is 5.1.3). An open menu is moved to <body> so the scrolling table, the theme's
+// dropdown styles and other click handlers cannot hide it; its inputs still belong to #tour-list-filters.
 (function () {
-  const closeAll = function (except) {
-    document.querySelectorAll('.tl-menu.show').forEach(function (menu) {
-      if (menu === except) return;
-      menu.classList.remove('show');
-      const btn = menu.parentElement.querySelector('[data-tl-menu]'); if (btn) btn.setAttribute('aria-expanded', 'false');
-    });
+  const openMenus = new Set();
+  const close = function (menu) {
+    menu.classList.remove('tl-open');
+    if (menu._tlHome) menu._tlHome.appendChild(menu);
+    if (menu._tlBtn) menu._tlBtn.setAttribute('aria-expanded', 'false');
+    openMenus.delete(menu);
   };
-  const place = function (btn, menu) {
-    const r = btn.getBoundingClientRect();
-    menu.style.position = 'fixed'; menu.style.inset = 'auto'; menu.style.margin = '0'; menu.style.transform = 'none';
+  const closeAll = function (except) { Array.from(openMenus).forEach(function (m) { if (m !== except) close(m); }); };
+  const place = function (menu) {
+    const r = menu._tlBtn.getBoundingClientRect();
     const width = menu.offsetWidth;
     let left = r.left; if (left + width > window.innerWidth - 8) left = Math.max(8, r.right - width);
     const top = r.bottom + 6;
     menu.style.left = left + 'px'; menu.style.top = top + 'px';
-    menu.style.maxHeight = Math.max(200, window.innerHeight - top - 12) + 'px'; menu.style.overflowY = 'auto';
+    menu.style.maxHeight = Math.max(220, window.innerHeight - top - 12) + 'px';
+  };
+  const open = function (btn, menu) {
+    closeAll(menu);
+    menu._tlBtn = btn; menu._tlHome = btn.parentElement;
+    document.body.appendChild(menu);
+    menu.classList.add('tl-open');
+    btn.setAttribute('aria-expanded', 'true');
+    openMenus.add(menu);
+    place(menu);
+    const field = menu.querySelector('input[type="search"], input[type="date"], select');
+    if (field) field.focus({ preventScroll: true });
   };
   document.addEventListener('click', function (e) {
     const btn = e.target.closest('[data-tl-menu]');
     if (btn) {
       e.preventDefault();
-      const menu = btn.parentElement.querySelector('.tl-menu');
-      const opening = !menu.classList.contains('show');
-      closeAll(menu);
-      menu.classList.toggle('show', opening);
-      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
-      if (opening) { place(btn, menu); const field = menu.querySelector('input[type="search"], input[type="date"], select'); if (field) field.focus({ preventScroll: true }); }
+      const menu = btn._tlMenu || (btn._tlMenu = btn.parentElement.querySelector('.tl-menu'));
+      if (menu.classList.contains('tl-open')) close(menu); else open(btn, menu);
       return;
     }
     if (!e.target.closest('.tl-menu')) closeAll();
-  });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
-  window.addEventListener('resize', function () { closeAll(); });
-  window.addEventListener('scroll', function () {
-    document.querySelectorAll('.tl-menu.show').forEach(function (menu) { place(menu.parentElement.querySelector('[data-tl-menu]'), menu); });
   }, true);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
+  const reposition = function () { openMenus.forEach(place); };
+  window.addEventListener('resize', reposition);
+  window.addEventListener('scroll', function (e) { if (!(e.target.closest && e.target.closest('.tl-menu'))) reposition(); }, true);
 })();
 document.addEventListener('click', function (e) {
   const preset = e.target.closest('[data-date-preset]');
