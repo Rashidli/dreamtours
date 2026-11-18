@@ -179,6 +179,16 @@ sudo -u www-data php artisan up
   - statik fayllar 30 gün keşlənir, `/assets/` (admin) keşlənmir;
   - production-da `www` → `https://dreamtourpa.com` 301.
 
+### Sayt taskları branch-ı `site-tasks` (2026-11-18, yalnız staging-də)
+
+- Bu branch `phase-1-tz-fixes`-dən ayrılıb, `develop`-a merge olunur. Production-a `git push origin site-tasks:phase-1-tz-fixes` ilə çıxacaq.
+- **Tur SEO** (f4a2a88), migrasiya `2026_11_18_000001` (əlavə edir):
+  - `tour_translations.meta_title`, `meta_description`; `tour_slug_redirects` cədvəli.
+  - Admin formada `admin/tours/_seo.blade.php` bloku var.
+  - `TourTranslation::$slugLocked`: ad dəyişəndə slug dəyişmir.
+  - Köhnə slug `TourSlugRedirect::redirectFor` ilə 301 verir (tur və book səhifələri).
+  - `GeneratesSlug` trait-i əl ilə yazılmış slug-ı saxlayır (bütün 6 model üçün).
+
 ## 5. UI qaydaları (ortaq CSS)
 
 - **Fayl:** `public/assets/css/admin-crm.css`. `admin/includes/header` vasitəsilə bütün admin səhifələrinə yüklənir.
