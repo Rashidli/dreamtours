@@ -99,6 +99,7 @@ Route::prefix('admin')->group(function () {
         Route::resource('page-sections', PageSectionController::class)->only(['index', 'edit', 'update']);
         Route::resource('navigation-items', NavigationItemController::class)->except('show');
         Route::resource('tours', TourController::class)->except('show');
+        Route::post('tours/{tour}/duplicate', [\App\Http\Controllers\Admin\TourDuplicateController::class, 'store'])->name('tours.duplicate');
         Route::get('tour-filters', [\App\Http\Controllers\Admin\TourFilterController::class, 'index'])->name('tour-filters.index');
         Route::resource('inclusions', \App\Http\Controllers\Admin\InclusionController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::post('tour-filters', [\App\Http\Controllers\Admin\TourFilterController::class, 'store'])->name('tour-filters.store');
