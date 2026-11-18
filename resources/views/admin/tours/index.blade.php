@@ -178,8 +178,8 @@
   {{$tours->links('admin.vendor.pagination.bootstrap-5')}}
 </div></div></div></div></div>
 <script>
-// Header filter menus. Their own small toggle (not Bootstrap's): the admin footer loads Bootstrap
-// three times, so a data-bs-toggle="dropdown" opens and closes again on the same click.
+// Header filter menus. Their own small toggle (not Bootstrap's): the admin footer loads Bootstrap JS 5.0.2
+// (the theme CSS is 5.1.3), which has no data-bs-auto-close and positions menus inside the scrolling table.
 (function () {
   const closeAll = function (except) {
     document.querySelectorAll('.tl-menu.show').forEach(function (menu) {
