@@ -3,8 +3,11 @@
 <head>
   @php
     // Link previews: the tour's name, summary and its own photo (logo card if it has none).
-    $ogTitle = $tour->name;
-    $ogDescription = $tour->short_description;
+    // SEO title/description from admin (Tours → Search engines), else the name and short description.
+    $seoTitle = $tour->meta_title ?: $tour->name.' | '.$siteSettings->get('site_name', 'DreamTour');
+    $seoDescription = $tour->meta_description ?: $tour->short_description;
+    $ogTitle = $tour->meta_title ?: $tour->name;
+    $ogDescription = $seoDescription;
     $ogImage = \App\Support\SocialImage::photo($tour->getRawOriginal('main_image'));
     // Rich results: the trip with its departures as offers, breadcrumbs and the tour's FAQ.
     $seoCategory = $tour->categories->first();
@@ -20,8 +23,8 @@
     ];
   @endphp
   @include('front.partials.head_assets')
-  <title>{{ $tour->name }} | {{ $siteSettings->get('site_name', 'DreamTour') }}</title>
-  <meta name="description" content="{{ $tour->short_description }}">
+  <title>{{ $seoTitle }}</title>
+  @if(filled($seoDescription))<meta name="description" content="{{ \Illuminate\Support\Str::of(strip_tags($seoDescription))->squish()->limit(300) }}">@endif
 </head>
 @php
   $currency = $nextDeparture?->currency ?: 'CAD';

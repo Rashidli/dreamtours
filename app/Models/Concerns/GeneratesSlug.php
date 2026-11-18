@@ -5,7 +5,7 @@ namespace App\Models\Concerns;
 use Illuminate\Support\Str;
 
 /**
- * Derives a translation row's slug from its title, so nobody types URLs by hand.
+ * Derives a translation row's slug from its title when nobody typed one by hand.
  *
  * The slug is only (re)built when it is missing or when the text it came from actually
  * changed, which keeps a published URL stable while an editor tweaks other fields.
@@ -32,11 +32,15 @@ trait GeneratesSlug
         $column = $this->slugSourceColumn();
         $current = trim((string) $this->slug);
 
-        if ($current !== '' && ! $this->isDirty($column)) {
+        // An editor typed the address by hand: keep it, only cleaned up (lower case, dashes).
+        $typed = $this->isDirty('slug') ? Str::slug($current) : '';
+        if ($typed !== '') {
+            $base = $typed;
+        } elseif ($current !== '' && (! $this->isDirty($column) || $this->keepsSlugOnRename())) {
             return $current;
+        } else {
+            $base = Str::slug((string) $this->{$column});
         }
-
-        $base = Str::slug((string) $this->{$column});
 
         if ($base === '') {
             $base = $current !== '' ? $current : Str::slug(class_basename($this)).'-'.uniqid();
@@ -50,6 +54,12 @@ trait GeneratesSlug
         }
 
         return $slug;
+    }
+
+    /** Models with $slugLocked = true keep a published URL when the title is renamed. */
+    protected function keepsSlugOnRename(): bool
+    {
+        return property_exists($this, 'slugLocked') && $this->slugLocked;
     }
 
     protected function slugTaken(string $slug): bool
