@@ -12,8 +12,9 @@
 <div class="col-md-4"><label class="form-label small mb-0">Available activities</label><textarea class="form-control" rows="2" name="en[activities]">{{ $stop?->activities }}</textarea></div>
 <div class="col-md-4"><label class="form-label small mb-0">Additional notes</label><textarea class="form-control" rows="2" name="en[notes]">{{ $stop?->notes }}</textarea></div>
 <div class="col-md-6"><label class="form-label small mb-0">Photos <small class="text-muted">— URLs, one per line; remove a line to remove the photo</small></label><textarea class="form-control" rows="2" name="images_text">{{ implode("\n", $images) }}</textarea><input type="file" class="form-control mt-1" name="images[]" accept="image/*,.heic,.heif" multiple></div>
-<div class="col-md-6 d-flex flex-wrap align-items-end gap-3 pb-1">
-  <label class="small"><input type="checkbox" name="entrance_included" value="1" @checked($stop?->entrance_included)> Ticket included</label>
-  <label class="small"><input type="checkbox" name="is_optional" value="1" @checked($stop?->is_optional)> Optional</label>
-  <label class="small"><input type="checkbox" name="own_expense" value="1" @checked($stop?->own_expense)> On your own account</label>
+@php($stopFieldsId = $stop?->id ? 'stop-'.$stop->id : 'new-'.\Illuminate\Support\Str::random(6))
+<div class="col-md-6 d-flex flex-wrap align-items-end pb-1">
+  <div class="form-check form-check-inline mb-0"><input class="form-check-input" type="checkbox" id="entrance_included-{{ $stopFieldsId }}" name="entrance_included" value="1" @checked($stop?->entrance_included)><label class="form-check-label" for="entrance_included-{{ $stopFieldsId }}">Ticket included</label></div>
+  <div class="form-check form-check-inline mb-0"><input class="form-check-input" type="checkbox" id="is_optional-{{ $stopFieldsId }}" name="is_optional" value="1" @checked($stop?->is_optional)><label class="form-check-label" for="is_optional-{{ $stopFieldsId }}">Optional</label></div>
+  <div class="form-check form-check-inline mb-0"><input class="form-check-input" type="checkbox" id="own_expense-{{ $stopFieldsId }}" name="own_expense" value="1" @checked($stop?->own_expense)><label class="form-check-label" for="own_expense-{{ $stopFieldsId }}">On your own account</label></div>
 </div>
