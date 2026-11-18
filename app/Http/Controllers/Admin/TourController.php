@@ -11,24 +11,52 @@ class TourController extends Controller
 {
  use HandlesMediaUploads;
  public function __construct(){ $this->middleware('permission:list-tours')->only('index'); $this->middleware('permission:create-tours')->only(['create','store']); $this->middleware('permission:edit-tours')->only(['edit','update']); $this->middleware('permission:delete-tours')->only('destroy'); }
- /** Admin tour list sort options. */
+ /** Admin tour list sort options (older ?sort=name_asc style links keep working). */
  public const SORTS=['name_asc'=>'Tour name (A–Z)','name_desc'=>'Tour name (Z–A)','created_desc'=>'Date added (newest)','created_asc'=>'Date added (oldest)','departure_asc'=>'Departure date (earliest)','departure_desc'=>'Departure date (latest)'];
+ /** Sortable columns of the list: ?sort=<column>&dir=asc|desc. */
+ public const SORT_COLUMNS=['name','destination','category','dates','status','created'];
+ public const STATUSES=['draft'=>'Draft','published'=>'Published','archived'=>'Archived'];
+
  public function index(Request $r):View{
-  // Departure filters: month / year, an exact date, and the All / Upcoming / Past view. Past dates are never hidden from admin.
-  $r->validate(['month'=>['nullable','integer','between:1,12'],'year'=>['nullable','integer','between:2000,2100'],'date'=>['nullable','date'],'when'=>['nullable',Rule::in(['all','upcoming','past'])],'sort'=>['nullable',Rule::in(array_keys(self::SORTS))]]);
-  $departures=fn($q)=>$q->when($r->filled('year'),fn($x)=>$x->whereYear('departs_at',$r->integer('year')))->when($r->filled('month'),fn($x)=>$x->whereMonth('departs_at',$r->integer('month')))->when($r->filled('date'),fn($x)=>$x->whereDate('departs_at',$r->date('date')))->when($r->input('when')==='upcoming',fn($x)=>$x->where('departs_at','>=',now()))->when($r->input('when')==='past',fn($x)=>$x->where('departs_at','<',now()));
-  $filtersDepartures=collect($r->only(['year','month','date']))->filter()->isNotEmpty()||in_array($r->input('when'),['upcoming','past'],true);
-  $tours=Tour::with(['translations','destination.translations','categories.translations','departures'=>fn($q)=>$q->select('id','tour_id','departs_at')->orderBy('departs_at')])->withCount(['departures','itineraryDays','contentItems'])->when($r->filled('q'),fn($q)=>$q->whereTranslationLike('name','%'.$r->string('q').'%'))->when($r->filled('status'),fn($q)=>$q->where('tours.status',$r->status))->when($r->filled('destination_id'),fn($q)=>$q->where('tours.destination_id',$r->integer('destination_id')))->when($r->filled('category_id'),fn($q)=>$q->whereHas('categories',fn($x)=>$x->whereKey($r->integer('category_id'))))->when($r->boolean('home'),fn($q)=>$q->where('tours.show_on_home',true))->when($filtersDepartures,fn($q)=>$q->whereHas('departures',$departures));
-  // Departure sorting uses the dates that match the filters: earliest first, or latest first.
-  match($r->input('sort')){
-   'name_asc','name_desc'=>$tours->orderByTranslation('name',$r->input('sort')==='name_asc'?'asc':'desc'),
-   'created_desc'=>$tours->orderByDesc('tours.created_at')->orderByDesc('tours.id'),
-   'created_asc'=>$tours->orderBy('tours.created_at')->orderBy('tours.id'),
-   'departure_asc','departure_desc'=>$tours->addSelect(['sort_departure'=>TourDeparture::selectRaw($r->input('sort')==='departure_asc'?'min(departs_at)':'max(departs_at)')->whereColumn('tour_id','tours.id')->where($departures)])->orderByRaw('sort_departure is null')->orderBy('sort_departure',$r->input('sort')==='departure_asc'?'asc':'desc'),
+  // Excel-style column filters: several statuses / destinations / categories at once, a date range,
+  // month / year, an exact date and the All / Upcoming / Past / No dates view. Past dates are never hidden from admin.
+  $r->validate(['q'=>['nullable','string','max:200'],'status'=>['nullable'],'status.*'=>[Rule::in(array_keys(self::STATUSES))],'destination_id'=>['nullable'],'destination_id.*'=>['integer'],'category_id'=>['nullable'],'category_id.*'=>['integer'],
+   'month'=>['nullable','integer','between:1,12'],'year'=>['nullable','integer','between:2000,2100'],'date'=>['nullable','date'],'date_from'=>['nullable','date'],'date_to'=>['nullable','date','after_or_equal:date_from'],
+   'when'=>['nullable',Rule::in(['all','upcoming','past','none'])],'sort'=>['nullable',Rule::in(array_merge(array_keys(self::SORTS),self::SORT_COLUMNS))],'dir'=>['nullable',Rule::in(['asc','desc'])],'per_page'=>['nullable',Rule::in([20,50,100])]]);
+  $many=fn(string $key)=>collect((array)$r->input($key,[]))->filter(fn($v)=>$v!==null&&$v!=='')->values();
+  $statuses=$many('status');$destinationIds=$many('destination_id')->map(fn($v)=>(int)$v);$categoryIds=$many('category_id')->map(fn($v)=>(int)$v);
+  [$sort,$dir]=match($r->input('sort')){'name_asc'=>['name','asc'],'name_desc'=>['name','desc'],'created_desc'=>['created','desc'],'created_asc'=>['created','asc'],'departure_asc'=>['dates','asc'],'departure_desc'=>['dates','desc'],default=>[$r->input('sort'),$r->input('dir','asc')]};
+  $when=$r->input('when');
+  $departures=fn($q)=>$q->when($r->filled('year'),fn($x)=>$x->whereYear('departs_at',$r->integer('year')))->when($r->filled('month'),fn($x)=>$x->whereMonth('departs_at',$r->integer('month')))->when($r->filled('date'),fn($x)=>$x->whereDate('departs_at',$r->date('date')))
+   ->when($r->filled('date_from'),fn($x)=>$x->whereDate('departs_at','>=',$r->date('date_from')))->when($r->filled('date_to'),fn($x)=>$x->whereDate('departs_at','<=',$r->date('date_to')))
+   ->when($when==='upcoming',fn($x)=>$x->where('departs_at','>=',now()))->when($when==='past',fn($x)=>$x->where('departs_at','<',now()));
+  $filtersDepartures=collect($r->only(['year','month','date','date_from','date_to']))->filter()->isNotEmpty()||in_array($when,['upcoming','past'],true);
+  $tours=Tour::with(['translations','destination.translations','categories.translations','departures'=>fn($q)=>$q->select('id','tour_id','departs_at')->orderBy('departs_at')])->withCount(['departures','itineraryDays','contentItems'])
+   ->when($r->filled('q'),fn($q)=>$q->whereTranslationLike('name','%'.$r->string('q').'%'))
+   ->when($statuses->isNotEmpty(),fn($q)=>$q->whereIn('tours.status',$statuses))
+   ->when($destinationIds->isNotEmpty(),fn($q)=>$q->where(fn($x)=>$x->whereIn('tours.destination_id',$destinationIds->filter())->when($destinationIds->contains(0),fn($y)=>$y->orWhereNull('tours.destination_id'))))
+   ->when($categoryIds->isNotEmpty(),fn($q)=>$q->where(fn($x)=>$x->whereHas('categories',fn($c)=>$c->whereKey($categoryIds->filter()))->when($categoryIds->contains(0),fn($y)=>$y->orWhereDoesntHave('categories'))))
+   ->when($r->boolean('home'),fn($q)=>$q->where('tours.show_on_home',true))->when($r->boolean('carousel'),fn($q)=>$q->where('tours.show_in_carousel',true))
+   ->when($when==='none',fn($q)=>$q->whereDoesntHave('departures'))
+   ->when($filtersDepartures,fn($q)=>$q->whereHas('departures',$departures));
+  $dir=$dir==='desc'?'desc':'asc';
+  // Departure sorting uses the dates that match the filters: earliest first, or latest first. Empty values go last.
+  match($sort){
+   'name'=>$tours->orderByTranslation('name',$dir)->orderBy('tours.sort_order'),
+   'destination'=>$tours->addSelect(['sort_destination'=>\App\Models\DestinationTranslation::select('name')->whereColumn('destination_id','tours.destination_id')->where('locale','en')->limit(1)])->orderByRaw('sort_destination is null')->orderBy('sort_destination',$dir)->orderBy('tours.sort_order'),
+   'category'=>$tours->addSelect(['sort_category'=>\Illuminate\Support\Facades\DB::table('tour_category')->join('tour_category_translations','tour_category_translations.tour_category_id','=','tour_category.tour_category_id')->where('tour_category_translations.locale','en')->whereColumn('tour_category.tour_id','tours.id')->selectRaw('min(tour_category_translations.name)')])->orderByRaw('sort_category is null')->orderBy('sort_category',$dir)->orderBy('tours.sort_order'),
+   'dates'=>$tours->addSelect(['sort_departure'=>TourDeparture::selectRaw($dir==='asc'?'min(departs_at)':'max(departs_at)')->whereColumn('tour_id','tours.id')->where($departures)])->orderByRaw('sort_departure is null')->orderBy('sort_departure',$dir)->orderBy('tours.sort_order'),
+   'status'=>$tours->orderBy('tours.status',$dir)->orderBy('tours.sort_order'),
+   'created'=>$tours->orderBy('tours.created_at',$dir)->orderBy('tours.id',$dir),
    default=>$tours->orderBy('tours.sort_order'),
   };
   $years=TourDeparture::selectRaw('min(departs_at) first, max(departs_at) last')->first();
-  return view('admin.tours.index',['tours'=>$tours->paginate(20)->withQueryString(),'destinations'=>Destination::withTranslation()->get(),'categories'=>TourCategory::withTranslation()->get(),'sorts'=>self::SORTS,'years'=>$years?->first?range(now()->parse($years->last)->year,now()->parse($years->first)->year):[now()->year],'filtersDepartures'=>$filtersDepartures,'matchesDeparture'=>fn($at)=>$filtersDepartures&&(!$r->filled('year')||$at->year===$r->integer('year'))&&(!$r->filled('month')||$at->month===$r->integer('month'))&&(!$r->filled('date')||$at->isSameDay($r->date('date')))&&($r->input('when')!=='upcoming'||$at->gte(now()))&&($r->input('when')!=='past'||$at->lt(now()))]);}
+  return view('admin.tours.index',['tours'=>$tours->paginate((int)$r->input('per_page',20))->withQueryString(),
+   'destinations'=>Destination::withTranslation()->withCount('tours')->get()->sortBy('name')->values(),'categories'=>TourCategory::withTranslation()->withCount('tours')->get()->sortBy('name')->values(),
+   'statusLabels'=>self::STATUSES,'sort'=>in_array($sort,self::SORT_COLUMNS,true)?$sort:null,'dir'=>$dir,
+   'picked'=>['status'=>$statuses->all(),'destination_id'=>$destinationIds->all(),'category_id'=>$categoryIds->all()],
+   'years'=>$years?->first?range(now()->parse($years->last)->year,now()->parse($years->first)->year):[now()->year],'filtersDepartures'=>$filtersDepartures,
+   'matchesDeparture'=>fn($at)=>$filtersDepartures&&(!$r->filled('year')||$at->year===$r->integer('year'))&&(!$r->filled('month')||$at->month===$r->integer('month'))&&(!$r->filled('date')||$at->isSameDay($r->date('date')))&&(!$r->filled('date_from')||$at->gte($r->date('date_from')->startOfDay()))&&(!$r->filled('date_to')||$at->lte($r->date('date_to')->endOfDay()))&&($when!=='upcoming'||$at->gte(now()))&&($when!=='past'||$at->lt(now()))]);}
  public function create():View{return $this->form(new Tour);}
  public function store(Request $r):RedirectResponse{
   // First dates can be entered with the tour; empty rows are ignored.
