@@ -81,7 +81,7 @@
       {{-- Tour --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('name') }}" class="tl-sort {{ $sort === 'name' ? 'active' : '' }}">Tour <i class="{{ $sortIcon('name') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['name'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter tours"><i class="ri-filter-3-line"></i></button>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['name'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter tours"><i class="ri-filter-3-line"></i></button>
           <div class="dropdown-menu tl-menu">
             <a class="dropdown-item" href="{{ $sortUrl('name', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('name', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
@@ -94,7 +94,7 @@
       {{-- Destination --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('destination') }}" class="tl-sort {{ $sort === 'destination' ? 'active' : '' }}">Destination <i class="{{ $sortIcon('destination') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['destination'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by destination"><i class="ri-filter-3-line"></i></button>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['destination'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by destination"><i class="ri-filter-3-line"></i></button>
           <div class="dropdown-menu tl-menu">
             <a class="dropdown-item" href="{{ $sortUrl('destination', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('destination', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
@@ -105,7 +105,7 @@
       {{-- Categories --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('category') }}" class="tl-sort {{ $sort === 'category' ? 'active' : '' }}">Categories <i class="{{ $sortIcon('category') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['category'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by category"><i class="ri-filter-3-line"></i></button>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['category'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by category"><i class="ri-filter-3-line"></i></button>
           <div class="dropdown-menu tl-menu">
             <a class="dropdown-item" href="{{ $sortUrl('category', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('category', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
@@ -116,7 +116,7 @@
       {{-- Dates --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('dates') }}" class="tl-sort {{ $sort === 'dates' ? 'active' : '' }}">Dates <i class="{{ $sortIcon('dates') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['dates'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by departure date"><i class="ri-filter-3-line"></i></button>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['dates'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by departure date"><i class="ri-filter-3-line"></i></button>
           <div class="dropdown-menu tl-menu tl-menu-wide">
             <a class="dropdown-item" href="{{ $sortUrl('dates', 'asc') }}"><i class="ri-sort-asc"></i> Earliest date first</a><a class="dropdown-item" href="{{ $sortUrl('dates', 'desc') }}"><i class="ri-sort-desc"></i> Latest date first</a>
             <div class="dropdown-divider"></div>
@@ -136,7 +136,7 @@
       {{-- Status --}}
       <th><div class="tl-th">
         <a href="{{ $headSort('status') }}" class="tl-sort {{ $sort === 'status' ? 'active' : '' }}">Status <i class="{{ $sortIcon('status') }}"></i></a>
-        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['status'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by status"><i class="ri-filter-3-line"></i></button>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['status'] ? 'active' : '' }}" data-tl-menu aria-haspopup="true" aria-expanded="false" aria-label="Filter by status"><i class="ri-filter-3-line"></i></button>
           <div class="dropdown-menu tl-menu">
             <a class="dropdown-item" href="{{ $sortUrl('status', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('status', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
             <div class="dropdown-divider"></div>
@@ -178,12 +178,45 @@
   {{$tours->links('admin.vendor.pagination.bootstrap-5')}}
 </div></div></div></div></div>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  // Header menus live inside .table-responsive: use fixed positioning so they are not cut off.
-  if (window.bootstrap) document.querySelectorAll('.tl-table [data-bs-toggle="dropdown"]').forEach(function (el) {
-    bootstrap.Dropdown.getOrCreateInstance(el, { autoClose: 'outside', popperConfig: function (c) { return Object.assign({}, c, { strategy: 'fixed' }); } });
+// Header filter menus. Their own small toggle (not Bootstrap's): the admin footer loads Bootstrap
+// three times, so a data-bs-toggle="dropdown" opens and closes again on the same click.
+(function () {
+  const closeAll = function (except) {
+    document.querySelectorAll('.tl-menu.show').forEach(function (menu) {
+      if (menu === except) return;
+      menu.classList.remove('show');
+      const btn = menu.parentElement.querySelector('[data-tl-menu]'); if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+  };
+  const place = function (btn, menu) {
+    const r = btn.getBoundingClientRect();
+    menu.style.position = 'fixed'; menu.style.inset = 'auto'; menu.style.margin = '0'; menu.style.transform = 'none';
+    const width = menu.offsetWidth;
+    let left = r.left; if (left + width > window.innerWidth - 8) left = Math.max(8, r.right - width);
+    const top = r.bottom + 6;
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+    menu.style.maxHeight = Math.max(200, window.innerHeight - top - 12) + 'px'; menu.style.overflowY = 'auto';
+  };
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-tl-menu]');
+    if (btn) {
+      e.preventDefault();
+      const menu = btn.parentElement.querySelector('.tl-menu');
+      const opening = !menu.classList.contains('show');
+      closeAll(menu);
+      menu.classList.toggle('show', opening);
+      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      if (opening) { place(btn, menu); const field = menu.querySelector('input[type="search"], input[type="date"], select'); if (field) field.focus({ preventScroll: true }); }
+      return;
+    }
+    if (!e.target.closest('.tl-menu')) closeAll();
   });
-});
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
+  window.addEventListener('resize', function () { closeAll(); });
+  window.addEventListener('scroll', function () {
+    document.querySelectorAll('.tl-menu.show').forEach(function (menu) { place(menu.parentElement.querySelector('[data-tl-menu]'), menu); });
+  }, true);
+})();
 document.addEventListener('click', function (e) {
   const preset = e.target.closest('[data-date-preset]');
   if (preset) { const menu = preset.closest('.tl-menu'); menu.querySelector('[name="date_from"]').value = preset.dataset.from; menu.querySelector('[name="date_to"]').value = preset.dataset.to; }
