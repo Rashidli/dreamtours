@@ -6,19 +6,10 @@
   $seoBase = rtrim(config('app.url'), '/').'/tours/';
   $seoSlug = old('en.slug', $seoT?->slug);
 @endphp
-<div class="border rounded p-3 mb-3" id="seo" data-seo-site="{{ $seoSite }}">
-  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-    <div>
-      <h6 class="mb-1">Search engines (SEO)</h6>
-      <p class="text-muted small mb-2">How this tour appears on Google. Leave a field empty to use the tour name and short description.</p>
-    </div>
-    @if($tour->exists && $seoT?->slug && $tour->status === 'published')
-      <a href="{{ $seoBase.$seoT->slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm"><i class="ri-external-link-line"></i> Open page</a>
-    @endif
-  </div>
-
+<div id="seo" data-seo-site="{{ $seoSite }}">
   <div class="mb-3">
-    <label class="fw-semibold" for="seo-slug">Page address (slug)</label>
+    <div class="d-flex justify-content-between align-items-center gap-2"><label class="fw-semibold" for="seo-slug">Page address (slug)</label>
+      @if($tour->exists && $seoT?->slug && $tour->status === 'published')<a href="{{ $seoBase.$seoT->slug }}" target="_blank" rel="noopener" class="small mb-1"><i class="ri-external-link-line"></i> Open page</a>@endif</div>
     <div class="input-group">
       <span class="input-group-text text-muted">{{ preg_replace('#^https?://#', '', $seoBase) }}</span>
       <input id="seo-slug" class="form-control @error('en.slug') is-invalid @enderror" name="en[slug]" value="{{ $seoSlug }}" maxlength="200"

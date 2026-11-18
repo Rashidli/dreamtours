@@ -35,6 +35,21 @@ class TourSeoAdminTest extends TestCase
         return Tour::create(['duration_days' => 1, 'duration_nights' => 0, 'status' => 'published', 'en' => ['name' => 'Niagara Falls Day Trip', 'short_description' => 'Falls and boat ride.']]);
     }
 
+    public function test_add_and_edit_pages_show_every_section(): void
+    {
+        $this->admin();
+
+        $create = $this->get(route('tours.create'))->assertOk();
+        foreach (['id="basics"', 'id="seo-card"', 'id="placement"', 'id="details"', 'id="inclusions"', 'id="fares"', 'id="policies"', 'id="booking-form"', 'id="departures"', 'Create tour'] as $needle) {
+            $create->assertSee($needle, false);
+        }
+        $create->assertDontSee('id="itinerary"', false);
+
+        $tour = $this->tour();
+        $edit = $this->get(route('tours.edit', $tour))->assertOk()->assertSee('Save changes')->assertSee('id="itinerary"', false)->assertSee('id="additional"', false);
+        $edit->assertSee('href="'.route('front.tours.show', 'niagara-falls-day-trip').'"', false);
+    }
+
     public function test_edit_form_shows_the_seo_fields(): void
     {
         $this->admin();
