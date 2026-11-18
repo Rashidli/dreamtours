@@ -98,7 +98,7 @@
             <form class="d-inline-flex gap-1 mt-1" method="post" action="{{ route('tour-departure-prices.store', $departure) }}">@csrf
               <select class="form-select form-select-sm" name="code" style="width:150px">@foreach(\App\Models\TourDeparturePrice::CODES as $code => [$label])<option value="{{ $code }}">{{ $tour->priceLabel($code) }}</option>@endforeach</select>
               <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width:90px" name="price" placeholder="Price" required>
-              <label class="small text-nowrap align-self-center"><input type="checkbox" name="apply_to_all" value="1"> all dates</label>
+              <div class="form-check form-check-inline align-self-center mb-0 me-0"><input class="form-check-input" type="checkbox" id="apply-all-{{ $departure->id }}" name="apply_to_all" value="1"><label class="form-check-label small text-nowrap" for="apply-all-{{ $departure->id }}">all dates</label></div>
               <button class="btn btn-sm btn-outline-primary">Add price</button>
             </form>
           @endcan
