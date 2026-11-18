@@ -1,4 +1,45 @@
-@include('admin.includes.header')<div class="main-content"><div class="page-content"><div class="container-fluid">
+@include('admin.includes.header')
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+@php
+  // Query-string helpers for the Excel-style header menus and the active-filter chips.
+  $query = collect(request()->query())->except('page');
+  $urlWith = fn (array $changes) => route('tours.index', collect($query)->merge($changes)->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])->all());
+  $without = fn (string $key, $value = null) => route('tours.index', collect($query)->map(function ($v, $k) use ($key, $value) {
+      if ($k !== $key) return $v;
+      return $value === null ? null : array_values(array_filter((array) $v, fn ($x) => (string) $x !== (string) $value));
+  })->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])->all());
+  $sortUrl = fn (string $column, string $direction) => $urlWith(['sort' => $column, 'dir' => $direction]);
+  $headSort = fn (string $column) => $urlWith(['sort' => $column, 'dir' => ($sort === $column && $dir === 'asc') ? 'desc' : 'asc']);
+  $sortIcon = fn (string $column) => $sort === $column ? ($dir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line') : 'ri-arrow-up-down-line';
+  $months = collect(range(1, 12))->mapWithKeys(fn ($m) => [$m => now()->startOfYear()->month($m)->format('F')]);
+  $when = request('when', 'all');
+  $statusColors = ['draft' => 'secondary', 'published' => 'success', 'archived' => 'dark'];
+  $destinationNames = $destinations->pluck('name', 'id')->put(0, 'No destination');
+  $categoryNames = $categories->pluck('name', 'id')->put(0, 'No category');
+
+  // Active filters as removable chips.
+  $chips = collect();
+  if (request()->filled('q')) $chips->push(['Search: “'.request('q').'”', $without('q')]);
+  foreach ($picked['status'] as $v) $chips->push(['Status: '.($statusLabels[$v] ?? $v), $without('status', $v)]);
+  foreach ($picked['destination_id'] as $v) $chips->push(['Destination: '.($destinationNames[$v] ?? '#'.$v), $without('destination_id', $v)]);
+  foreach ($picked['category_id'] as $v) $chips->push(['Category: '.($categoryNames[$v] ?? '#'.$v), $without('category_id', $v)]);
+  if (request()->boolean('home')) $chips->push(['On the home page', $without('home')]);
+  if (request()->boolean('carousel')) $chips->push(['In the carousel', $without('carousel')]);
+  if (in_array($when, ['upcoming', 'past', 'none'], true)) $chips->push([['upcoming' => 'Upcoming dates', 'past' => 'Past dates', 'none' => 'No dates'][$when], $without('when')]);
+  if (request()->filled('date_from')) $chips->push(['From '.\Illuminate\Support\Carbon::parse(request('date_from'))->format('M j, Y'), $without('date_from')]);
+  if (request()->filled('date_to')) $chips->push(['To '.\Illuminate\Support\Carbon::parse(request('date_to'))->format('M j, Y'), $without('date_to')]);
+  if (request()->filled('date')) $chips->push(['On '.\Illuminate\Support\Carbon::parse(request('date'))->format('M j, Y'), $without('date')]);
+  if (request()->filled('month')) $chips->push(['Month: '.$months[(int) request('month')], $without('month')]);
+  if (request()->filled('year')) $chips->push(['Year: '.request('year'), $without('year')]);
+  $columnActive = [
+    'name' => request()->boolean('home') || request()->boolean('carousel'),
+    'destination' => !empty($picked['destination_id']),
+    'category' => !empty($picked['category_id']),
+    'dates' => collect(request()->only(['date_from', 'date_to', 'date', 'month', 'year']))->filter()->isNotEmpty(),
+    'status' => !empty($picked['status']),
+  ];
+@endphp
+<div class="main-content"><div class="page-content"><div class="container-fluid">
 
             <div class="row">
                 <div class="col-12">
@@ -13,12 +54,150 @@
                     </div>
                 </div>
             </div>
-<div class="card"><div class="card-body">@if(session('message'))<div class="alert alert-success">{{session('message')}}</div>@endif<div class="d-flex justify-content-between mb-3"><h4 class="card-title mb-3">Tours</h4>@can('create-tours')<a class="btn btn-primary" href="{{route('tours.create')}}"><i class="ri-add-line align-middle me-1"></i> New tour</a>@endcan</div>
-<form class="row g-2 mb-3"><div class="col-md-3"><input class="form-control" name="q" value="{{request('q')}}" placeholder="Search tour"></div><div class="col-md-2"><select class="form-select" name="status"><option value="">All statuses</option>@foreach(['draft','published','archived'] as $s)<option @selected(request('status')===$s)>{{$s}}</option>@endforeach</select></div><div class="col-md-2"><select class="form-select" name="destination_id"><option value="">All destinations</option>@foreach($destinations as $d)<option value="{{$d->id}}" @selected(request('destination_id')==$d->id)>{{$d->name}}</option>@endforeach</select></div><div class="col-md-2"><select class="form-select" name="category_id"><option value="">All categories</option>@foreach($categories as $c)<option value="{{$c->id}}" @selected(request('category_id')==$c->id)>{{$c->name}}</option>@endforeach</select></div><div class="col-md-3"><label class="me-2"><input type="checkbox" name="home" value="1" @checked(request('home'))> Home only</label></div>
-<div class="col-md-2"><select class="form-select" name="month" aria-label="Departure month"><option value="">Any month</option>@foreach(range(1,12) as $m)<option value="{{$m}}" @selected(request('month')==$m)>{{now()->startOfYear()->month($m)->format('F')}}</option>@endforeach</select></div>
-<div class="col-md-2"><select class="form-select" name="year" aria-label="Departure year"><option value="">Any year</option>@foreach($years as $y)<option value="{{$y}}" @selected(request('year')==$y)>{{$y}}</option>@endforeach</select></div>
-<div class="col-md-2"><input type="date" class="form-control" name="date" value="{{request('date')}}" aria-label="Exact departure date" title="Exact departure date"></div>
-<div class="col-md-2"><div class="btn-group w-100" role="group" aria-label="Departure dates">@foreach(['all'=>'All','upcoming'=>'Upcoming','past'=>'Past'] as $value=>$label)<input type="radio" class="btn-check" name="when" id="when-{{$value}}" value="{{$value}}" @checked(request('when','all')===$value)><label class="btn btn-outline-secondary" for="when-{{$value}}">{{$label}}</label>@endforeach</div></div>
-<div class="col-md-2"><select class="form-select" name="sort" aria-label="Sort by"><option value="">Default order</option>@foreach($sorts as $value=>$label)<option value="{{$value}}" @selected(request('sort')===$value)>{{$label}}</option>@endforeach</select></div>
-<div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-primary flex-grow-1">Filter</button>@if(collect(request()->except('page'))->filter()->isNotEmpty())<a class="btn btn-light" href="{{route('tours.index')}}">Reset</a>@endif</div></form>
-<div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Tour</th><th>Destination</th><th>Categories</th><th>Dates</th><th>Status</th><th>Actions</th></tr></thead><tbody>@forelse($tours as $tour)<tr><td>{{$tour->name}} @if($tour->show_on_home)<span class="badge bg-info">Home</span>@endif</td><td>{{$tour->destination?->name?:'—'}}</td><td>{{$tour->categories->pluck('name')->join(', ')}}</td><td class="small">@php($next=$tour->departures->first(fn($d)=>$d->departs_at->gte(now())))@php($last=$tour->departures->last(fn($d)=>$d->departs_at->lt(now())))<div>{{$tour->departures_count}} {{str('date')->plural($tour->departures_count)}}</div>@if($filtersDepartures)@foreach($tour->departures->filter(fn($d)=>$matchesDeparture($d->departs_at)) as $d)<span class="badge {{$d->departs_at->isPast()?'bg-secondary bg-opacity-10 text-secondary':'bg-success bg-opacity-10 text-success'}} me-1">{{$d->departs_at->format('M j, Y')}}</span>@endforeach @elseif($next)<span class="text-success">Next: {{$next->departs_at->format('M j, Y')}}</span>@elseif($last)<span class="text-muted">Last: {{$last->departs_at->format('M j, Y')}}</span>@endif</td><td>{{$tour->status}}</td><td class="text-nowrap">@can('edit-tours')<a class="btn btn-sm btn-primary" title="Edit" href="{{route('tours.edit',$tour)}}"><i class="ri-pencil-line"></i></a>@endcan @can('create-tours')<button type="button" class="btn btn-sm btn-outline-secondary" title="Duplicate" aria-label="Duplicate {{ $tour->name }}" data-bs-toggle="modal" data-bs-target="#tour-duplicate" data-duplicate-url="{{ route('tours.duplicate', $tour) }}" data-duplicate-name="{{ $tour->name }}" data-duplicate-days="{{ $tour->itinerary_days_count }}" data-duplicate-items="{{ $tour->content_items_count }}" data-duplicate-dates="{{ $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() }}"><i class="ri-file-copy-line"></i></button>@endcan @can('delete-tours')<form class="d-inline" method="post" action="{{route('tours.destroy',$tour)}}">@csrf @method('DELETE')<button class="btn btn-sm btn-danger" onclick="return confirm('Delete tour?')"><i class="ri-delete-bin-line"></i></button></form>@endcan</td></tr>@empty<tr><td colspan="6">No tours.</td></tr>@endforelse</tbody></table></div>{{$tours->links('admin.vendor.pagination.bootstrap-5')}}</div></div></div></div></div>@include('admin.tours._duplicate_modal')@include('admin.includes.footer')
+<div class="card"><div class="card-body">
+  @if(session('message'))<div class="alert alert-success">{{session('message')}}</div>@endif
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div><h4 class="card-title mb-1">Tours</h4><div class="text-muted">{{ $tours->total() }} {{ Str::plural('tour', $tours->total()) }}{{ $chips->isNotEmpty() ? ' match the filters' : '' }} · click a column title to sort, <i class="ri-filter-3-line"></i> to filter</div></div>
+    @can('create-tours')<a class="btn btn-primary" href="{{route('tours.create')}}"><i class="ri-add-line align-middle me-1"></i> New tour</a>@endcan
+  </div>
+
+  <form id="tour-list-filters" method="get" action="{{ route('tours.index') }}" class="tl-toolbar">
+    @if($sort)<input type="hidden" name="sort" value="{{ $sort }}"><input type="hidden" name="dir" value="{{ $dir }}">@endif
+    @if(request()->filled('date'))<input type="hidden" name="date" value="{{ request('date') }}">@endif
+    <div class="input-group tl-search"><span class="input-group-text"><i class="ri-search-line"></i></span><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search by tour name" aria-label="Search by tour name"><button class="btn btn-outline-primary">Search</button></div>
+    <div class="btn-group" role="group" aria-label="Departure dates">@foreach(['all' => 'All', 'upcoming' => 'Upcoming', 'past' => 'Past', 'none' => 'No dates'] as $value => $label)<input type="radio" class="btn-check" name="when" id="when-{{ $value }}" value="{{ $value }}" @checked($when === $value) onchange="this.form.submit()"><label class="btn btn-outline-secondary" for="when-{{ $value }}">{{ $label }}</label>@endforeach</div>
+    <div class="d-flex align-items-center gap-2 ms-auto"><label class="text-muted text-nowrap mb-0" for="per-page">Rows</label><select class="form-select" id="per-page" name="per_page" style="width:auto" onchange="this.form.submit()">@foreach([20, 50, 100] as $n)<option value="{{ $n }}" @selected((int) request('per_page', 20) === $n)>{{ $n }}</option>@endforeach</select></div>
+  </form>
+
+  @if($chips->isNotEmpty())
+    <div class="tl-chips">
+      @foreach($chips as [$label, $removeUrl])<a href="{{ $removeUrl }}" class="tl-chip" title="Remove this filter">{{ $label }} <i class="ri-close-line"></i></a>@endforeach
+      <a href="{{ route('tours.index', array_filter(['sort' => $sort, 'dir' => $sort ? $dir : null, 'per_page' => request('per_page')])) }}" class="btn btn-link btn-sm text-danger">Clear all filters</a>
+    </div>
+  @endif
+
+  <div class="table-responsive"><table class="table table-hover align-middle tl-table">
+    <thead><tr>
+      {{-- Tour --}}
+      <th><div class="tl-th">
+        <a href="{{ $headSort('name') }}" class="tl-sort {{ $sort === 'name' ? 'active' : '' }}">Tour <i class="{{ $sortIcon('name') }}"></i></a>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['name'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter tours"><i class="ri-filter-3-line"></i></button>
+          <div class="dropdown-menu tl-menu">
+            <a class="dropdown-item" href="{{ $sortUrl('name', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('name', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
+            <div class="dropdown-divider"></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" form="tour-list-filters" name="home" value="1" id="f-home" @checked(request()->boolean('home'))><label class="form-check-label" for="f-home">On the home page</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" form="tour-list-filters" name="carousel" value="1" id="f-carousel" @checked(request()->boolean('carousel'))><label class="form-check-label" for="f-carousel">In the homepage carousel</label></div>
+            <div class="tl-menu-actions"><a class="btn btn-light" href="{{ route('tours.index', collect($query)->except(['home', 'carousel'])->all()) }}">Clear</a><button class="btn btn-primary" form="tour-list-filters">Apply</button></div>
+          </div></div>
+      </div></th>
+
+      {{-- Destination --}}
+      <th><div class="tl-th">
+        <a href="{{ $headSort('destination') }}" class="tl-sort {{ $sort === 'destination' ? 'active' : '' }}">Destination <i class="{{ $sortIcon('destination') }}"></i></a>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['destination'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by destination"><i class="ri-filter-3-line"></i></button>
+          <div class="dropdown-menu tl-menu">
+            <a class="dropdown-item" href="{{ $sortUrl('destination', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('destination', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
+            <div class="dropdown-divider"></div>
+            @include('admin.tours._list_checklist', ['name' => 'destination_id', 'options' => $destinations->map(fn ($d) => [$d->id, $d->name, $d->tours_count])->push([0, 'No destination', null]), 'picked' => $picked['destination_id']])
+          </div></div>
+      </div></th>
+
+      {{-- Categories --}}
+      <th><div class="tl-th">
+        <a href="{{ $headSort('category') }}" class="tl-sort {{ $sort === 'category' ? 'active' : '' }}">Categories <i class="{{ $sortIcon('category') }}"></i></a>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['category'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by category"><i class="ri-filter-3-line"></i></button>
+          <div class="dropdown-menu tl-menu">
+            <a class="dropdown-item" href="{{ $sortUrl('category', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('category', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
+            <div class="dropdown-divider"></div>
+            @include('admin.tours._list_checklist', ['name' => 'category_id', 'options' => $categories->map(fn ($c) => [$c->id, $c->name, $c->tours_count])->push([0, 'No category', null]), 'picked' => $picked['category_id']])
+          </div></div>
+      </div></th>
+
+      {{-- Dates --}}
+      <th><div class="tl-th">
+        <a href="{{ $headSort('dates') }}" class="tl-sort {{ $sort === 'dates' ? 'active' : '' }}">Dates <i class="{{ $sortIcon('dates') }}"></i></a>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['dates'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by departure date"><i class="ri-filter-3-line"></i></button>
+          <div class="dropdown-menu tl-menu tl-menu-wide">
+            <a class="dropdown-item" href="{{ $sortUrl('dates', 'asc') }}"><i class="ri-sort-asc"></i> Earliest date first</a><a class="dropdown-item" href="{{ $sortUrl('dates', 'desc') }}"><i class="ri-sort-desc"></i> Latest date first</a>
+            <div class="dropdown-divider"></div>
+            <div class="tf-label mb-2">Departs between</div>
+            <div class="row g-2 mb-2"><div class="col-6"><label class="form-label mb-1" for="f-from">From</label><input type="date" class="form-control" id="f-from" form="tour-list-filters" name="date_from" value="{{ request('date_from') }}"></div><div class="col-6"><label class="form-label mb-1" for="f-to">To</label><input type="date" class="form-control" id="f-to" form="tour-list-filters" name="date_to" value="{{ request('date_to') }}"></div></div>
+            <div class="d-flex flex-wrap gap-1 mb-3">
+              @foreach(['This month' => [now()->startOfMonth(), now()->endOfMonth()], 'Next month' => [now()->addMonthNoOverflow()->startOfMonth(), now()->addMonthNoOverflow()->endOfMonth()], 'Next 30 days' => [now(), now()->addDays(30)], 'Next 90 days' => [now(), now()->addDays(90)]] as $presetLabel => [$presetFrom, $presetTo])
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-date-preset data-from="{{ $presetFrom->format('Y-m-d') }}" data-to="{{ $presetTo->format('Y-m-d') }}">{{ $presetLabel }}</button>
+              @endforeach
+            </div>
+            <div class="tf-label mb-2">Or month / year</div>
+            <div class="row g-2"><div class="col-7"><select class="form-select" form="tour-list-filters" name="month" aria-label="Departure month"><option value="">Any month</option>@foreach($months as $m => $monthName)<option value="{{ $m }}" @selected((int) request('month') === $m)>{{ $monthName }}</option>@endforeach</select></div><div class="col-5"><select class="form-select" form="tour-list-filters" name="year" aria-label="Departure year"><option value="">Any year</option>@foreach($years as $y)<option value="{{ $y }}" @selected((int) request('year') === $y)>{{ $y }}</option>@endforeach</select></div></div>
+            <div class="tl-menu-actions"><a class="btn btn-light" href="{{ route('tours.index', collect($query)->except(['date_from', 'date_to', 'date', 'month', 'year'])->all()) }}">Clear</a><button class="btn btn-primary" form="tour-list-filters">Apply</button></div>
+          </div></div>
+      </div></th>
+
+      {{-- Status --}}
+      <th><div class="tl-th">
+        <a href="{{ $headSort('status') }}" class="tl-sort {{ $sort === 'status' ? 'active' : '' }}">Status <i class="{{ $sortIcon('status') }}"></i></a>
+        <div class="dropdown"><button type="button" class="tl-filter-btn {{ $columnActive['status'] ? 'active' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter by status"><i class="ri-filter-3-line"></i></button>
+          <div class="dropdown-menu tl-menu">
+            <a class="dropdown-item" href="{{ $sortUrl('status', 'asc') }}"><i class="ri-sort-asc"></i> Sort A → Z</a><a class="dropdown-item" href="{{ $sortUrl('status', 'desc') }}"><i class="ri-sort-desc"></i> Sort Z → A</a>
+            <div class="dropdown-divider"></div>
+            @include('admin.tours._list_checklist', ['name' => 'status', 'options' => collect($statusLabels)->map(fn ($label, $value) => [$value, $label, null])->values(), 'picked' => $picked['status'], 'searchable' => false])
+          </div></div>
+      </div></th>
+
+      <th><a href="{{ $headSort('created') }}" class="tl-sort {{ $sort === 'created' ? 'active' : '' }}">Added <i class="{{ $sortIcon('created') }}"></i></a></th>
+      <th class="text-end">Actions</th>
+    </tr></thead>
+    <tbody>
+    @forelse($tours as $tour)
+      @php
+        $next = $tour->departures->first(fn ($d) => $d->departs_at->gte(now()));
+        $last = $tour->departures->last(fn ($d) => $d->departs_at->lt(now()));
+      @endphp
+      <tr>
+        <td><a href="{{ route('tours.edit', $tour) }}" class="fw-semibold text-body">{{ $tour->name }}</a>
+          <div class="d-flex flex-wrap gap-1 mt-1">@if($tour->show_on_home)<span class="badge bg-info bg-opacity-10 text-info">Home</span>@endif @if($tour->show_in_carousel)<span class="badge bg-info bg-opacity-10 text-info">Carousel</span>@endif @if($tour->is_private)<span class="badge bg-secondary bg-opacity-10 text-secondary">Private</span>@endif @if($tour->is_cruise)<span class="badge bg-primary bg-opacity-10 text-primary">Cruise</span>@endif</div></td>
+        <td>{{ $tour->destination?->name ?: '—' }}</td>
+        <td>@forelse($tour->categories as $category)<span class="badge bg-light text-body me-1">{{ $category->name }}</span>@empty<span class="text-muted">—</span>@endforelse</td>
+        <td>
+          <div>{{ $tour->departures_count }} {{ str('date')->plural($tour->departures_count) }}</div>
+          @if($filtersDepartures)
+            @foreach($tour->departures->filter(fn ($d) => $matchesDeparture($d->departs_at)) as $d)<span class="badge {{ $d->departs_at->isPast() ? 'bg-secondary bg-opacity-10 text-secondary' : 'bg-success bg-opacity-10 text-success' }} me-1">{{ $d->departs_at->format('M j, Y') }}</span>@endforeach
+          @elseif($next)<span class="text-success">Next: {{ $next->departs_at->format('M j, Y') }}</span>
+          @elseif($last)<span class="text-muted">Last: {{ $last->departs_at->format('M j, Y') }}</span>
+          @endif
+        </td>
+        <td><span class="badge bg-{{ $statusColors[$tour->status] ?? 'secondary' }} bg-opacity-10 text-{{ $statusColors[$tour->status] ?? 'secondary' }}">{{ $statusLabels[$tour->status] ?? $tour->status }}</span></td>
+        <td class="text-nowrap text-muted">{{ $tour->created_at?->format('M j, Y') }}</td>
+        <td class="text-nowrap text-end">@can('edit-tours')<a class="btn btn-sm btn-primary" title="Edit" aria-label="Edit {{ $tour->name }}" href="{{route('tours.edit',$tour)}}"><i class="ri-pencil-line"></i></a>@endcan @can('create-tours')<button type="button" class="btn btn-sm btn-outline-secondary" title="Duplicate" aria-label="Duplicate {{ $tour->name }}" data-bs-toggle="modal" data-bs-target="#tour-duplicate" data-duplicate-url="{{ route('tours.duplicate', $tour) }}" data-duplicate-name="{{ $tour->name }}" data-duplicate-days="{{ $tour->itinerary_days_count }}" data-duplicate-items="{{ $tour->content_items_count }}" data-duplicate-dates="{{ $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() }}"><i class="ri-file-copy-line"></i></button>@endcan @can('delete-tours')<form class="d-inline" method="post" action="{{route('tours.destroy',$tour)}}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete {{ $tour->name }}" onclick="return confirm('Delete tour?')"><i class="ri-delete-bin-line"></i></button></form>@endcan</td>
+      </tr>
+    @empty
+      <tr><td colspan="7" class="text-center text-muted py-5"><i class="ri-filter-off-line fs-2 d-block mb-1"></i>{{ $chips->isNotEmpty() ? 'No tours match these filters.' : 'No tours yet.' }} @if($chips->isNotEmpty())<a href="{{ route('tours.index') }}">Clear all filters</a>@endif</td></tr>
+    @endforelse
+    </tbody>
+  </table></div>
+  {{$tours->links('admin.vendor.pagination.bootstrap-5')}}
+</div></div></div></div></div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Header menus live inside .table-responsive: use fixed positioning so they are not cut off.
+  if (window.bootstrap) document.querySelectorAll('.tl-table [data-bs-toggle="dropdown"]').forEach(function (el) {
+    bootstrap.Dropdown.getOrCreateInstance(el, { autoClose: 'outside', popperConfig: function (c) { return Object.assign({}, c, { strategy: 'fixed' }); } });
+  });
+});
+document.addEventListener('click', function (e) {
+  const preset = e.target.closest('[data-date-preset]');
+  if (preset) { const menu = preset.closest('.tl-menu'); menu.querySelector('[name="date_from"]').value = preset.dataset.from; menu.querySelector('[name="date_to"]').value = preset.dataset.to; }
+});
+// Checklists: search box and Select all.
+document.addEventListener('input', function (e) {
+  if (!e.target.matches('[data-checklist-search]')) return;
+  const q = e.target.value.toLowerCase();
+  e.target.closest('.tl-checklist').querySelectorAll('[data-option]').forEach(function (row) { row.hidden = q && !row.dataset.option.includes(q); });
+});
+document.addEventListener('change', function (e) {
+  if (e.target.matches('[data-checklist-all]')) {
+    e.target.closest('.tl-checklist').querySelectorAll('[data-option]:not([hidden]) input').forEach(function (box) { box.checked = e.target.checked; });
+  }
+});
+</script>
+@include('admin.tours._duplicate_modal')@include('admin.includes.footer')
