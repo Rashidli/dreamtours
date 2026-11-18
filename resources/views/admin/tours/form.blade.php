@@ -108,7 +108,8 @@
       <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-is-cruise" name="is_cruise" value="1" @checked(old('is_cruise',$tour->is_cruise))><label class="form-check-label" for="tf-is-cruise">Cruise<small>Adds the cruise details section.</small></label></div>
     </div>
     <div class="d-grid gap-2 mt-3"><button class="btn btn-primary btn-lg"><i class="ri-save-line align-middle me-1"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button>
-      <div class="d-flex gap-2">@if($publicUrl)<a class="btn btn-outline-secondary flex-fill" href="{{ $publicUrl }}" target="_blank" rel="noopener"><i class="ri-external-link-line align-middle me-1"></i> View on site</a>@endif<a class="btn btn-light flex-fill" href="{{route('tours.index')}}"><i class="ri-arrow-left-line align-middle me-1"></i> All tours</a></div></div>
+      <div class="d-flex gap-2">@if($publicUrl)<a class="btn btn-outline-secondary flex-fill" href="{{ $publicUrl }}" target="_blank" rel="noopener"><i class="ri-external-link-line align-middle me-1"></i> View on site</a>@endif<a class="btn btn-light flex-fill" href="{{route('tours.index')}}"><i class="ri-arrow-left-line align-middle me-1"></i> All tours</a></div>
+      @if($tour->exists)@can('create-tours')<button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#tour-duplicate" data-duplicate-url="{{ route('tours.duplicate', $tour) }}" data-duplicate-name="{{ $tt?->name }}" data-duplicate-days="{{ $tour->itineraryDays->count() }}" data-duplicate-items="{{ $tour->contentItems->count() }}" data-duplicate-dates="{{ $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() }}"><i class="ri-file-copy-line align-middle me-1"></i> Duplicate this tour</button>@endcan @endif</div>
   </div></div>
 
   {{-- Main image --}}
@@ -275,4 +276,4 @@
   </form>
   @endcan
 </div></div>
-@endif</div></div></div>@include('admin.includes.footer')
+@endif</div></div></div>@if($tour->exists)@include('admin.tours._duplicate_modal')@endif @include('admin.includes.footer')
