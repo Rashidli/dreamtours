@@ -3,36 +3,44 @@
   $statuses = \App\Models\TourDeparture::STATUSES;
   $staffUsers = auth()->user()->can('assign-departure-staff') ? \App\Models\User::with('roles')->orderBy('name')->get() : collect();
   $badge = ['available' => 'success', 'limited' => 'warning', 'sold_out' => 'danger', 'closed' => 'secondary', 'hidden' => 'dark', 'cancelled' => 'secondary'];
+  $upcomingCount = $tour->exists ? $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() : 0;
+  $pastCount = $tour->exists ? $tour->departures->count() - $upcomingCount : 0;
 @endphp
-<div class="card" id="departures"><div class="card-body">
-  <h5 class="mb-1">Departure dates</h5>
-  <p class="text-muted small mb-3">One trip, many dates: the trip's description, itinerary and photos are shared; each date has its own seats, price, status and pickup points. Visitors pick a date in the calendar on the trip page.</p>
+<div class="card tf-section" id="departures"><div class="card-body">
+  <div class="tf-head">
+    <span class="tf-icon"><i class="ri-calendar-event-line"></i></span>
+    <div class="flex-grow-1"><h5>Dates & prices</h5><p>One trip, many dates: the description, itinerary and photos are shared; each date has its own seats, prices, status and pick-up points. Visitors pick a date in the calendar on the tour page.</p></div>
+    @if($tour->exists)<div class="d-flex flex-wrap gap-2 align-items-center flex-shrink-0"><span class="badge bg-success bg-opacity-10 text-success">{{ $upcomingCount }} upcoming</span>@if($pastCount)<span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $pastCount }} past</span>@endif @can('create-tour-departures')<a href="#add-dates" class="btn btn-outline-primary btn-sm"><i class="ri-add-line"></i> Add dates</a>@endcan</div>@endif
+  </div>
 
   @if(!$tour->exists)
     {{-- First dates, saved together with the new tour --}}
-    <div class="row g-2 mb-2">
-      <div class="col-md-2"><label class="form-label">Price per person</label><input form="tour-main-form" type="number" step="0.01" min="0" class="form-control" name="departure[price]" value="{{ old('departure.price') }}"></div>
-      <div class="col-md-1"><label class="form-label">Currency</label><input form="tour-main-form" class="form-control" name="departure[currency]" value="{{ old('departure.currency', 'CAD') }}" maxlength="3"></div>
-      <div class="col-md-2"><label class="form-label">Seats per date</label><input form="tour-main-form" type="number" min="1" class="form-control" name="departure[capacity]" value="{{ old('departure.capacity', 56) }}"></div>
-      <div class="col-md-3"><label class="form-label">Status</label><select form="tour-main-form" class="form-select" name="departure[status]">@foreach($statuses as $key => [$label])<option value="{{ $key }}" @selected(old('departure.status', 'available') === $key)>{{ $label }}</option>@endforeach</select></div>
+    <div class="tf-subtle">
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-md-3"><label class="form-label fw-semibold">Price per person</label><input form="tour-main-form" type="number" step="0.01" min="0" class="form-control" name="departure[price]" value="{{ old('departure.price') }}" placeholder="0.00"></div>
+        <div class="col-sm-6 col-md-2"><label class="form-label fw-semibold">Currency</label><input form="tour-main-form" class="form-control" name="departure[currency]" value="{{ old('departure.currency', 'CAD') }}" maxlength="3"></div>
+        <div class="col-sm-6 col-md-3"><label class="form-label fw-semibold">Seats per date</label><input form="tour-main-form" type="number" min="1" class="form-control" name="departure[capacity]" value="{{ old('departure.capacity', 56) }}"></div>
+        <div class="col-sm-6 col-md-4"><label class="form-label fw-semibold">Status</label><select form="tour-main-form" class="form-select" name="departure[status]">@foreach($statuses as $key => [$label])<option value="{{ $key }}" @selected(old('departure.status', 'available') === $key)>{{ $label }}</option>@endforeach</select></div>
+      </div>
+      <div id="new-tour-dates">
+        @foreach(old('dates', [[]]) as $i => $row)
+          <div class="row g-3 mb-2 date-row align-items-end">
+            <div class="col-sm-5"><label class="form-label fw-semibold">Departure date & time</label><input form="tour-main-form" type="datetime-local" class="form-control" name="dates[{{ $i }}][departs_at]" value="{{ $row['departs_at'] ?? '' }}"></div>
+            <div class="col-sm-5"><label class="form-label fw-semibold">Return <span class="text-muted fw-normal">(multi-day)</span></label><input form="tour-main-form" type="datetime-local" class="form-control" name="dates[{{ $i }}][returns_at]" value="{{ $row['returns_at'] ?? '' }}"></div>
+            <div class="col-sm-2"><button type="button" class="btn btn-outline-danger w-100 remove-date" title="Remove this date" aria-label="Remove this date"><i class="ri-close-line"></i></button></div>
+          </div>
+        @endforeach
+      </div>
+      <button type="button" class="btn btn-outline-primary mt-1" data-add-date="#new-tour-dates" data-form="tour-main-form"><i class="ri-add-line"></i> Add another date</button>
+      <div class="form-text mt-2">Leave the date empty to create the tour without dates. Adult / child / room prices and per-date pick-up points can be set after saving.</div>
     </div>
-    <div id="new-tour-dates">
-      @foreach(old('dates', [[]]) as $i => $row)
-        <div class="row g-2 mb-2 date-row">
-          <div class="col-md-3"><label class="form-label small">Departure date & time</label><input form="tour-main-form" type="datetime-local" class="form-control" name="dates[{{ $i }}][departs_at]" value="{{ $row['departs_at'] ?? '' }}"></div>
-          <div class="col-md-3"><label class="form-label small">Return <small class="text-muted">(multi-day)</small></label><input form="tour-main-form" type="datetime-local" class="form-control" name="dates[{{ $i }}][returns_at]" value="{{ $row['returns_at'] ?? '' }}"></div>
-          <div class="col-md-2 d-flex align-items-end"><button type="button" class="btn btn-outline-danger btn-sm remove-date" title="Remove this date"><i class="ri-close-line"></i></button></div>
-        </div>
-      @endforeach
-    </div>
-    <button type="button" class="btn btn-outline-primary btn-sm" data-add-date="#new-tour-dates" data-form="tour-main-form"><i class="ri-add-line"></i> Add another date</button>
-    <p class="text-muted small mt-2 mb-0">Leave the date empty to create the tour without dates. Price lists (adult / child / rooms) and per-date pickup points can be set after saving.</p>
   @else
     @if($errors->has('departure'))<div class="alert alert-danger">{{ $errors->first('departure') }}</div>@endif
 
     @forelse($tour->departures as $departure)
       @php($booked = $departure->bookedSeats())
-      <div class="border rounded p-3 mb-3" id="departure-{{ $departure->id }}">
+      @php($taken = min($departure->capacity, $booked + $departure->held_seats))
+      <div class="tf-date @if($departure->departs_at->isPast()) tf-date-past @endif" id="departure-{{ $departure->id }}">
         @can('assign-departure-staff')
         {{-- Who works this date. Assigning opens the trip to that person at once; removing closes it. --}}
         <div class="modal fade" id="staff-{{ $departure->id }}" tabindex="-1" aria-labelledby="staff-title-{{ $departure->id }}" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content">
@@ -61,25 +69,30 @@
           </div>
         </div></div></div>
         @endcan
-        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
-          <div>
-            <strong>{{ \App\Support\DepartureCalendar::range($departure) }}</strong> <span class="text-muted">· {{ $departure->departs_at->format('g:i A') }}</span>
-            <span class="badge bg-{{ $badge[$departure->public_status] ?? 'secondary' }} ms-1">{{ $departure->status_label }}</span>
-            @if($departure->departs_at->isPast())<span class="badge bg-light text-dark ms-1">Past</span>@endif
-            <div class="small text-muted mt-1">
-              Seats: <b>{{ $booked }}</b> booked + <b>{{ $departure->held_seats }}</b> held of <b>{{ $departure->capacity }}</b> → <b class="{{ $departure->available_seats ? '' : 'text-danger' }}">{{ $departure->available_seats }} left</b>
-              · Pickups: {{ $departure->pickupPoints->isNotEmpty() ? $departure->pickupPoints->pluck('name')->implode(', ') : 'same as the tour' }}
+        <div class="tf-date-top">
+          <div class="tf-date-tile" aria-hidden="true"><span>{{ $departure->departs_at->format('D') }}</span><strong>{{ $departure->departs_at->format('j') }}</strong><span>{{ $departure->departs_at->format('M Y') }}</span></div>
+          <div class="tf-date-main">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="fw-semibold fs-6">{{ \App\Support\DepartureCalendar::range($departure) }}</span><span class="text-muted">· {{ $departure->departs_at->format('g:i A') }}</span>
+              <span class="badge bg-{{ $badge[$departure->public_status] ?? 'secondary' }} bg-opacity-10 text-{{ $badge[$departure->public_status] ?? 'secondary' }}">{{ $departure->status_label }}</span>
+              @if($departure->departs_at->isPast())<span class="badge bg-light text-dark">Past</span>@endif
             </div>
-            <div class="mt-1">
-              <i class="ri-team-line text-muted me-1"></i>
+            <div class="tf-seats mt-2" title="{{ $booked }} booked, {{ $departure->held_seats }} held offline, {{ $departure->available_seats }} left of {{ $departure->capacity }}">
+              <div class="progress" style="height:8px"><div class="progress-bar bg-primary" style="width:{{ $departure->capacity ? round($booked / $departure->capacity * 100) : 0 }}%"></div><div class="progress-bar bg-warning" style="width:{{ $departure->capacity ? round(max(0, $taken - $booked) / $departure->capacity * 100) : 0 }}%"></div></div>
+              <div class="mt-1"><b>{{ $booked }}</b> booked · <b>{{ $departure->held_seats }}</b> held · <b class="{{ $departure->available_seats ? 'text-success' : 'text-danger' }}">{{ $departure->available_seats }} left</b> <span class="text-muted">of {{ $departure->capacity }}</span></div>
+            </div>
+            <div class="tf-date-meta mt-2">
+              <span><i class="ri-map-pin-line"></i> {{ $departure->pickupPoints->isNotEmpty() ? $departure->pickupPoints->pluck('name')->implode(', ') : 'Pick-ups: same as the tour' }}</span>
+              <span><i class="ri-team-line"></i>
               @forelse($departure->staff as $s)
                 <span class="badge bg-primary bg-opacity-10 text-primary me-1" title="{{ $s->role_label }}"><i class="{{ \App\Models\DepartureStaff::ROLES[$s->role][1] ?? 'ri-user-line' }} me-1"></i>{{ $s->user?->name }}</span>
               @empty
                 <span class="text-muted">No leader or driver assigned</span>
               @endforelse
+              </span>
             </div>
           </div>
-          <div class="d-flex gap-1">
+          <div class="tf-date-actions">
             @can('assign-departure-staff')<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staff-{{ $departure->id }}"><i class="ri-team-line"></i> Staff ({{ $departure->staff->count() }})</button>@endcan
             @if(auth()->user()->can('list-bookings'))<a class="btn btn-sm btn-outline-primary" href="{{ route('seating.show', $departure) }}"><i class="ri-layout-grid-line"></i> Seating{{ $departure->vehicles->isNotEmpty() ? ' ('.$departure->vehicles->count().')' : '' }}</a>@endif
             @if($departure->staff->isNotEmpty() || auth()->user()->can('list-bookings'))<a class="btn btn-sm btn-outline-secondary" href="{{ route('my-trips.show', $departure) }}" title="What the leader sees"><i class="ri-map-2-line"></i> Trip page</a>@endif
@@ -88,72 +101,72 @@
           </div>
         </div>
 
-        <div class="mt-2 small">
+        <div class="tf-prices">
+          <span class="tf-label me-1">Prices</span>
           @forelse($departure->prices as $price)
-            <span class="d-inline-flex align-items-center gap-1 me-3">{{ $price->label }}: <b>{{ money($price->price, $departure->currency) }}</b>
-              @can('edit-tour-departures')<form method="post" action="{{ route('tour-departure-prices.destroy', [$departure, $price]) }}">@csrf @method('DELETE')<button class="btn btn-link btn-sm text-danger p-0" title="Remove" onclick="return confirm('Remove this price?')"><i class="ri-close-line"></i></button></form>@endcan
+            <span class="tf-price">{{ $price->label }} <b>{{ money($price->price, $departure->currency) }}</b>
+              @can('edit-tour-departures')<form method="post" action="{{ route('tour-departure-prices.destroy', [$departure, $price]) }}" class="d-inline">@csrf @method('DELETE')<button class="tf-price-remove" title="Remove this price" aria-label="Remove {{ $price->label }} price" onclick="return confirm('Remove this price?')"><i class="ri-close-line"></i></button></form>@endcan
             </span>
           @empty
-            {{ money($departure->price, $departure->currency) }} <span class="text-muted">per person</span>
+            <span class="tf-price">Per person <b>{{ money($departure->price, $departure->currency) }}</b></span>
           @endforelse
-          @can('edit-tour-departures')
-            <form class="d-inline-flex gap-1 mt-1" method="post" action="{{ route('tour-departure-prices.store', $departure) }}">@csrf
-              <select class="form-select form-select-sm" name="code" style="width:150px">@foreach(\App\Models\TourDeparturePrice::CODES as $code => [$label])<option value="{{ $code }}">{{ $tour->priceLabel($code) }}</option>@endforeach</select>
-              <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width:90px" name="price" placeholder="Price" required>
-              <div class="form-check form-check-inline align-self-center mb-0 me-0"><input class="form-check-input" type="checkbox" id="apply-all-{{ $departure->id }}" name="apply_to_all" value="1"><label class="form-check-label small text-nowrap" for="apply-all-{{ $departure->id }}">all dates</label></div>
-              <button class="btn btn-sm btn-outline-primary">Add price</button>
-            </form>
-          @endcan
         </div>
 
         @can('edit-tour-departures')
-          <details class="mt-2" @if($errors->has('capacity.'.$departure->id)) open @endif>
-            <summary class="text-primary small" style="cursor:pointer">Edit this date</summary>
-            <form class="row g-2 mt-1" method="post" action="{{ route('tour-departures.update', [$tour, $departure]) }}">@csrf @method('PUT')
-              <div class="col-md-3"><label class="form-label small">Departure</label><input type="datetime-local" class="form-control" name="departs_at" value="{{ $departure->departs_at?->format('Y-m-d\TH:i') }}" required></div>
-              <div class="col-md-3"><label class="form-label small">Return</label><input type="datetime-local" class="form-control" name="returns_at" value="{{ $departure->returns_at?->format('Y-m-d\TH:i') }}"></div>
-              <div class="col-md-2"><label class="form-label small">Base price</label><input type="number" step="0.01" min="0" class="form-control" name="price" value="{{ $departure->price }}" required></div>
-              <div class="col-md-2"><label class="form-label small">Old price</label><input type="number" step="0.01" min="0" class="form-control" name="old_price" value="{{ $departure->old_price }}"></div>
-              <div class="col-md-2"><label class="form-label small">Currency</label><input class="form-control" name="currency" value="{{ $departure->currency }}" maxlength="3" required></div>
-              <div class="col-md-2"><label class="form-label small">Seat capacity</label><input type="number" min="1" class="form-control" name="capacity" value="{{ $departure->capacity }}" required></div>
-              <div class="col-md-2"><label class="form-label small">Seats held offline</label><input type="number" min="0" class="form-control" name="held_seats" value="{{ $departure->held_seats }}" title="Seats taken outside the website (phone bookings, staff, guides)"></div>
-              <div class="col-md-4"><label class="form-label small">Status</label><select class="form-select" name="status">@foreach($statuses as $key => [$label])<option value="{{ $key }}" @selected($departure->status === $key)>{{ $label }}</option>@endforeach</select></div>
-              <div class="col-md-4"><label class="form-label small">Pickup points for this date <small class="text-muted">(empty = tour's)</small></label>
-                <select class="form-select js-select2-multi" multiple name="pickup_point_ids[]" data-placeholder="Same as the tour">@foreach($pickupPoints as $point)<option value="{{ $point->id }}" @selected($departure->pickupPoints->contains('id', $point->id))>{{ $point->name }}</option>@endforeach</select></div>
-              <div class="col-12"><button class="btn btn-primary btn-sm"><i class="ri-save-line"></i> Save date</button>
-                @error('capacity.'.$departure->id)<span class="text-danger small ms-2">{{ $message }}</span>@enderror</div>
+          <div class="tf-date-tools">
+            <form class="tf-price-add" method="post" action="{{ route('tour-departure-prices.store', $departure) }}">@csrf
+              <select class="form-select" name="code" aria-label="Fare">@foreach(\App\Models\TourDeparturePrice::CODES as $code => [$label])<option value="{{ $code }}">{{ $tour->priceLabel($code) }}</option>@endforeach</select>
+              <input type="number" step="0.01" min="0" class="form-control" name="price" placeholder="Price" aria-label="Price" required>
+              <div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="apply-all-{{ $departure->id }}" name="apply_to_all" value="1"><label class="form-check-label text-nowrap" for="apply-all-{{ $departure->id }}">All dates</label></div>
+              <button class="btn btn-outline-primary text-nowrap"><i class="ri-add-line"></i> Add price</button>
             </form>
-          </details>
+            <details class="tf-details" @if($errors->has('capacity.'.$departure->id)) open @endif>
+              <summary class="btn btn-outline-secondary"><i class="ri-pencil-line"></i> Edit date</summary>
+              <form class="row g-3 tf-subtle mt-2 mx-0" method="post" action="{{ route('tour-departures.update', [$tour, $departure]) }}">@csrf @method('PUT')
+                <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Departure</label><input type="datetime-local" class="form-control" name="departs_at" value="{{ $departure->departs_at?->format('Y-m-d\TH:i') }}" required></div>
+                <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Return</label><input type="datetime-local" class="form-control" name="returns_at" value="{{ $departure->returns_at?->format('Y-m-d\TH:i') }}"></div>
+                <div class="col-sm-4 col-lg-2"><label class="form-label fw-semibold">Base price</label><input type="number" step="0.01" min="0" class="form-control" name="price" value="{{ $departure->price }}" required></div>
+                <div class="col-sm-4 col-lg-2"><label class="form-label fw-semibold">Old price</label><input type="number" step="0.01" min="0" class="form-control" name="old_price" value="{{ $departure->old_price }}" placeholder="Crossed out"></div>
+                <div class="col-sm-4 col-lg-2"><label class="form-label fw-semibold">Currency</label><input class="form-control" name="currency" value="{{ $departure->currency }}" maxlength="3" required></div>
+                <div class="col-sm-6 col-lg-2"><label class="form-label fw-semibold">Seats</label><input type="number" min="1" class="form-control @error('capacity.'.$departure->id) is-invalid @enderror" name="capacity" value="{{ $departure->capacity }}" required></div>
+                <div class="col-sm-6 col-lg-2"><label class="form-label fw-semibold">Held offline</label><input type="number" min="0" class="form-control" name="held_seats" value="{{ $departure->held_seats }}" title="Seats taken outside the website (phone bookings, staff, guides)"></div>
+                <div class="col-sm-6 col-lg-4"><label class="form-label fw-semibold">Status</label><select class="form-select" name="status">@foreach($statuses as $key => [$label])<option value="{{ $key }}" @selected($departure->status === $key)>{{ $label }}</option>@endforeach</select></div>
+                <div class="col-sm-6 col-lg-4"><label class="form-label fw-semibold">Pick-up points <span class="text-muted fw-normal">(empty = tour's)</span></label>
+                  <select class="form-select js-select2-multi" multiple name="pickup_point_ids[]" data-placeholder="Same as the tour">@foreach($pickupPoints as $point)<option value="{{ $point->id }}" @selected($departure->pickupPoints->contains('id', $point->id))>{{ $point->name }}</option>@endforeach</select></div>
+                <div class="col-12 d-flex align-items-center gap-2"><button class="btn btn-primary"><i class="ri-save-line"></i> Save date</button>
+                  @error('capacity.'.$departure->id)<span class="text-danger">{{ $message }}</span>@enderror</div>
+              </form>
+            </details>
+          </div>
         @endcan
       </div>
     @empty
-      <p class="text-muted">No dates yet — add the first ones below.</p>
+      <div class="crm-empty text-center text-muted py-4"><i class="ri-calendar-line fs-2 d-block mb-1"></i>No dates yet — add the first ones below.</div>
     @endforelse
 
     @can('create-tour-departures')
-      <div class="border rounded p-3 bg-light" id="add-dates">
-        <h6>Add dates</h6>
+      <div class="tf-subtle tf-section mt-3" id="add-dates">
+        <div class="tf-label fs-6 mb-3"><i class="ri-calendar-check-line text-primary me-1"></i> Add dates</div>
         <form method="post" action="{{ route('tour-departures.store', $tour) }}">@csrf
-          <div class="row g-2 mb-2">
-            <div class="col-md-2"><label class="form-label small">Base price</label><input type="number" step="0.01" min="0" class="form-control" name="price" value="{{ old('price', $tour->departures->last()?->price) }}" required></div>
-            <div class="col-md-1"><label class="form-label small">Currency</label><input class="form-control" name="currency" value="{{ old('currency', $tour->departures->last()?->currency ?? 'CAD') }}" maxlength="3" required></div>
-            <div class="col-md-2"><label class="form-label small">Seats per date</label><input type="number" min="1" class="form-control" name="capacity" value="{{ old('capacity', $tour->departures->last()?->capacity ?? 56) }}" required></div>
-            <div class="col-md-3"><label class="form-label small">Status</label><select class="form-select" name="status">@foreach($statuses as $key => [$label])<option value="{{ $key }}" @selected(old('status', 'available') === $key)>{{ $label }}</option>@endforeach</select></div>
-            <div class="col-md-4"><label class="form-label small">Pickup points <small class="text-muted">(empty = tour's)</small></label>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6 col-lg-2"><label class="form-label fw-semibold">Base price</label><input type="number" step="0.01" min="0" class="form-control" name="price" value="{{ old('price', $tour->departures->last()?->price) }}" required></div>
+            <div class="col-sm-6 col-lg-2"><label class="form-label fw-semibold">Currency</label><input class="form-control" name="currency" value="{{ old('currency', $tour->departures->last()?->currency ?? 'CAD') }}" maxlength="3" required></div>
+            <div class="col-sm-6 col-lg-2"><label class="form-label fw-semibold">Seats per date</label><input type="number" min="1" class="form-control" name="capacity" value="{{ old('capacity', $tour->departures->last()?->capacity ?? 56) }}" required></div>
+            <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Status</label><select class="form-select" name="status">@foreach($statuses as $key => [$label])<option value="{{ $key }}" @selected(old('status', 'available') === $key)>{{ $label }}</option>@endforeach</select></div>
+            <div class="col-lg-3"><label class="form-label fw-semibold">Pick-up points <span class="text-muted fw-normal">(empty = tour's)</span></label>
               <select class="form-select js-select2-multi" multiple name="pickup_point_ids[]" data-placeholder="Same as the tour">@foreach($pickupPoints as $point)<option value="{{ $point->id }}">{{ $point->name }}</option>@endforeach</select></div>
           </div>
           <div id="more-dates">
             @foreach(old('dates', [[]]) as $i => $row)
-              <div class="row g-2 mb-2 date-row">
-                <div class="col-md-3"><label class="form-label small">Departure date & time</label><input type="datetime-local" class="form-control" name="dates[{{ $i }}][departs_at]" value="{{ $row['departs_at'] ?? '' }}" required></div>
-                <div class="col-md-3"><label class="form-label small">Return <small class="text-muted">(multi-day)</small></label><input type="datetime-local" class="form-control" name="dates[{{ $i }}][returns_at]" value="{{ $row['returns_at'] ?? '' }}"></div>
-                <div class="col-md-2 d-flex align-items-end"><button type="button" class="btn btn-outline-danger btn-sm remove-date" title="Remove this date"><i class="ri-close-line"></i></button></div>
+              <div class="row g-3 mb-2 date-row align-items-end">
+                <div class="col-sm-5"><label class="form-label fw-semibold">Departure date & time</label><input type="datetime-local" class="form-control" name="dates[{{ $i }}][departs_at]" value="{{ $row['departs_at'] ?? '' }}" required></div>
+                <div class="col-sm-5"><label class="form-label fw-semibold">Return <span class="text-muted fw-normal">(multi-day)</span></label><input type="datetime-local" class="form-control" name="dates[{{ $i }}][returns_at]" value="{{ $row['returns_at'] ?? '' }}"></div>
+                <div class="col-sm-2"><button type="button" class="btn btn-outline-danger w-100 remove-date" title="Remove this date" aria-label="Remove this date"><i class="ri-close-line"></i></button></div>
               </div>
             @endforeach
           </div>
-          <button type="button" class="btn btn-outline-primary btn-sm" data-add-date="#more-dates"><i class="ri-add-line"></i> Another date</button>
-          <button class="btn btn-primary btn-sm ms-2"><i class="ri-calendar-check-line"></i> Save dates</button>
-          <p class="text-muted small mt-2 mb-0">Adult / child / infant / room prices can be added to each date after saving (an infant price of 0 = free) (use “all dates” to copy a price to every date).</p>
+          <div class="d-flex flex-wrap gap-2 mt-2"><button type="button" class="btn btn-outline-primary" data-add-date="#more-dates"><i class="ri-add-line"></i> Another date</button><button class="btn btn-primary"><i class="ri-calendar-check-line"></i> Save dates</button></div>
+          <div class="form-text mt-2">Adult / child / infant / room prices can be added to each date after saving (an infant price of 0 = free). Tick “All dates” to copy a price to every date.</div>
         </form>
       </div>
     @endcan

@@ -30,3 +30,50 @@
 .tf-inclusions .form-check { padding-top: .35rem; padding-bottom: .35rem; margin: 0 0 0 .35rem; border-radius: 6px; }
 .tf-inclusions .form-check-label { cursor: pointer; }
 .tf-inclusions .form-check:hover { background: #f8f9fb; }
+
+/* Dates & prices */
+.tf-date { border: 1px solid #e9ebec; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; scroll-margin-top: 90px; }
+.tf-date-past { background: #fafbfc; }
+.tf-date-past .tf-date-tile { background: #eef0f3; color: #74788d; }
+.tf-date-top { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+.tf-date-tile { width: 72px; flex-shrink: 0; text-align: center; border-radius: 10px; padding: .4rem .25rem;
+  background: rgba(var(--bs-primary-rgb), .08); color: var(--bs-primary); line-height: 1.15; }
+.tf-date-tile strong { display: block; font-size: 1.6rem; font-weight: 700; }
+.tf-date-tile span { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+.tf-date-main { flex: 1 1 280px; min-width: 0; }
+.tf-seats { max-width: 420px; }
+.tf-seats .progress { background: #eef0f3; }
+.tf-date-meta { display: flex; flex-direction: column; gap: .3rem; color: #495057; }
+.tf-date-meta i { color: #74788d; margin-right: .25rem; }
+.tf-date-actions { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: flex-end; align-items: flex-start; }
+.tf-date-actions form { margin: 0; }
+.tf-prices { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed #e9ebec; }
+.tf-price { display: inline-flex; align-items: center; gap: .35rem; background: #f3f6f9; border: 1px solid #e9ebec; border-radius: 999px; padding: .25rem .4rem .25rem .75rem; }
+.tf-price b { color: #212529; }
+.tf-price-remove { border: 0; background: transparent; color: #a0a6b1; padding: 0 .15rem; line-height: 1; border-radius: 50%; }
+.tf-price-remove:hover { color: var(--bs-danger); }
+.tf-date-tools { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-start; margin-top: .75rem; }
+.tf-date-tools > .tf-details { flex: 1 1 100%; }
+.tf-date-tools > .tf-details[open] summary { margin-bottom: 0; }
+.tf-price-add { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.tf-price-add .form-select { width: 190px; }
+.tf-price-add .form-control { width: 120px; }
+.tf-details > summary { list-style: none; display: inline-flex; align-items: center; gap: .3rem; }
+.tf-details > summary::-webkit-details-marker { display: none; }
+
+/* Itinerary */
+.tf-day { border: 1px solid #e9ebec; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+.tf-day-head { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.tf-day-head form { margin: 0; }
+.tf-day-number { flex-shrink: 0; background: var(--bs-primary); color: #fff; font-weight: 600; border-radius: 999px; padding: .35rem .85rem; }
+.tf-stops { list-style: none; margin: 1rem 0 0; padding: 0 0 0 1.1rem; border-left: 2px solid rgba(var(--bs-primary-rgb), .2); }
+.tf-stop { position: relative; padding: 0 0 .75rem .9rem; }
+.tf-stop::before { content: ""; position: absolute; left: -1.55rem; top: .55rem; width: 12px; height: 12px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--bs-primary); }
+.tf-stop > details > summary { list-style: none; display: flex; gap: .75rem; align-items: flex-start; cursor: pointer; border-radius: 8px; padding: .35rem .5rem; }
+.tf-stop > details > summary::-webkit-details-marker { display: none; }
+.tf-stop > details > summary:hover { background: #f8f9fb; }
+.tf-stop-time { flex-shrink: 0; min-width: 52px; font-weight: 700; color: var(--bs-primary); font-variant-numeric: tabular-nums; }
+.tf-stop-body { flex: 1; min-width: 0; }
+.tf-stop-edit { flex-shrink: 0; color: var(--bs-primary); white-space: nowrap; }
+.tf-stop > details[open] .tf-stop-edit { visibility: hidden; }
