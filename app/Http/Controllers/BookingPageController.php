@@ -34,6 +34,9 @@ class BookingPageController extends Controller
 
     public function create(Request $request, string $slug): View|RedirectResponse
     {
+        if ($moved = \App\Models\TourSlugRedirect::redirectFor($slug, 'front.tours.book')) {
+            return $moved;
+        }
         $tour = $this->tour($slug);
 
         if ($tour->is_private || !$tour->departures->contains(fn (TourDeparture $d) => $d->is_bookable)) {

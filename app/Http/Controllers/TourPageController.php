@@ -6,14 +6,20 @@ use App\Http\Controllers\Concerns\SharesFrontLayout;
 use App\Models\LegalDocument;
 use App\Models\PickupPoint;
 use App\Models\Tour;
+use App\Models\TourSlugRedirect;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class TourPageController extends Controller
 {
     use SharesFrontLayout;
 
-    public function show(string $slug): View
+    public function show(string $slug): View|RedirectResponse
     {
+        // An old address of a tour whose slug was changed in admin: 301 to the current one.
+        if ($moved = TourSlugRedirect::redirectFor($slug, 'front.tours.show')) {
+            return $moved;
+        }
         $tour = Tour::query()
             ->where('status', 'published')
             ->whereTranslation('slug', $slug)

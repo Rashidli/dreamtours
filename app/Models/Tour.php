@@ -14,7 +14,7 @@ class Tour extends Model implements Contract
 
     use Translatable, SoftDeletes, ResolvesMediaUrls;
 
-    public array $translatedAttributes = ['name', 'slug', 'short_description', 'description', 'cancellation_policy', 'refund_policy', 'deposit_policy', 'boarding_rules', 'baggage_rules', 'important_notes', 'meal_options', 'waiver_title', 'waiver'];
+    public array $translatedAttributes = ['name', 'slug', 'meta_title', 'meta_description', 'short_description', 'description', 'cancellation_policy', 'refund_policy', 'deposit_policy', 'boarding_rules', 'baggage_rules', 'important_notes', 'meal_options', 'waiver_title', 'waiver'];
     protected $fillable = ['destination_id', 'main_image', 'duration_days', 'duration_nights', 'age_restriction', 'activity_level', 'deposit_per_person', 'balance_due_days', 'tax_included', 'infant_max_age', 'child_max_age', 'infant_needs_seat', 'is_private', 'is_cruise', 'show_on_home', 'show_in_carousel', 'badge', 'status', 'sort_order'];
     protected $casts = ['deposit_per_person' => 'decimal:2', 'balance_due_days' => 'integer', 'tax_included' => 'boolean', 'infant_max_age' => 'integer', 'child_max_age' => 'integer', 'infant_needs_seat' => 'boolean', 'is_private' => 'boolean', 'is_cruise' => 'boolean', 'show_on_home' => 'boolean', 'show_in_carousel' => 'boolean'];
 
