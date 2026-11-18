@@ -396,7 +396,8 @@ class ChangeRequestTest extends TestCase
     }
 
     // Link previews — tour pages share the logo card too, with the tour's own title.
-    public function test_tour_pages_share_the_logo_card(): void
+    // Since 2026-11-17 (technical SEO) a tour's link preview is its own photo; the logo card is the fallback.
+    public function test_tour_pages_use_their_own_photo_card(): void
     {
         Storage::fake('public');
         Storage::disk('public')->put('cover.webp', (string) UploadedFile::fake()->image('cover.webp', 2400, 1600)->getContent());
@@ -406,8 +407,10 @@ class ChangeRequestTest extends TestCase
 
         $og = $this->ogTags('/tours/niagara-day-trip');
         $this->assertSame('Niagara Day Trip', $og['og:title']);
-        $this->assertMatchesRegularExpression('#/storage/social/brand-[a-f0-9]{16}\.jpg$#', $og['og:image']);
+        $this->assertMatchesRegularExpression('#/storage/social/photo-[a-f0-9]{16}\.jpg$#', $og['og:image']);
         $this->assertSame(1, substr_count($this->get('/tours/niagara-day-trip')->getContent(), 'property="og:image"'));
+        [$w, $h] = getimagesizefromstring(Storage::disk('public')->get(str_replace('/storage/', '', parse_url($og['og:image'], PHP_URL_PATH))));
+        $this->assertSame([1200, 630], [$w, $h]);
     }
 
     // Security — nobody can open an admin account from the website; admins add users in Admin > Users.
