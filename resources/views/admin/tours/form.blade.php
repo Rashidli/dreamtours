@@ -173,17 +173,106 @@
 </script>
 @include('admin.tours.departures')
 @if($tour->exists)
-<div class="card" id="itinerary" style="scroll-margin-top:90px"><div class="card-body"><h5>Itinerary</h5>@can('create-tour-itineraries')<form class="row g-2 mb-4" method="post" action="{{route('tour-itinerary-days.store',$tour)}}">@csrf<div class="col-md-2"><input type="number" min="1" class="form-control" name="day_number" placeholder="Day" required></div><div class="col-md-4"><input class="form-control" name="en[title]" placeholder="Day title"></div><div class="col-md-4"><input class="form-control" name="en[description]" placeholder="Description"></div><div class="col-md-2"><button class="btn btn-primary">Add day</button></div></form>@endcan
-<p class="text-muted small">Click <b>Edit</b> on any stop to change its time, title, description or other details. Saving brings you back to the same stop.</p>
-@foreach($tour->itineraryDays as $day)<div class="border rounded p-3 mb-3" id="day-{{$day->id}}" style="scroll-margin-top:90px">
-<div class="d-flex justify-content-between align-items-start gap-2">
-@can('edit-tour-itineraries')<form class="row g-2 flex-grow-1" method="post" action="{{route('tour-itinerary-days.update',[$tour,$day])}}">@csrf @method('PUT')<div class="col-md-1"><input type="number" min="1" class="form-control fw-semibold" name="day_number" value="{{$day->day_number}}" title="Day number" required></div><div class="col-md-4"><input class="form-control" name="en[title]" value="{{$day->title}}" placeholder="Day title"></div><div class="col-md-5"><input class="form-control" name="en[description]" value="{{$day->description}}" placeholder="Day description"></div><div class="col-md-2"><button class="btn btn-outline-primary w-100">Save day</button></div></form>@else<h6>Day {{$day->day_number}} — {{$day->title}}</h6>@endcan
-@can('delete-tour-itineraries')<form method="post" action="{{route('tour-itinerary-days.destroy',[$tour,$day])}}">@csrf @method('DELETE')<button class="btn btn-sm btn-danger" onclick="return confirm('Delete this day and all its stops?')">Delete day</button></form>@endcan
-</div>
-<ul class="list-group my-2">@foreach($day->items as $stop)<li class="list-group-item" id="stop-{{$stop->id}}" style="scroll-margin-top:90px"><details><summary class="d-flex justify-content-between align-items-center gap-2" style="list-style:none;cursor:pointer"><span><b>{{substr((string)$stop->arrival_time,0,5) ?: '—'}}</b> {{$stop->location_name}}@if($stop->is_optional) <span class="badge bg-info">Optional</span>@endif @if($stop->own_expense) <span class="badge bg-secondary">Own account</span>@endif @if($stop->description)<span class="text-muted small d-block">{{Str::limit($stop->description,110)}}</span>@endif</span><span class="d-flex gap-1 flex-shrink-0">@can('edit-tour-itineraries')<span class="btn btn-sm btn-outline-primary"><i class="ri-pencil-line"></i> Edit</span>@endcan</span></summary>
-@can('edit-tour-itineraries')<form class="row g-2 mt-2 pt-2 border-top" method="post" enctype="multipart/form-data" action="{{route('tour-itinerary-items.update',[$day,$stop])}}">@csrf @method('PUT')@include('admin.tours.itinerary_stop_fields',['stop'=>$stop])<div class="col-12 d-flex gap-2"><button class="btn btn-primary btn-sm"><i class="ri-save-line"></i> Save stop</button></div></form>@endcan
-</details>@can('delete-tour-itineraries')<form method="post" action="{{route('tour-itinerary-items.destroy',[$day,$stop])}}" class="mt-2 text-end">@csrf @method('DELETE')<button class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Delete this stop?')"><i class="ri-delete-bin-line"></i> Delete stop</button></form>@endcan</li>@endforeach</ul>
-@can('create-tour-itineraries')<details class="mt-2"><summary class="btn btn-sm btn-light"><i class="ri-add-line align-middle"></i> Add a stop to day {{$day->day_number}}</summary><form class="row g-2 mt-2" method="post" enctype="multipart/form-data" action="{{route('tour-itinerary-items.store',$day)}}">@csrf @include('admin.tours.itinerary_stop_fields',['stop'=>null])<div class="col-12"><button class="btn btn-sm btn-primary"><i class="ri-add-line align-middle me-1"></i> Add stop</button></div></form></details>@endcan
-</div>@endforeach</div></div>
-<div class="card tf-section" id="additional"><div class="card-body"><h5>Additional information</h5><p class="text-muted small">What to bring, documents, children, seniors and FAQ for this tour. Included / not included lines are ticked above under “What’s included”.</p>@can('create-tour-content')<form class="row g-2 mb-3" method="post" action="{{route('tour-content-items.store',$tour)}}">@csrf<div class="col-md-2"><select class="form-select" name="type">@foreach(['what_to_bring','document_requirement','children','seniors','faq'] as $type)<option>{{$type}}</option>@endforeach</select></div><div class="col-md-2"><select class="form-select" name="icon"><option value="">No icon</option>@foreach(\App\Models\TourContentItem::ICONS as $icon=>$label)<option value="{{$icon}}">{{$icon}} {{$label}}</option>@endforeach</select></div><div class="col-md-3"><input class="form-control" name="en[title]" placeholder="Title" required></div><div class="col-md-3"><input class="form-control" name="en[description]" placeholder="Description"></div><div class="col-md-2"><button class="btn btn-primary">Add item</button></div></form>@endcan<div class="table-responsive"><table class="table"><thead><tr><th>Type</th><th>Title</th><th>Description</th><th></th></tr></thead><tbody>@foreach($tour->contentItems as $content)<tr><td>{{$content->type}}</td><td>{{$content->icon}} {{$content->title}}</td><td>{{$content->description}}</td><td>@can('delete-tour-content')<form method="post" action="{{route('tour-content-items.destroy',[$tour,$content])}}">@csrf @method('DELETE')<button class="btn btn-sm btn-danger" onclick="return confirm('Delete this item?')"><i class="ri-delete-bin-line"></i></button></form>@endcan</td></tr>@endforeach</tbody></table></div></div></div>
+@php($nextDay = (int) $tour->itineraryDays->max('day_number') + 1)
+<div class="card tf-section" id="itinerary"><div class="card-body">
+  <div class="tf-head"><span class="tf-icon"><i class="ri-route-line"></i></span><div class="flex-grow-1"><h5>Itinerary</h5><p>Days and stops shown on the tour page. Click a stop to edit its time, title, description or details; saving brings you back to the same stop.</p></div>@if($tour->itineraryDays->isNotEmpty())<span class="badge bg-primary bg-opacity-10 text-primary flex-shrink-0">{{ $tour->itineraryDays->count() }} {{ Str::plural('day', $tour->itineraryDays->count()) }} · {{ $tour->itineraryDays->sum(fn ($d) => $d->items->count()) }} stops</span>@endif</div>
+
+  @forelse($tour->itineraryDays as $day)
+  <div class="tf-day tf-section" id="day-{{$day->id}}">
+    <div class="tf-day-head">
+      <span class="tf-day-number">Day {{$day->day_number}}</span>
+      @can('edit-tour-itineraries')
+        <form class="row g-2 flex-grow-1 align-items-center" method="post" action="{{route('tour-itinerary-days.update',[$tour,$day])}}">@csrf @method('PUT')
+          <div class="col-3 col-md-2"><input type="number" min="1" class="form-control" name="day_number" value="{{$day->day_number}}" title="Day number" aria-label="Day number" required></div>
+          <div class="col-9 col-md-4"><input class="form-control fw-semibold" name="en[title]" value="{{$day->title}}" placeholder="Day title, e.g. Toronto – Niagara Falls" aria-label="Day title"></div>
+          <div class="col-md-4"><input class="form-control" name="en[description]" value="{{$day->description}}" placeholder="Short description of the day" aria-label="Day description"></div>
+          <div class="col-md-2"><button class="btn btn-outline-primary w-100"><i class="ri-save-line"></i> Save day</button></div>
+        </form>
+      @else
+        <div class="flex-grow-1"><div class="fw-semibold">{{$day->title}}</div>@if($day->description)<div class="text-muted">{{$day->description}}</div>@endif</div>
+      @endcan
+      @can('delete-tour-itineraries')<form method="post" action="{{route('tour-itinerary-days.destroy',[$tour,$day])}}">@csrf @method('DELETE')<button class="btn btn-outline-danger" title="Delete this day" aria-label="Delete day {{$day->day_number}}" onclick="return confirm('Delete day {{$day->day_number}} and all its stops?')"><i class="ri-delete-bin-line"></i></button></form>@endcan
+    </div>
+
+    <ol class="tf-stops">
+      @forelse($day->items as $stop)
+      <li class="tf-stop tf-section" id="stop-{{$stop->id}}">
+        <details>
+          <summary>
+            <span class="tf-stop-time">{{ substr((string) $stop->arrival_time, 0, 5) ?: '—' }}</span>
+            <span class="tf-stop-body"><span class="fw-semibold">{{$stop->location_name}}</span>
+              @if($stop->is_optional) <span class="badge bg-info bg-opacity-10 text-info">Optional</span>@endif
+              @if($stop->own_expense) <span class="badge bg-secondary bg-opacity-10 text-secondary">Own account</span>@endif
+              @if($stop->entrance_included) <span class="badge bg-success bg-opacity-10 text-success">Ticket included</span>@endif
+              @if($stop->description)<span class="text-muted d-block">{{Str::limit($stop->description,140)}}</span>@endif
+            </span>
+            @can('edit-tour-itineraries')<span class="tf-stop-edit"><i class="ri-pencil-line"></i> Edit</span>@endcan
+          </summary>
+          <div class="tf-subtle mt-2">
+            @can('edit-tour-itineraries')<form class="row g-3" method="post" enctype="multipart/form-data" action="{{route('tour-itinerary-items.update',[$day,$stop])}}">@csrf @method('PUT')@include('admin.tours.itinerary_stop_fields',['stop'=>$stop])<div class="col-12"><button class="btn btn-primary"><i class="ri-save-line"></i> Save stop</button></div></form>@endcan
+            @can('delete-tour-itineraries')<form method="post" action="{{route('tour-itinerary-items.destroy',[$day,$stop])}}" class="text-end mt-2">@csrf @method('DELETE')<button class="btn btn-link text-danger p-0" onclick="return confirm('Delete this stop?')"><i class="ri-delete-bin-line"></i> Delete stop</button></form>@endcan
+          </div>
+        </details>
+      </li>
+      @empty
+      <li class="text-muted py-2">No stops yet.</li>
+      @endforelse
+    </ol>
+
+    @can('create-tour-itineraries')
+    <details class="tf-details mt-2">
+      <summary class="btn btn-outline-primary"><i class="ri-add-line"></i> Add a stop to day {{$day->day_number}}</summary>
+      <form class="row g-3 tf-subtle mt-2 mx-0" method="post" enctype="multipart/form-data" action="{{route('tour-itinerary-items.store',$day)}}">@csrf @include('admin.tours.itinerary_stop_fields',['stop'=>null])<div class="col-12"><button class="btn btn-primary"><i class="ri-add-line"></i> Add stop</button></div></form>
+    </details>
+    @endcan
+  </div>
+  @empty
+    <div class="text-center text-muted py-4"><i class="ri-route-line fs-2 d-block mb-1"></i>No itinerary yet — add the first day below.</div>
+  @endforelse
+
+  @can('create-tour-itineraries')
+  <form class="tf-subtle row g-3 mx-0 mt-3 align-items-end" method="post" action="{{route('tour-itinerary-days.store',$tour)}}">@csrf
+    <div class="col-12 tf-label fs-6 mb-0"><i class="ri-add-circle-line text-primary me-1"></i> Add a day</div>
+    <div class="col-4 col-md-2"><label class="form-label fw-semibold">Day</label><input type="number" min="1" class="form-control" name="day_number" value="{{ $nextDay }}" required></div>
+    <div class="col-8 col-md-4"><label class="form-label fw-semibold">Day title</label><input class="form-control" name="en[title]" placeholder="e.g. Toronto – Niagara Falls"></div>
+    <div class="col-md-4"><label class="form-label fw-semibold">Short description</label><input class="form-control" name="en[description]" placeholder="Optional"></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100"><i class="ri-add-line"></i> Add day</button></div>
+  </form>
+  @endcan
+</div></div>
+
+@php($contentTypes = ['what_to_bring' => ['What to bring', 'ri-briefcase-4-line'], 'document_requirement' => ['Documents', 'ri-passport-line'], 'children' => ['Travelling with children', 'ri-parent-line'], 'seniors' => ['Information for seniors', 'ri-user-heart-line'], 'faq' => ['FAQ', 'ri-question-answer-line']])
+<div class="card tf-section" id="additional"><div class="card-body">
+  <div class="tf-head"><span class="tf-icon"><i class="ri-information-line"></i></span><div><h5>Additional information</h5><p>What to bring, documents, children, seniors and FAQ for this tour. Included / not included lines are ticked above under “What’s included”.</p></div></div>
+
+  @php($contentGroups = $tour->contentItems->groupBy('type'))
+  {{-- Older tours may still have their own included / not included lines; they stay listed so they can be removed. --}}
+  @php($listedTypes = $contentTypes + $contentGroups->keys()->diff(array_keys($contentTypes))->mapWithKeys(fn ($t) => [$t => [match ($t) { 'included' => 'Included (old line)', 'excluded' => 'Not included (old line)', default => Str::headline($t) }, 'ri-list-check']])->all())
+  @foreach($listedTypes as $type => [$typeLabel, $typeIcon])
+    @continue(!$contentGroups->has($type))
+    <div class="mb-3">
+      <div class="tf-label"><i class="{{ $typeIcon }} text-primary me-1"></i>{{ $typeLabel }} <span class="badge bg-light text-body">{{ $contentGroups[$type]->count() }}</span></div>
+      <div class="list-group">
+        @foreach($contentGroups[$type] as $content)
+          <div class="list-group-item d-flex justify-content-between align-items-start gap-3">
+            <div><span class="fw-semibold">{{$content->icon}} {{$content->title}}</span>@if($content->description)<span class="text-muted d-block">{{$content->description}}</span>@endif</div>
+            @can('delete-tour-content')<form method="post" action="{{route('tour-content-items.destroy',[$tour,$content])}}">@csrf @method('DELETE')<button class="btn btn-outline-danger btn-sm" title="Delete" aria-label="Delete {{ $content->title }}" onclick="return confirm('Delete this item?')"><i class="ri-delete-bin-line"></i></button></form>@endcan
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endforeach
+  @if($contentGroups->isEmpty())<div class="text-center text-muted py-3"><i class="ri-information-line fs-2 d-block mb-1"></i>Nothing added yet.</div>@endif
+
+  @can('create-tour-content')
+  <form class="tf-subtle row g-3 mx-0 mt-2 align-items-end" method="post" action="{{route('tour-content-items.store',$tour)}}">@csrf
+    <div class="col-12 tf-label fs-6 mb-0"><i class="ri-add-circle-line text-primary me-1"></i> Add an item</div>
+    <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Section</label><select class="form-select" name="type">@foreach($contentTypes as $type => [$typeLabel])<option value="{{$type}}">{{$typeLabel}}</option>@endforeach</select></div>
+    <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Icon</label><select class="form-select" name="icon"><option value="">No icon</option>@foreach(\App\Models\TourContentItem::ICONS as $icon=>$label)<option value="{{$icon}}">{{$icon}} {{$label}}</option>@endforeach</select></div>
+    <div class="col-lg-6"><label class="form-label fw-semibold">Title <span class="text-danger">*</span></label><input class="form-control" name="en[title]" placeholder="e.g. Passport valid 6 months — or the FAQ question" required></div>
+    <div class="col-lg-10"><label class="form-label fw-semibold">Description</label><textarea class="form-control" rows="2" name="en[description]" placeholder="Details — or the FAQ answer"></textarea></div>
+    <div class="col-lg-2"><button class="btn btn-primary w-100"><i class="ri-add-line"></i> Add item</button></div>
+  </form>
+  @endcan
+</div></div>
 @endif</div></div></div>@include('admin.includes.footer')
