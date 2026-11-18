@@ -188,6 +188,10 @@ sudo -u www-data php artisan up
   - `TourTranslation::$slugLocked`: ad dəyişəndə slug dəyişmir.
   - Köhnə slug `TourSlugRedirect::redirectFor` ilə 301 verir (tur və book səhifələri).
   - `GeneratesSlug` trait-i əl ilə yazılmış slug-ı saxlayır (bütün 6 model üçün).
+- **Tur formasının yeni dizaynı** (56bc6da):
+  - İki sütun: solda bölmə kartları (`tf-section`), sağda yapışqan Publish, şəkil və bölmə menyusu.
+  - Stil faylı `public/assets/css/admin-tour-form.css`-dir; `admin-crm.css`-ə toxunulmayıb, çünki develop-da da dəyişib.
+  - Sahə adları dəyişməyib. Kruiz bölməsi switch-ə bağlıdır.
 
 ## 5. UI qaydaları (ortaq CSS)
 
