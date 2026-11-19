@@ -219,3 +219,15 @@ li.cs-empty { list-style: none; border-bottom: 1px solid #ebebeb; }
 .cs-merge-foot { padding: 16px; border-top: 1px solid #ebebeb; background: #f7f7f7; }
 .cs-merge-table { min-width: 640px; }
 .cs-merge-table > tbody > tr > th:first-child { padding-left: 16px; }
+.cs-dupes-table { min-width: 860px; }
+.cs-dupes-table .cs-person { min-width: 240px; }
+.cs-dupes-table .cs-sub { word-break: normal; }
+@media (max-width: 767px) {
+  .cs-dupes-table { min-width: 0; }
+  .cs-dupes-table thead { display: none; }
+  .cs-dupes-table, .cs-dupes-table tbody, .cs-dupes-table tr, .cs-dupes-table td { display: block; width: 100%; }
+  .cs-dupes-table tr { border-bottom: 1px solid #ebebeb; padding: 8px 0; }
+  .cs-dupes-table > tbody > tr > td { border: 0; padding: 6px 16px !important; text-align: left !important; white-space: normal; }
+  .cs-dupes-table .cs-person { min-width: 0; }
+  .cs-dupes-table .cs-row-actions { justify-content: flex-start; }
+}

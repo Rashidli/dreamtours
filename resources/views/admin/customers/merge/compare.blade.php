@@ -46,8 +46,10 @@
     </tr></thead>
     <tbody>
     @foreach($fields as $field => $label)
-      @php([$mine, $theirs] = [$show($keep, $field), $show($other, $field)])
-      @php($default = $field === 'customer_status_id' && $statusFromOther ? 'other' : (blank($mine) && filled($theirs) ? 'other' : 'keep'))
+      @php
+        [$mine, $theirs] = [$show($keep, $field), $show($other, $field)];
+        $default = $field === 'customer_status_id' && $statusFromOther ? 'other' : (blank($mine) && filled($theirs) ? 'other' : 'keep');
+      @endphp
       <tr class="{{ $mine == $theirs ? 'cs-merge-same' : '' }}">
         <th class="fw-normal text-muted">{{ $label }}</th>
         @foreach(['keep' => $mine, 'other' => $theirs] as $side => $value)

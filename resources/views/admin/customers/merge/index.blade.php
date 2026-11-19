@@ -23,7 +23,7 @@
   <div class="cs-labels-head">
     <div class="tf-head mb-0"><span class="tf-icon"><i class="ri-git-merge-line"></i></span><div><h5>Customers that share a phone number or a full name</h5><p>Nothing is merged automatically — open a pair, compare, and choose. If two people are really different (for example a couple sharing a phone), mark them “Not duplicates” and they won't be suggested again.</p></div></div>
   </div>
-  <div class="table-responsive"><table class="table table-hover align-middle tl-table mb-0">
+  <div class="table-responsive"><table class="table table-hover align-middle tl-table cs-dupes-table mb-0">
     <thead><tr><th>Customer A</th><th>Customer B</th><th>Why</th><th class="text-end"><span class="visually-hidden">Actions</span></th></tr></thead>
     <tbody>
     @forelse($pairs as $pair)
