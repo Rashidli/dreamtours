@@ -3,16 +3,16 @@
      Existing media, album order and cover image are left as they are. --}}
 @can('create-gallery-media')
 <div class="bulk-upload mb-4" data-url="{{ route('gallery-media.store', $album) }}" data-token="{{ csrf_token() }}">
-    <label class="bulk-upload-drop d-block border border-2 border-dashed rounded-3 p-4 text-center mb-2" style="border-style:dashed!important;cursor:pointer">
-        <input type="file" class="d-none" multiple accept="image/*,.heic,.heif,video/mp4,video/webm,video/quicktime">
-        <i class="ri-upload-cloud-2-line fs-1 text-primary d-block"></i>
+    <label class="bulk-upload-drop cat-drop mb-2">
+        <input type="file" class="visually-hidden" multiple accept="image/*,.heic,.heif,video/mp4,video/webm,video/quicktime">
+        <i class="ri-upload-cloud-2-line" aria-hidden="true"></i>
         <span class="fw-semibold">Drop photos here or click to choose</span>
-        <span class="d-block text-muted small">Select as many as you like — JPG, PNG, WebP or iPhone HEIC photos and MP4 / WebM / MOV videos, up to 50 MB each.</span>
+        <span class="cat-drop-hint">Select as many as you like — JPG, PNG, WebP or iPhone HEIC photos and MP4 / WebM / MOV videos, up to 50 MB each.</span>
     </label>
     <div class="bulk-upload-bar d-none d-flex flex-wrap align-items-center gap-2 mb-2">
-        <button type="button" class="btn btn-primary btn-sm" data-action="start"><i class="ri-upload-2-line align-middle me-1"></i> Upload <span data-count></span></button>
-        <button type="button" class="btn btn-light btn-sm" data-action="clear">Clear finished</button>
-        <span class="small text-muted ms-auto" data-summary></span>
+        <button type="button" class="btn btn-primary" data-action="start"><i class="ri-upload-2-line align-middle me-1"></i> Upload <span data-count></span></button>
+        <button type="button" class="btn btn-light" data-action="clear">Clear finished</button>
+        <span class="text-muted ms-auto" data-summary></span>
     </div>
     <ul class="list-group bulk-upload-list"></ul>
 </div>
