@@ -203,6 +203,20 @@ sudo -u www-data php artisan up
   - Alternativ: Brevo və ya oxşar SMTP xidməti. Bunun üçün DNS-də SPF-ə `include` əlavə etmək və DKIM qeydi yaratmaq lazımdır.
   - İstifadəçi qərarı gözlənilir. Production hələ də `MAIL_MAILER=log` rejimindədir.
 
+### Admin redizaynı, branch `admin-design` (2026-11-19, yalnız staging-də)
+
+- **Dizayn dili:** Polaris-dən ilhamlanıb (Shopify admin), CSS tamamilə bizimdir.
+  - Ümumi qat `public/assets/css/admin-ui.css` header-də sonuncu yüklənir.
+  - Çərçivə: kömür rəngli menyu (#26282c), ağ üst panel.
+  - Hər bölmənin öz CSS-i var: `admin-<area>.css`. Siyahı/forma nümunələri `admin-tour-form.css`-dədir (`tl-*`, `tf-*`).
+- **Hazır olanlar:**
+  - Tur siyahısı, tur redaktəsi (yapışqan bölmə zolağı və Save), menyu (yenidən qruplaşdırılıb), üst panel.
+  - Qlobal axtarış: `admin.search`, `SearchController`.
+  - Giriş səhifəsi: dəqiqədə 6 cəhd limiti, sessiya yenilənir, "remember me" yoxdur.
+  - 7 paralel agentlə: Customers, Bookings, Leads, Payments, Komanda və tənzimləmələr, CMS, Kataloq və viza.
+- **develop ilə merge:** Bookings, Leads və Customers səhifələrinə modul 7–9 əlavələri yeni markup-a köçürülüb (split düymələri, `capacity_override`, export, "New booking"). Menyudakı vehicles/waitlist bəndləri `Route::has` ilə yoxlanılır.
+- **Ekran görüntüsü aləti:** `/opt/admin-shots` (`render.php` `APP_ROOT` qəbul edir; `shoot.py` seçimləri: `--url`, `--css2`, `--at`, `--clip`, `--click`).
+
 ## 5. UI qaydaları (ortaq CSS)
 
 - **Fayl:** `public/assets/css/admin-crm.css`. `admin/includes/header` vasitəsilə bütün admin səhifələrinə yüklənir.
