@@ -109,3 +109,14 @@
   .tl-card .tl-tab { white-space: nowrap; }
   .bk-list .bk-sub { white-space: nowrap; }
 }
+.min-w-0 { min-width: 0; }
+.bk-activity > li.bk-empty { display: block; border-top: 0; }
+.bk-card .tf-head > div:not(.tf-icon):not(.ms-auto) { flex: 1 1 220px; min-width: 0; }
+.bk-card .tf-head { flex-wrap: wrap; }
+.bk-activity .small { font-size: 13px; }
+.bk-notes .tf-label { font-weight: 650; color: #303030; }
+@media (max-width: 767px) {
+  .bk-card .table-responsive > .table { min-width: 620px; }
+  .bk-card .table-responsive > .table td { white-space: nowrap; }
+  .bk-ledger .bk-note-row td { white-space: normal !important; }
+}
