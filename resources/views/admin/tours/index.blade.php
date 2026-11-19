@@ -169,7 +169,7 @@
         <td class="text-nowrap text-end">@can('edit-tours')<a class="btn btn-sm btn-primary" title="Edit" aria-label="Edit {{ $tour->name }}" href="{{route('tours.edit',$tour)}}"><i class="ri-pencil-line"></i></a>@endcan @can('create-tours')<button type="button" class="btn btn-sm btn-outline-secondary" title="Duplicate" aria-label="Duplicate {{ $tour->name }}" data-bs-toggle="modal" data-bs-target="#tour-duplicate" data-duplicate-url="{{ route('tours.duplicate', $tour) }}" data-duplicate-name="{{ $tour->name }}" data-duplicate-days="{{ $tour->itinerary_days_count }}" data-duplicate-items="{{ $tour->content_items_count }}" data-duplicate-dates="{{ $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() }}"><i class="ri-file-copy-line"></i></button>@endcan @can('delete-tours')<form class="d-inline" method="post" action="{{route('tours.destroy',$tour)}}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete {{ $tour->name }}" onclick="return confirm('Delete tour?')"><i class="ri-delete-bin-line"></i></button></form>@endcan</td>
       </tr>
     @empty
-      <tr><td colspan="7" class="text-center text-muted py-5"><i class="ri-filter-off-line fs-2 d-block mb-1"></i>{{ $chips->isNotEmpty() ? 'No tours match these filters.' : 'No tours yet.' }} @if($chips->isNotEmpty())<a href="{{ route('tours.index') }}">Clear all filters</a>@endif</td></tr>
+      <tr><td colspan="7" class="text-center text-muted py-5"><i class="ri-inbox-line fs-2 d-block mb-1"></i>{{ $chips->isNotEmpty() ? 'No tours match these filters.' : 'No tours yet.' }} @if($chips->isNotEmpty())<a href="{{ route('tours.index') }}">Clear all filters</a>@endif</td></tr>
     @endforelse
     </tbody>
   </table></div>

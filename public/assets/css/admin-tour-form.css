@@ -184,3 +184,7 @@
 .tf-sectionbar-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .tf-section, .tf-date, .tf-day, .tf-stop { scroll-margin-top: 150px; }
 @media (max-width: 991px) { .tf-sectionbar-links a span, .tf-sectionbar-links a { font-size: 12px; } .tf-sectionbar-actions .tf-dirty.badge { display: none !important; } }
+
+/* View tabs can also be links (<a class="tl-tab active">). */
+a.tl-tab { text-decoration: none; }
+.tl-tab.active { background: #ebebeb; color: #303030; }
