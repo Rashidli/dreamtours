@@ -88,3 +88,8 @@
   .cms-details-body dd { margin-bottom: 8px; }
   .cms-list-head .btn-primary { margin-left: auto; }
 }
+
+/* Neutral badge: admin-ui.css line 232 (.badge.bg-secondary:not(.bg-opacity-10)) paints it white; use the Polaris grey here. */
+.badge.bg-secondary:not(.bg-opacity-10) { background: #e3e3e3 !important; color: #616161 !important; }
+/* Code samples inside hints */
+.form-text code, .cms-intro code { color: #303030; background: #f1f1f1; border-radius: 6px; padding: 1px 5px; font-size: 12px; }
