@@ -43,34 +43,32 @@
 
             <div class="row">
                 <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">Tours & cruises</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Tours</li>
-                            </ol>
-                        </div>
+                    <div class="page-title-box d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-baseline gap-2"><h4 class="mb-0">Tours & cruises</h4><span class="text-muted">{{ $tours->total() }} {{ Str::plural('tour', $tours->total()) }}{{ $chips->isNotEmpty() ? ' match the filters' : '' }}</span></div>
+                        @can('create-tours')<a class="btn btn-primary" href="{{route('tours.create')}}"><i class="ri-add-line"></i> New tour</a>@endcan
                     </div>
                 </div>
             </div>
-<div class="card"><div class="card-body">
-  @if(session('message'))<div class="alert alert-success">{{session('message')}}</div>@endif
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <div><h4 class="card-title mb-1">Tours</h4><div class="text-muted">{{ $tours->total() }} {{ Str::plural('tour', $tours->total()) }}{{ $chips->isNotEmpty() ? ' match the filters' : '' }} · click a column title to sort, <i class="ri-filter-3-line"></i> to filter</div></div>
-    @can('create-tours')<a class="btn btn-primary" href="{{route('tours.create')}}"><i class="ri-add-line align-middle me-1"></i> New tour</a>@endcan
-  </div>
+<div class="card tl-card"><div class="card-body p-0">
+  @if(session('message'))<div class="alert alert-success m-3 mb-0">{{session('message')}}</div>@endif
 
-  <form id="tour-list-filters" method="get" action="{{ route('tours.index') }}" class="tl-toolbar">
+  {{-- Shopify-style index filters: view tabs, then a full-width search (Enter searches). --}}
+  <form id="tour-list-filters" method="get" action="{{ route('tours.index') }}">
     @if($sort)<input type="hidden" name="sort" value="{{ $sort }}"><input type="hidden" name="dir" value="{{ $dir }}">@endif
     @if(request()->filled('date'))<input type="hidden" name="date" value="{{ request('date') }}">@endif
-    <div class="input-group tl-search"><span class="input-group-text"><i class="ri-search-line"></i></span><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search by tour name" aria-label="Search by tour name"><button class="btn btn-outline-primary">Search</button></div>
-    <div class="btn-group" role="group" aria-label="Departure dates">@foreach(['all' => 'All', 'upcoming' => 'Upcoming', 'past' => 'Past', 'none' => 'No dates'] as $value => $label)<input type="radio" class="btn-check" name="when" id="when-{{ $value }}" value="{{ $value }}" @checked($when === $value) onchange="this.form.submit()"><label class="btn btn-outline-secondary" for="when-{{ $value }}">{{ $label }}</label>@endforeach</div>
-    <div class="d-flex align-items-center gap-2 ms-auto"><label class="text-muted text-nowrap mb-0" for="per-page">Rows</label><select class="form-select" id="per-page" name="per_page" style="width:auto" onchange="this.form.submit()">@foreach([20, 50, 100] as $n)<option value="{{ $n }}" @selected((int) request('per_page', 20) === $n)>{{ $n }}</option>@endforeach</select></div>
+    <div class="tl-tabs-bar">
+      <div class="tl-tabs" role="radiogroup" aria-label="Departure dates">@foreach(['all' => 'All', 'upcoming' => 'Upcoming', 'past' => 'Past', 'none' => 'No dates'] as $value => $label)<input type="radio" class="btn-check" name="when" id="when-{{ $value }}" value="{{ $value }}" @checked($when === $value) onchange="this.form.submit()"><label class="tl-tab" for="when-{{ $value }}">{{ $label }}</label>@endforeach</div>
+      <div class="d-flex align-items-center gap-2 ms-auto"><label class="text-muted text-nowrap mb-0" for="per-page">Rows</label><select class="form-select form-select-sm" id="per-page" name="per_page" style="width:auto" onchange="this.form.submit()">@foreach([20, 50, 100] as $n)<option value="{{ $n }}" @selected((int) request('per_page', 20) === $n)>{{ $n }}</option>@endforeach</select></div>
+    </div>
+    <div class="tl-search-bar">
+      <label class="tl-search-field"><i class="ri-search-line" aria-hidden="true"></i><input type="search" name="q" value="{{ request('q') }}" placeholder="Search tours by name" aria-label="Search tours by name">@if(request()->filled('q'))<a href="{{ $without('q') }}" class="tl-search-clear" aria-label="Clear the search"><i class="ri-close-circle-fill"></i></a>@endif</label>
+      <button type="submit" class="visually-hidden">Search</button>
+      <span class="tl-hint">Click a column title to sort · <i class="ri-filter-3-line"></i> to filter</span>
+    </div>
   </form>
 
   @if($chips->isNotEmpty())
-    <div class="tl-chips">
+    <div class="tl-chips tl-chips-bar">
       @foreach($chips as [$label, $removeUrl])<a href="{{ $removeUrl }}" class="tl-chip" title="Remove this filter">{{ $label }} <i class="ri-close-line"></i></a>@endforeach
       <a href="{{ route('tours.index', array_filter(['sort' => $sort, 'dir' => $sort ? $dir : null, 'per_page' => request('per_page')])) }}" class="btn btn-link btn-sm text-danger">Clear all filters</a>
     </div>
@@ -175,7 +173,7 @@
     @endforelse
     </tbody>
   </table></div>
-  {{$tours->links('admin.vendor.pagination.bootstrap-5')}}
+  <div class="tl-pager">{{$tours->links('admin.vendor.pagination.bootstrap-5')}}</div>
 </div></div></div></div></div>
 <script>
 // Header filter menus with their own toggle (not Bootstrap's dropdown: the admin loads Bootstrap JS 5.0.2

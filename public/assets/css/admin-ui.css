@@ -436,8 +436,6 @@ textarea.form-control { padding: 6px 12px; }
 .tl-table thead th { background: #f7f7f7; }
 .tl-chip { background: #e3e3e3; color: #303030; border: 0; }
 .tl-chip:hover { background: #d4d4d4; color: #303030; }
-.tl-filter-btn { border: 0; box-shadow: var(--ui-bevel-secondary); }
-.tl-filter-btn.active { background: #303030; color: #fff; box-shadow: var(--ui-bevel-primary); }
 .form-select { padding-right: 32px; background-position: right 8px center; }
 .input-group > .btn { box-shadow: var(--ui-bevel-secondary); border-radius: 8px; }
 .input-group > .form-control:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
