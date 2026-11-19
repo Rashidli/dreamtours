@@ -12,7 +12,7 @@
     @can('list-leads')
       {{-- New leads and overdue reminders, so nothing waits unnoticed. --}}
       @php($leadsWaiting = \App\Models\Lead::whereHas('stage', fn ($q) => $q->where('key', 'new'))->count() + \App\Models\Lead::followUpDue()->count())
-      <li><a href="{{route('leads.index')}}"><i class="ri-funnel-line"></i>@if($leadsWaiting)<span class="badge rounded-pill bg-danger float-end" title="New leads and follow-ups due">{{ $leadsWaiting }}</span>@endif<span>Leads</span></a></li>
+      <li><a href="{{route('leads.index')}}"><i class="ri-user-star-line"></i>@if($leadsWaiting)<span class="badge rounded-pill bg-danger float-end" title="New leads and follow-ups due">{{ $leadsWaiting }}</span>@endif<span>Leads</span></a></li>
     @endcan
     @can('list-bookings')<li><a href="{{route('bookings.index')}}"><i class="ri-calendar-check-line"></i><span>Bookings & enquiries</span></a></li>@endcan
     @if(Route::has('waitlist.index') && class_exists(\App\Models\WaitlistEntry::class))
