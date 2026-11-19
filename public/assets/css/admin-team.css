@@ -163,3 +163,4 @@ a.tm-mail-item.active { background: #ebebeb; font-weight: 600; }
 .tm-perm-item { break-inside: avoid; padding-bottom: 16px; }
 @media (min-width: 1200px) { .tm-perm-grid { column-count: 2; } }
 @media (max-width: 575px) { .tm-savebar .tm-clean-note { display: none; } .tm-savebar { padding: 8px; } }
+.tm-table .tm-mono { color: #616161; font-size: 12.5px; }
