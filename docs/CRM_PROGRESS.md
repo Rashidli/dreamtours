@@ -179,7 +179,7 @@ sudo -u www-data php artisan up
   - statik fayllar 30 gün keşlənir, `/assets/` (admin) keşlənmir;
   - production-da `www` → `https://dreamtourpa.com` 301.
 
-### Sayt taskları branch-ı `site-tasks` (2026-11-18, yalnız staging-də)
+### Sayt taskları branch-ı `site-tasks` (2026-11-18; production-a çıxıb 2026-11-19, 7bfeaf2)
 
 - Bu branch `phase-1-tz-fixes`-dən ayrılıb, `develop`-a merge olunur. Production-a `git push origin site-tasks:phase-1-tz-fixes` ilə çıxacaq.
 - **Tur SEO** (f4a2a88), migrasiya `2026_11_18_000001` (əlavə edir):
@@ -192,6 +192,16 @@ sudo -u www-data php artisan up
   - İki sütun: solda bölmə kartları (`tf-section`), sağda yapışqan Publish, şəkil və bölmə menyusu.
   - Stil faylı `public/assets/css/admin-tour-form.css`-dir; `admin-crm.css`-ə toxunulmayıb, çünki develop-da da dəyişib.
   - Sahə adları dəyişməyib. Kruiz bölməsi switch-ə bağlıdır.
+
+- **Production deploy (2026-11-19):**
+  - Branch-da tur SEO, formanın yeni dizaynı, dublikat və siyahı filtrləri var.
+  - Migrasiya `2026_11_18_000001` işlədilib.
+  - Backup: `/root/backups/*before-site-tasks-20261119-160015*`.
+- **Admin JS qeydi:** Bootstrap JS 5.0.2-dir (CDN), CSS isə 5.1.3. Bootstrap dropdown-un 5.1 imkanları işləmir. Tur siyahısının filtr menyuları öz toggle-ından istifadə edir.
+- **SMTP vəziyyəti:**
+  - Mail.ru (VK WorkSpace) pulsuz tarifdə xarici proqram parolu yaratmağa icazə vermir. Tarifi dəyişmək və hesaba telefon bağlamaq lazımdır.
+  - Alternativ: Brevo və ya oxşar SMTP xidməti. Bunun üçün DNS-də SPF-ə `include` əlavə etmək və DKIM qeydi yaratmaq lazımdır.
+  - İstifadəçi qərarı gözlənilir. Production hələ də `MAIL_MAILER=log` rejimindədir.
 
 ## 5. UI qaydaları (ortaq CSS)
 
