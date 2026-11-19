@@ -16,11 +16,11 @@
   @include('admin.cms_ui.filters', ['action' => route('abouts.index'), 'search' => 'Search key or title', 'clearUrl' => route('abouts.index')])
 
   <div class="table-responsive"><table class="table table-hover align-middle tl-table cms-table">
-    <thead><tr><th style="width:88px">Image</th><th>Block</th><th class="d-none d-md-table-cell">Key</th><th class="text-end">Actions</th></tr></thead>
+    <thead><tr><th class="d-none d-sm-table-cell" style="width:88px">Image</th><th>Block</th><th class="d-none d-md-table-cell">Key</th><th class="text-end">Actions</th></tr></thead>
     <tbody>
     @forelse($abouts as $about)
       <tr>
-        <td>@if($about->image)<img src="{{ $media->url($about->image) }}" alt="" class="cms-thumb" loading="lazy">@else<span class="cms-thumb-empty"><i class="ri-image-line"></i></span>@endif</td>
+        <td class="d-none d-sm-table-cell">@if($about->image)<img src="{{ $media->url($about->image) }}" alt="" class="cms-thumb" loading="lazy">@else<span class="cms-thumb-empty"><i class="ri-image-line"></i></span>@endif</td>
         <td class="cms-wrap"><a class="cms-title" href="{{ route('abouts.edit', $about) }}">{{ $about->title }}</a><span class="cms-sub">{{ $aboutKeys[$about->key] ?? 'Custom block' }}</span></td>
         <td class="d-none d-md-table-cell"><code class="cms-code">{{ $about->key }}</code></td>
         <td class="cms-actions">

@@ -23,11 +23,11 @@
     'selects' => [['name' => 'type', 'label' => 'Type', 'all' => 'All types', 'options' => collect($types)->map(fn ($meta) => $meta[0])->all()]]])
 
   <div class="table-responsive"><table class="table table-hover align-middle tl-table cms-table">
-    <thead><tr><th style="width:88px">Image</th><th>{{ $type ? ucfirst($types[$type][2]['title'] ?? 'Title') : 'Title' }}</th>@unless($type)<th class="d-none d-md-table-cell">Type</th>@endunless<th class="d-none d-md-table-cell">Order</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <thead><tr><th class="d-none d-sm-table-cell" style="width:88px">Image</th><th>{{ $type ? ucfirst($types[$type][2]['title'] ?? 'Title') : 'Title' }}</th>@unless($type)<th class="d-none d-md-table-cell">Type</th>@endunless<th class="d-none d-md-table-cell">Order</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
     <tbody>
     @forelse($items as $item)
       <tr>
-        <td>@if($item->image)<img src="{{ $item->image }}" alt="" class="cms-thumb" loading="lazy">@else<span class="cms-thumb-empty"><i class="ri-image-line"></i></span>@endif</td>
+        <td class="d-none d-sm-table-cell">@if($item->image)<img src="{{ $item->image }}" alt="" class="cms-thumb" loading="lazy">@else<span class="cms-thumb-empty"><i class="ri-image-line"></i></span>@endif</td>
         <td class="cms-wrap"><a class="cms-title" href="{{ route('company-content.edit', $item) }}">{{ $item->title }}</a>@if($item->pinned) <span class="badge bg-info ms-1">Always first</span>@endif @if($item->subtitle)<span class="cms-sub">{{ $item->subtitle }}</span>@endif</td>
         @unless($type)<td class="d-none d-md-table-cell text-nowrap">{{ $types[$item->type][0] ?? $item->type }}</td>@endunless
         <td class="d-none d-md-table-cell">{{ $item->sort_order }}</td>

@@ -21,14 +21,14 @@
     ]])
 
   <div class="table-responsive"><table class="table table-hover align-middle tl-table cms-table">
-    <thead><tr><th>Reviewer</th><th class="d-none d-lg-table-cell">Review</th><th class="d-none d-md-table-cell">Tour</th><th>Rating</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <thead><tr><th>Reviewer</th><th class="d-none d-lg-table-cell">Review</th><th class="d-none d-md-table-cell">Tour</th><th class="d-none d-sm-table-cell">Rating</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
     <tbody>
     @forelse($reviews as $review)
       <tr>
         <td>@can('edit-reviews')<a class="cms-title" href="{{ route('reviews.edit', $review) }}">{{ $review->name }}</a>@else<span class="cms-title">{{ $review->name }}</span>@endcan @if($review->position)<span class="cms-sub">{{ $review->position }}</span>@endif</td>
         <td class="d-none d-lg-table-cell"><span class="cms-clip text-muted" style="max-width:300px">{{ str($review->content)->limit(90) }}</span></td>
         <td class="d-none d-md-table-cell">{{ $review->tour?->name ?: 'General' }}@if($review->travel_date)<span class="cms-sub">Travelled {{ $review->travel_date->format('M Y') }}</span>@endif</td>
-        <td class="cms-stars" aria-label="{{ $review->rating }} out of 5">{{ str_repeat('★', $review->rating) }}<span class="off">{{ str_repeat('★', 5 - $review->rating) }}</span></td>
+        <td class="cms-stars d-none d-sm-table-cell" aria-label="{{ $review->rating }} out of 5">{{ str_repeat('★', $review->rating) }}<span class="off">{{ str_repeat('★', 5 - $review->rating) }}</span></td>
         <td class="text-nowrap"><span class="badge bg-{{ $statusTones[$review->status] ?? 'secondary' }}">{{ \App\Models\Review::STATUSES[$review->status] ?? $review->status }}</span>@if($review->status === 'approved')<span class="cms-sub {{ $review->is_active ? 'text-success' : '' }}">{{ $review->is_active ? 'Published' : 'Unpublished' }}</span>@endif</td>
         <td class="cms-actions">
           @can('edit-reviews')
