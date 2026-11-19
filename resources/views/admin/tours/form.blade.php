@@ -268,7 +268,8 @@
   let dirty = false, submitting = false;
   const markDirty = (e) => { if (e.target.form === form || e.target.getAttribute?.('form') === 'tour-main-form') { dirty = true; document.body.classList.add('tf-is-dirty'); } };
   document.addEventListener('input', markDirty); document.addEventListener('change', markDirty);
-  if (window.jQuery) jQuery(document).on('change', '#tour-main-form .js-select2-multi', () => { dirty = true; document.body.classList.add('tf-is-dirty'); });
+  // select2 fires jQuery change events; jQuery loads in the footer, after this script.
+  document.addEventListener('DOMContentLoaded', () => { if (window.jQuery) jQuery(document).on('change', '.js-select2-multi', (e) => { if (e.target.form === form) { dirty = true; document.body.classList.add('tf-is-dirty'); } }); });
   form.addEventListener('submit', () => { submitting = true; });
   window.addEventListener('beforeunload', (e) => { if (dirty && !submitting && !window.tfDiscard) { e.preventDefault(); e.returnValue = ''; } });
   // Highlight the section in view in the side menu.
