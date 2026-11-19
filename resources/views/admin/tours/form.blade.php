@@ -30,16 +30,16 @@
 <div class="tf-sectionbar">
   <nav class="tf-sectionbar-links" aria-label="Sections of this form">
       <a href="#basics"><i class="ri-file-text-line"></i> Basics</a>
-      <a href="#seo-card"><i class="ri-search-eye-line"></i> Search engines</a>
-      <a href="#placement"><i class="ri-map-pin-line"></i> Where it appears</a>
-      <a href="#details"><i class="ri-time-line"></i> Trip details</a>
-      <a href="#inclusions"><i class="ri-checkbox-multiple-line"></i> Included / not included</a>
-      <a href="#fares"><i class="ri-money-dollar-circle-line"></i> Fares & payment</a>
-      <a href="#policies"><i class="ri-file-shield-2-line"></i> Policies & rules</a>
+      <a href="#seo-card"><i class="ri-search-eye-line"></i> SEO</a>
+      <a href="#placement"><i class="ri-map-pin-line"></i> Placement</a>
+      <a href="#details"><i class="ri-time-line"></i> Details</a>
+      <a href="#inclusions"><i class="ri-checkbox-multiple-line"></i> Included</a>
+      <a href="#fares"><i class="ri-money-dollar-circle-line"></i> Fares</a>
+      <a href="#policies"><i class="ri-file-shield-2-line"></i> Policies</a>
       <a href="#booking-form"><i class="ri-survey-line"></i> Booking form</a>
-      <a href="#cruise" data-tf-cruise-link @unless(old('is_cruise',$tour->is_cruise)) hidden @endunless><i class="ri-ship-line"></i> Cruise details</a>
-      <a href="#departures"><i class="ri-calendar-event-line"></i> Dates & prices</a>
-      @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> Additional information</a>@endif
+      <a href="#cruise" data-tf-cruise-link @unless(old('is_cruise',$tour->is_cruise)) hidden @endunless><i class="ri-ship-line"></i> Cruise</a>
+      <a href="#departures"><i class="ri-calendar-event-line"></i> Dates</a>
+      @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> More info</a>@endif
     </nav>
   <div class="tf-sectionbar-actions">
     <span class="tf-dirty badge bg-warning bg-opacity-10 text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span>
