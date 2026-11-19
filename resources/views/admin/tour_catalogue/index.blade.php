@@ -26,7 +26,7 @@
   <div class="card tl-card"><div class="card-body p-0">
     <form method="get" action="{{ route('tour-catalogue.index', $resource) }}">
       <div class="tl-tabs-bar">
-        <div class="tl-tabs" role="radiogroup" aria-label="Status">@foreach(['' => 'All', '1' => 'Active', '0' => 'Inactive'] as $value => $label)<input type="radio" class="btn-check" name="status" id="status-{{ $value === '' ? 'all' : $value }}" value="{{ $value }}" @checked($status === (string) $value) onchange="this.form.submit()"><label class="tl-tab" for="status-{{ $value === '' ? 'all' : $value }}">{{ $label }}</label>@endforeach</div>
+        <div class="tl-tabs" role="radiogroup" aria-label="Status">@foreach(['' => 'All', '1' => 'Active', '0' => 'Inactive'] as $value => $tabLabel)<input type="radio" class="btn-check" name="status" id="status-{{ $value === '' ? 'all' : $value }}" value="{{ $value }}" @checked($status === (string) $value) onchange="this.form.submit()"><label class="tl-tab" for="status-{{ $value === '' ? 'all' : $value }}">{{ $tabLabel }}</label>@endforeach</div>
       </div>
       <div class="tl-search-bar">
         <label class="tl-search-field"><i class="ri-search-line" aria-hidden="true"></i><input type="search" name="q" value="{{ request('q') }}" placeholder="Search {{ Str::plural($one) }} by name" aria-label="Search by name">@if(request()->filled('q'))<a href="{{ route('tour-catalogue.index', ['resource' => $resource] + ($status !== '' ? ['status' => $status] : [])) }}" class="tl-search-clear" aria-label="Clear the search"><i class="ri-close-circle-fill"></i></a>@endif</label>
