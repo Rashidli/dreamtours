@@ -550,3 +550,4 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 /* Collapsed (icon-only) sidebar keeps working. */
 .vertical-collpsed #sidebar-menu ul li a { margin: 2px 6px; justify-content: center; }
 .vertical-collpsed #sidebar-menu .has-arrow::after { display: none; }
+#sidebar-menu ul li a span.badge { flex: 0 0 auto; min-width: 20px; text-align: center; justify-content: center; }
