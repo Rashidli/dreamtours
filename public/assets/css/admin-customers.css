@@ -203,3 +203,19 @@ li.cs-empty { list-style: none; border-bottom: 1px solid #ebebeb; }
 .cs-done-list li { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; border-top: 1px solid #ebebeb; }
 .cs-done-list li b { min-width: 48px; text-align: right; font-size: 16px; font-variant-numeric: tabular-nums; }
 @media (max-width: 575px) { .cs-kpis { grid-template-columns: repeat(3, 1fr); gap: 8px; } .cs-kpi { padding: 10px; } .cs-kpi p { font-size: 12px; } .cs-kpi strong { font-size: 20px; } .cs-step-label { display: none; } .cs-step.is-current .cs-step-label { display: inline; } .cs-step { flex: 0 0 auto; } .cs-step:not(:last-child)::after { min-width: 10px; } }
+
+/* ---------- Duplicates / merge ---------- */
+.cs-merge-role { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px; border-radius: 4px; margin-right: 4px; vertical-align: 1px; }
+.cs-merge-keep { background: #cdfee1; color: #0c5132; }
+.cs-merge-other { background: #fff1e3; color: #5e4200; }
+.cs-merge-table thead th { white-space: normal; color: #303030; font-size: 13px; }
+.cs-merge-table tbody th { white-space: nowrap; }
+.cs-merge-same td, .cs-merge-same th { background: #fafafa; }
+.cs-choice { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 6px 10px; border-radius: 8px; border: 1px solid #e3e3e3; cursor: pointer; font-weight: 400; }
+.cs-choice:hover { background: #f7f7f7; }
+.cs-choice:has(input:checked) { border-color: #303030; box-shadow: inset 0 0 0 1px #303030; background: #fff; }
+.cs-choice .form-check-input { margin: 3px 0 0; float: none; flex-shrink: 0; }
+.cs-choice span { word-break: break-word; }
+.cs-merge-foot { padding: 16px; border-top: 1px solid #ebebeb; background: #f7f7f7; }
+.cs-merge-table { min-width: 640px; }
+.cs-merge-table > tbody > tr > th:first-child { padding-left: 16px; }
