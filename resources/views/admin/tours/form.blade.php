@@ -42,7 +42,7 @@
       @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> More info</a>@endif
     </nav>
   <div class="tf-sectionbar-actions">
-    <span class="tf-dirty badge bg-warning bg-opacity-10 text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span>
+    <span class="tf-dirty badge bg-warning bg-opacity-10 text-warning align-items-center gap-1" title="You have unsaved changes"><i class="ri-edit-2-line"></i> Unsaved</span>
     <a href="{{ url()->current() }}" class="btn btn-light tf-dirty" onclick="window.tfDiscard = true">Discard</a>
     <button class="btn btn-primary" form="tour-main-form"><i class="ri-save-line"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button>
   </div>
