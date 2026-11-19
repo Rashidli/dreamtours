@@ -1,5 +1,6 @@
 /* =============================================================================
-   Admin UI — shadcn/ui-style layer over the Bootstrap 5.1 theme.
+   Admin UI — Polaris-inspired layer over the Bootstrap 5.1 theme (Shopify admin
+   look; our own CSS, no Polaris code, icons or brand assets).
    Loaded last in admin/includes/header so it wins over app.min.css, bootstrap.min.css,
    select2 and brand.css. Every colour is a token below: a tenant (white label) can
    override --ui-primary / --ui-primary-foreground / --ui-ring without touching rules.
@@ -9,36 +10,40 @@
    ============================================================================= */
 
 :root {
+  /* Polaris-inspired palette (our own values; no Shopify code or assets). */
   --ui-background: #ffffff;
-  --ui-page: #fafafa;
-  --ui-foreground: #09090b;
-  --ui-muted: #f4f4f5;
-  --ui-muted-foreground: #71717a;
-  --ui-subtle-foreground: #52525b;
-  --ui-border: #e4e4e7;
-  --ui-input: #e4e4e7;
-  --ui-input-hover: #d4d4d8;
-  --ui-ring: #a1a1aa;
-  --ui-ring-soft: rgba(161, 161, 170, .35);
-  --ui-primary: #18181b;
-  --ui-primary-hover: #27272a;
-  --ui-primary-foreground: #fafafa;
-  --ui-secondary: #f4f4f5;
-  --ui-secondary-hover: #e4e4e7;
-  --ui-accent: #f4f4f5;
-  --ui-destructive: #dc2626;
-  --ui-destructive-hover: #b91c1c;
-  --ui-link: #2563eb;
-  --ui-radius: 8px;
-  --ui-radius-sm: 6px;
-  --ui-shadow-xs: 0 1px 2px rgba(0, 0, 0, .05);
-  --ui-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .08), 0 2px 4px -2px rgba(0, 0, 0, .06);
-  --ui-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .08), 0 4px 6px -4px rgba(0, 0, 0, .06);
+  --ui-page: #f1f1f1;
+  --ui-foreground: #303030;
+  --ui-muted: #f7f7f7;
+  --ui-muted-foreground: #616161;
+  --ui-subtle-foreground: #4a4a4a;
+  --ui-border: #e3e3e3;
+  --ui-input: #8a8a8a;
+  --ui-input-hover: #616161;
+  --ui-ring: #005bd3;
+  --ui-ring-soft: rgba(0, 91, 211, .25);
+  --ui-primary: #303030;
+  --ui-primary-hover: #1a1a1a;
+  --ui-primary-foreground: #ffffff;
+  --ui-secondary: #ffffff;
+  --ui-secondary-hover: #f7f7f7;
+  --ui-accent: #f1f1f1;
+  --ui-destructive: #c70a24;
+  --ui-destructive-hover: #a30a1e;
+  --ui-link: #005bd3;
+  --ui-radius: 12px;
+  --ui-radius-sm: 8px;
+  --ui-shadow-xs: 0 1px 0 0 rgba(26, 26, 26, .07);
+  --ui-shadow-md: 0 4px 6px -2px rgba(26, 26, 26, .2);
+  --ui-shadow-lg: 0 8px 16px -4px rgba(26, 26, 26, .22), 0 0 0 1px rgba(0, 0, 0, .05);
+  --ui-card-shadow: 0 1px 0 0 rgba(26, 26, 26, .07), 0 0 0 1px rgba(0, 0, 0, .06);
+  --ui-bevel-primary: inset 0 -1px 0 1px rgba(0, 0, 0, .8), inset 0 0 0 1px #303030, inset 0 .5px 0 1.5px rgba(255, 255, 255, .25);
+  --ui-bevel-secondary: inset 0 -1px 0 0 #b5b5b5, inset 0 0 0 1px rgba(0, 0, 0, .1), inset 0 .5px 0 1.5px #ffffff;
+  --ui-bevel-critical: inset 0 -1px 0 1px rgba(142, 31, 11, .8), inset 0 0 0 1px rgba(181, 38, 11, .8), inset 0 .5px 0 1.5px rgba(255, 255, 255, .35);
   --ui-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* Bootstrap's own variables follow the tokens, so utilities (text-primary, bg-primary…) match. */
   --bs-primary: var(--ui-primary);
-  --bs-primary-rgb: 24, 24, 27;
+  --bs-primary-rgb: 48, 48, 48;
   --bs-body-font-family: var(--ui-font);
   --bs-body-color: var(--ui-foreground);
   --bs-border-color: var(--ui-border);
@@ -304,3 +309,140 @@ small, .small { color: inherit; }
 /* Checkbox / radio labels read as normal text, not bold field labels. */
 .form-check-label, label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { font-weight: 400; }
 label:has(> input[type="checkbox"]) input, label:has(> input[type="radio"]) input { margin-right: 6px; }
+
+/* =============================================================================
+   Polaris-specific details (override the generic rules above)
+   ============================================================================= */
+body { font-size: 13px; letter-spacing: -.003em; }
+.page-title-box h4 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+
+/* Cards: white surface, hairline ring instead of a border. */
+.card { border: 0; border-radius: 12px; box-shadow: var(--ui-card-shadow); }
+.card-body { padding: 16px 20px; }
+.card-title, .card-body > h4:first-child, .card-body > h5:first-child { font-size: 14px; font-weight: 650; }
+
+/* Buttons: bevelled, 8px radius, compact. */
+.btn { min-height: 32px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 550; border: 0; }
+.btn-sm, .btn-group-sm > .btn { min-height: 28px; padding: 0 10px; font-size: 12px; }
+.btn-lg, .btn-group-lg > .btn { min-height: 40px; padding: 0 20px; font-size: 14px; }
+.btn-primary, .btn-dark {
+  background: linear-gradient(180deg, rgba(48, 48, 48, 0) 63.5%, rgba(255, 255, 255, .15) 100%), var(--ui-primary);
+  box-shadow: var(--ui-bevel-primary); color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-dark:hover {
+  background: linear-gradient(180deg, rgba(48, 48, 48, 0) 63.5%, rgba(255, 255, 255, .15) 100%), #1a1a1a !important; box-shadow: var(--ui-bevel-primary) !important;
+}
+.btn-primary:active { background: #1a1a1a !important; box-shadow: inset 0 2px 0 0 #000 !important; }
+.btn-secondary, .btn-light, .btn-soft-secondary,
+.btn-outline-primary, .btn-outline-secondary, .btn-outline-dark, .btn-outline-light, .btn-outline-info,
+.btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-info {
+  background: #fff; border: 0; box-shadow: var(--ui-bevel-secondary); color: var(--ui-foreground);
+}
+.btn-outline-danger { color: var(--ui-destructive); }
+.btn-outline-success { color: #0c5132; }
+.btn-outline-warning { color: #5e4200; }
+.btn-secondary:hover, .btn-light:hover, .btn-outline-primary:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover,
+.btn-outline-light:hover, .btn-outline-info:hover, .btn-outline-success:hover, .btn-outline-warning:hover, .btn-info:hover,
+.btn-secondary:focus, .btn-light:focus, .btn-outline-primary:focus, .btn-outline-secondary:focus {
+  background: #fafafa !important; box-shadow: var(--ui-bevel-secondary) !important; color: var(--ui-foreground) !important;
+}
+.btn-outline-danger:hover, .btn-outline-danger:focus { background: #fff5f5 !important; box-shadow: var(--ui-bevel-secondary) !important; color: var(--ui-destructive-hover) !important; }
+.btn-secondary:active, .btn-light:active, .btn-outline-primary:active, .btn-outline-secondary:active { background: #f7f7f7 !important; box-shadow: inset 0 2px 1px 0 rgba(26, 26, 26, .2) !important; }
+.btn-check:checked + .btn-outline-primary, .btn-check:checked + .btn-outline-secondary, .btn-check:checked + .btn-outline-dark,
+.btn-outline-primary.active, .btn-outline-secondary.active { background: #f1f1f1 !important; color: var(--ui-foreground) !important; box-shadow: inset 0 2px 1px 0 rgba(26, 26, 26, .2) !important; font-weight: 650; }
+.btn-danger { background: linear-gradient(180deg, rgba(229, 28, 0, 0) 63.5%, rgba(255, 255, 255, .15) 100%), var(--ui-destructive); box-shadow: var(--ui-bevel-critical); color: #fff; }
+.btn-danger:hover, .btn-danger:focus { background: linear-gradient(180deg, rgba(229, 28, 0, 0) 63.5%, rgba(255, 255, 255, .15) 100%), var(--ui-destructive-hover) !important; box-shadow: var(--ui-bevel-critical) !important; }
+.btn-success { background: #29845a; box-shadow: inset 0 -1px 0 1px rgba(12, 81, 50, .8), inset 0 .5px 0 1.5px rgba(255, 255, 255, .25); color: #fff; }
+.btn:focus-visible, .btn-check:focus-visible + .btn { outline: 2px solid var(--ui-ring) !important; outline-offset: 1px; box-shadow: none; }
+.btn:focus { box-shadow: inherit; }
+.btn-group > .btn { box-shadow: var(--ui-bevel-secondary); }
+.btn-group > .btn + .btn, .btn-group > .btn-check + .btn { margin-left: 1px; }
+.btn-link { color: var(--ui-link); text-decoration: none; font-weight: 550; box-shadow: none !important; background: none !important; }
+.btn-link:hover { text-decoration: underline; color: #004299; }
+
+/* Inputs: Polaris text field (grey 0.66px border, darker on hover, blue focus outline). */
+.form-control, .form-select { min-height: 32px; padding: 5px 12px; font-size: 13px; border: 1px solid var(--ui-input); border-radius: 8px; background-color: #fdfdfd; box-shadow: none; }
+.form-control:hover, .form-select:hover { border-color: var(--ui-input-hover); background-color: #fafafa; }
+.form-control:focus, .form-select:focus { border-color: var(--ui-input-hover); box-shadow: none; outline: 2px solid var(--ui-ring); outline-offset: 1px; background-color: #fff; }
+textarea.form-control { padding: 6px 12px; }
+.form-control[type="file"] { line-height: 30px; }
+.form-control[type="file"]::file-selector-button { height: 30px; background: #f7f7f7; border-right: 1px solid var(--ui-border); }
+.form-label, label.form-label, .col-form-label { font-size: 13px; font-weight: 450; color: var(--ui-foreground); margin-bottom: 4px; }
+.tf-form label.fw-semibold, label.fw-semibold { font-weight: 550 !important; }
+.form-text { font-size: 13px; color: var(--ui-muted-foreground); margin-top: 4px; }
+.input-group { box-shadow: none; }
+.input-group-text { min-height: 32px; font-size: 13px; background: #f7f7f7; border-color: var(--ui-input); border-radius: 8px; }
+.form-control.is-invalid, .form-select.is-invalid { border-color: #8e1f0b; background-color: #fff4f4; }
+
+/* Checkbox, radio, switch */
+.form-check-input { width: 16px; height: 16px; border: 1px solid var(--ui-input); border-radius: 4px; background-color: #fdfdfd; box-shadow: none; }
+.form-check-input:hover { border-color: var(--ui-input-hover); }
+.form-check-input:checked { background-color: #303030; border-color: #303030; }
+.form-check-input:focus { box-shadow: none; outline: 2px solid var(--ui-ring); outline-offset: 1px; }
+.form-switch .form-check-input { width: 32px; height: 18px; background-color: #b5b5b5; border: 0; background-size: 16px 16px; }
+.form-switch .form-check-input:checked { background-color: #303030; }
+
+/* Tables: Polaris index table. */
+.table { font-size: 13px; }
+.table > :not(caption) > * > * { padding: 8px 12px; border-bottom-color: #ebebeb; }
+.table > thead > tr > th, .table thead th { height: 36px; background: #f7f7f7; color: var(--ui-muted-foreground); font-size: 12px; font-weight: 550; }
+.table-hover > tbody > tr:hover > * { --bs-table-accent-bg: #f7f7f7; }
+.card-body > .table-responsive, .card-body > .table-responsive-md, .card-body > .table-responsive-lg { border: 0; border-radius: 0; margin: 0 -20px; }
+.card-body > .table-responsive > .table > thead > tr > th { background: #f7f7f7; border-radius: 0 !important; }
+.card-body > .table-responsive > .table > thead > tr > th:first-child, .card-body > .table-responsive > .table > tbody > tr > td:first-child { padding-left: 20px; }
+.card-body > .table-responsive > .table > thead > tr > th:last-child, .card-body > .table-responsive > .table > tbody > tr > td:last-child { padding-right: 20px; }
+
+/* Badges: Polaris tones. */
+.badge { border-radius: 8px; padding: 2px 8px; font-size: 12px; font-weight: 550; }
+.badge.bg-success, .badge.bg-opacity-10.text-success { background: #cdfee1 !important; color: #0c5132 !important; }
+.badge.bg-warning, .badge.bg-opacity-10.text-warning { background: #ffeb78 !important; color: #4f4700 !important; }
+.badge.bg-danger, .badge.bg-opacity-10.text-danger { background: #fedad9 !important; color: #8e0b21 !important; }
+.badge.bg-info, .badge.bg-opacity-10.text-info { background: #e0f0ff !important; color: #00527c !important; }
+.badge.bg-secondary, .badge.bg-light, .badge.bg-opacity-10.text-secondary, .badge.bg-opacity-10.text-primary, .badge.bg-opacity-10.text-dark { background: #e3e3e3 !important; color: #616161 !important; border: 0; }
+.badge.bg-primary, .badge.bg-dark { background: #303030 !important; color: #fff !important; }
+
+/* Status text colours (Polaris text tones). */
+.text-success { color: #0c5132 !important; }
+.text-danger { color: #8e0b21 !important; }
+.text-warning { color: #5e4200 !important; }
+.text-info { color: #00527c !important; }
+
+/* select2, menus, modals */
+.select2-container--bootstrap-5 .select2-selection { min-height: 32px; border-color: var(--ui-input); border-radius: 8px; box-shadow: none; font-size: 13px; background: #fdfdfd; }
+.select2-container--bootstrap-5.select2-container--focus .select2-selection, .select2-container--bootstrap-5.select2-container--open .select2-selection { box-shadow: none; outline: 2px solid var(--ui-ring); outline-offset: 1px; border-color: var(--ui-input-hover); }
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice { background: #e3e3e3; border: 0; border-radius: 8px; color: #303030; }
+.dropdown-menu, .select2-container--bootstrap-5 .select2-dropdown { border: 0; border-radius: 12px; box-shadow: var(--ui-shadow-lg); }
+.dropdown-item { border-radius: 8px; font-size: 13px; }
+.modal-content { border: 0; border-radius: 16px; box-shadow: 0 20px 20px -8px rgba(26, 26, 26, .28), 0 0 0 1px rgba(0, 0, 0, .06); }
+.modal-header { background: #f3f3f3; border-radius: 16px 16px 0 0; }
+.modal-footer { border-top: 1px solid var(--ui-border); }
+.alert { border: 0; border-radius: 12px; }
+.alert-success { background: #cdfee1; color: #0c5132; }
+.alert-danger { background: #fedad9; color: #8e0b21; }
+.alert-warning { background: #fff1e3; color: #5e4200; }
+.alert-info { background: #e0f0ff; color: #00527c; }
+
+/* Tabs: Polaris pill tabs. */
+.nav-tabs { border-bottom: 0; gap: 4px; }
+.nav-tabs .nav-link { border: 0; border-radius: 8px; color: var(--ui-muted-foreground); font-weight: 550; padding: 6px 12px; margin: 0; }
+.nav-tabs .nav-link:hover { background: #f1f1f1; color: var(--ui-foreground); }
+.nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link { background: #e3e3e3; color: var(--ui-foreground); }
+.page-link { height: 32px; min-width: 32px; border-radius: 8px !important; }
+.page-item.active .page-link { background: #e3e3e3; border: 0; box-shadow: none; }
+
+/* Tour form & list helpers in the same tones */
+.tf-icon { background: #f1f1f1; color: #303030; }
+.tf-subtle { background: #f7f7f7; border-color: #ebebeb; }
+.tl-table thead th { background: #f7f7f7; }
+.tl-chip { background: #e3e3e3; color: #303030; border: 0; }
+.tl-chip:hover { background: #d4d4d4; color: #303030; }
+.tl-filter-btn { border: 0; box-shadow: var(--ui-bevel-secondary); }
+.tl-filter-btn.active { background: #303030; color: #fff; box-shadow: var(--ui-bevel-primary); }
+.form-select { padding-right: 32px; background-position: right 8px center; }
+.input-group > .btn { box-shadow: var(--ui-bevel-secondary); border-radius: 8px; }
+.input-group > .form-control:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.input-group > .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+.form-switch .form-check-input[type="checkbox"], .form-switch .form-check-input:checked[type="checkbox"], .form-switch .form-check-input:focus[type="checkbox"] {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3.2' fill='%23fff'/%3e%3c/svg%3e");
+  background-size: 16px 16px;
+}
