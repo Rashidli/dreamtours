@@ -1,0 +1,69 @@
+/* Customers area (list, profile, form, labels, import, duplicates). Bootstrap 5.1.3 theme; loaded only by admin/customers/*.
+   Builds on admin-ui.css (global Polaris-style layer) and the tl-* / tf-* classes of admin-tour-form.css. */
+
+/* ---------- Shared bits ---------- */
+.cs-sub { display: block; color: #616161; font-size: 13px; margin-top: 2px; }
+.cs-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cs-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: inline-grid; place-items: center;
+  background: #e3e3e3; color: #303030; font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.cs-avatar-lg { width: 40px; height: 40px; font-size: 14px; }
+.cs-avatar-xl { width: 56px; height: 56px; font-size: 19px; }
+.cs-badges { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.cs-tag { background: #fff !important; color: #4a4a4a !important; box-shadow: inset 0 0 0 1px #d4d4d4; font-weight: 500; }
+.cs-nopromo { display: inline-flex; align-items: center; gap: 3px; color: #8a8a8a; font-size: 12px; }
+.cs-icon-btn { width: 30px; padding-left: 0 !important; padding-right: 0 !important; justify-content: center; align-items: center; }
+.cs-icon-btn i { font-size: 15px; }
+.cs-empty { text-align: center; padding: 48px 16px !important; color: #616161; }
+.cs-empty > i { display: block; font-size: 34px; color: #8a8a8a; margin-bottom: 8px; }
+.cs-empty h5 { font-size: 15px; font-weight: 600; color: #303030; margin-bottom: 4px; }
+.cs-empty p { margin: 0 auto 12px; max-width: 420px; }
+.cs-menu .dropdown-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
+.cs-menu .dropdown-item i { color: #616161; font-size: 16px; }
+.cs-more-btn::after { display: none; }
+.cs-more-btn i { margin-left: 2px; }
+
+/* ---------- Customer list ---------- */
+.tl-tab { text-decoration: none; }
+.tl-tab.active { background: #ebebeb; color: #303030; }
+.tl-tab:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
+.cs-search-bar .tl-search-field { max-width: none; }
+.cs-quick-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cs-quick-filters .form-select { width: auto; max-width: 220px; }
+.cs-filters-panel { padding: 14px 16px 16px; background: #f7f7f7; border-bottom: 1px solid #ebebeb; }
+.cs-filters-panel .form-label { margin-bottom: 4px; }
+.cs-filters-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.cs-person { display: flex; align-items: center; gap: 10px; min-width: 220px; }
+.cs-person-main { min-width: 0; }
+.cs-person-main .cs-badges { margin-top: 3px; }
+.cs-person-main .cs-badges:empty { display: none; }
+.cs-contact { display: block; color: #303030; }
+.cs-contact:hover { color: #005bd3; text-decoration: underline; }
+a.cs-sub { color: #616161; }
+.cs-row-actions { display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end; }
+.cs-table > tbody > tr > td { padding-top: 10px; padding-bottom: 10px; }
+
+/* Details modal */
+.cs-modal-title { display: flex; align-items: center; gap: 12px; }
+.cs-modal-name { font-size: 16px; font-weight: 600; line-height: 1.3; }
+.cs-modal-id { font-size: 13px; }
+.cs-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.cs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden; }
+.cs-stats > div { padding: 10px 12px; }
+.cs-stats > div + div { border-left: 1px solid #ebebeb; }
+.cs-stats span { display: block; color: #616161; font-size: 12px; }
+.cs-stats strong { display: block; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cs-dl { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; }
+.cs-dl dt { font-weight: 400; color: #616161; }
+.cs-dl dd { margin: 0; min-width: 0; }
+.cs-note { background: #f7f7f7; border-radius: 10px; padding: 10px 12px; white-space: pre-line; }
+.cs-note-label { font-size: 12px; font-weight: 600; color: #616161; margin-bottom: 2px; white-space: normal; }
+
+@media (max-width: 767px) {
+  .cs-quick-filters { width: 100%; }
+  .cs-quick-filters .form-select { flex: 1 1 140px; max-width: none; }
+  .cs-person { min-width: 0; }
+  .cs-table .cs-person > .cs-avatar { display: none; }
+  .cs-person-main .cs-sub { word-break: break-word; }
+  .cs-table > tbody > tr > td:first-child { white-space: normal; }
+  .cs-dl { grid-template-columns: 110px 1fr; }
+}
