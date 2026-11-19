@@ -554,3 +554,4 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 #sidebar-menu .mm-active > a, #sidebar-menu .mm-active > a i, #sidebar-menu a.active, #sidebar-menu a.active i,
 #sidebar-menu .mm-active .active, #sidebar-menu .mm-active .active i, #sidebar-menu ul li a:hover, #sidebar-menu ul li a:hover i { color: #1a1a1a !important; }
 #sidebar-menu .menu-title { color: #616161 !important; }
+#sidebar-menu .menu-title { opacity: 1 !important; }
