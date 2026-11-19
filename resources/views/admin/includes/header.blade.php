@@ -46,12 +46,14 @@
             <div class="d-flex">
                 <!-- LOGO -->
                 <div class="navbar-brand-box">
-                    {{-- The company's own logo (Settings → General → Logo); its name when there is none. --}}
-                    @php
-                      $adminLogo = setting_image('logo');
+                                        @php
+                      $adminMark = setting_image('favicon');
+                      $adminName = setting('site_name', config('app.name'));
                     @endphp
-                    <a href="{{route('home')}}" class="logo logo-light admin-logo" aria-label="{{ setting('site_name', config('app.name')) }} — dashboard">
-                        @if($adminLogo)<img src="{{ $adminLogo }}" alt="{{ setting('site_name', config('app.name')) }}" class="admin-logo-img">@else<span class="admin-logo-text">{{ setting('site_name', config('app.name')) }}</span>@endif
+                    {{-- Light top bar: the company icon (Settings → Favicon) and its name. --}}
+                    <a href="{{route('home')}}" class="logo admin-logo" aria-label="{{ $adminName }} — dashboard">
+                        @if($adminMark)<img src="{{ $adminMark }}" alt="" class="admin-logo-mark">@else<span class="admin-logo-mark admin-logo-initial" aria-hidden="true">{{ mb_strtoupper(mb_substr($adminName, 0, 1)) }}</span>@endif
+                        <span class="admin-logo-text">{{ $adminName }}</span>
                     </a>
                 </div>
 
