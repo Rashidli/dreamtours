@@ -448,3 +448,55 @@ textarea.form-control { padding: 6px 12px; }
 /* The theme sets overflow:hidden on .main-content, which disables position:sticky for
    side panels; clip keeps the same visual result without breaking sticky. */
 .main-content { overflow: clip; }
+
+/* =============================================================================
+   Multi-selects (select2 4.1 + bootstrap-5 theme) as a Polaris-style tag field:
+   tags and the search box flow on one line, the field matches a normal select
+   (32px, grey border, chevron), small × on the right of each tag, ✓ in the list.
+   `body` raises specificity over the theme and the admin footer's inline <style>.
+   ============================================================================= */
+body .select2-container--bootstrap-5 .select2-selection--multiple {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  min-height: 32px; padding: 3px 52px 3px 6px; cursor: text;
+  background: #fdfdfd url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23616161' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='m6 9 6 6 6-6'/%3e%3c/svg%3e") no-repeat right 8px center / 16px 16px;
+  border: 1px solid var(--ui-input); border-radius: 8px; box-shadow: none;
+}
+body .select2-container--bootstrap-5 .select2-selection--multiple:hover { border-color: var(--ui-input-hover); }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered { display: contents; }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice {
+  display: inline-flex; flex-direction: row-reverse; align-items: center; gap: 2px;
+  height: 24px; margin: 0; padding: 0 2px 0 8px; max-width: 100%;
+  background: #e3e3e3; border: 0; border-radius: 8px; color: #303030; font-size: 12px; font-weight: 500; line-height: 24px;
+}
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__display { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove {
+  width: 20px; height: 20px; margin: 0; padding: 0; border: 0; border-radius: 6px; flex: 0 0 20px;
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23616161' stroke-width='2.2' stroke-linecap='round'%3e%3cpath d='M18 6 6 18M6 6l12 12'/%3e%3c/svg%3e") no-repeat center / 12px 12px;
+}
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover { background-color: #d4d4d4; }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-search--inline { display: block; flex: 1 1 60px; min-width: 60px; width: auto; height: 24px; }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-search .select2-search__field {
+  width: 100% !important; height: 24px; margin: 0; padding: 0 2px; font-size: 13px; color: #303030; border: 0; outline: 0; box-shadow: none;
+}
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-search .select2-search__field::placeholder { color: #8a8a8a; }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear {
+  right: 28px; width: 18px; height: 18px; padding: 0; margin-top: -9px; border-radius: 50%;
+  background: #8a8a8a url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'%3e%3cpath d='M17 7 7 17M7 7l10 10'/%3e%3c/svg%3e") no-repeat center / 10px 10px;
+}
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover { background-color: #303030; }
+/* Dropdown list: Polaris option rows with a check mark on picked items. */
+body .select2-container--bootstrap-5 .select2-dropdown { border: 0; border-radius: 12px; box-shadow: var(--ui-shadow-lg); padding: 6px; margin-top: 4px; }
+body .select2-container--bootstrap-5 .select2-dropdown .select2-results__options { max-height: 260px; }
+body .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+  position: relative; margin: 0; padding: 6px 32px 6px 10px; border-radius: 8px; font-size: 13px; color: #303030;
+}
+body .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option--highlighted { background: #f1f1f1; color: #303030; }
+body .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option--selected { background: #f7f7f7; font-weight: 550; color: #303030; }
+body .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option--selected::after {
+  content: ""; position: absolute; right: 10px; top: 50%; width: 14px; height: 14px; margin-top: -7px;
+  background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23303030' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M20 6 9 17l-5-5'/%3e%3c/svg%3e") no-repeat center / 14px 14px;
+}
+body .select2-container--bootstrap-5 .select2-dropdown .select2-results__message { font-size: 13px; color: #616161; padding: 8px 10px; }
+/* With tags present the search box only needs a sliver; it grows as you type and wraps when full. */
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered:not(:empty) + .select2-search--inline { flex: 1 1 16px; min-width: 16px; }
+body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear { top: 50%; margin-top: 0; transform: translateY(-50%); }
