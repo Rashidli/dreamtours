@@ -118,3 +118,18 @@ a.cs-sub { color: #616161; }
   .cs-timeline-time { flex-basis: auto; }
   .cs-archive, .cs-archive .btn { width: 100%; }
 }
+
+/* ---------- Customer form ---------- */
+.cs-hint { display: flex; gap: 8px; color: #616161; font-size: 13px; padding: 10px 12px; }
+.cs-hint i { font-size: 16px; line-height: 1.2; color: #8a8a8a; }
+.cs-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.cs-pill { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px; margin: 0; border-radius: 999px; cursor: pointer; user-select: none;
+  background: #fff; color: #303030; box-shadow: inset 0 0 0 1px #c9c9c9; font-weight: 500; }
+.cs-pill i { display: none; font-size: 15px; }
+.cs-pill:hover { background: #f7f7f7; }
+.btn-check:checked + .cs-pill { background: #303030; color: #fff; box-shadow: none; }
+.btn-check:checked + .cs-pill i { display: inline; }
+.btn-check:focus-visible + .cs-pill { outline: 2px solid #005bd3; outline-offset: 1px; }
+.cs-savebar { position: sticky; bottom: 0; z-index: 20; display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; margin: 4px 0 24px;
+  background: #fff; border-radius: 12px; box-shadow: 0 1px 0 0 rgba(26, 26, 26, .07), 0 0 0 1px rgba(0, 0, 0, .06), 0 -6px 12px -8px rgba(26, 26, 26, .2); }
+@media (max-width: 575px) { .cs-savebar .btn { flex: 1 1 0; } }
