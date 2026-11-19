@@ -93,3 +93,6 @@
 .badge.bg-secondary:not(.bg-opacity-10) { background: #e3e3e3 !important; color: #616161 !important; }
 /* Code samples inside hints */
 .form-text code, .cms-intro code { color: #303030; background: #f1f1f1; border-radius: 6px; padding: 1px 5px; font-size: 12px; }
+/* Same header height with or without the primary button */
+.cms-list-head > div:first-child { min-height: 36px; align-items: center !important; }
+.cms-photo-empty { aspect-ratio: auto; height: 120px; }
