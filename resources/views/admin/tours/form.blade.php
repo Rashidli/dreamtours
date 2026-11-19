@@ -94,7 +94,8 @@
 </div></div>
 
 </form>
-<div class="tf-savebar"><span class="tf-dirty text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span><span></span><button class="btn btn-primary" form="tour-main-form"><i class="ri-save-line align-middle me-1"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button></div>
+{{-- Shopify-style contextual save bar: appears at the top as soon as something changes. --}}
+<div class="tf-savebar" role="region" aria-label="Unsaved changes"><div class="tf-savebar-inner"><span class="tf-savebar-title"><i class="ri-error-warning-line"></i> Unsaved changes</span><div class="d-flex gap-2"><a href="{{ url()->current() }}" class="btn btn-light" onclick="window.tfDiscard = true">Discard</a><button class="btn btn-success" form="tour-main-form"><i class="ri-save-line"></i> {{ $tour->exists ? 'Save' : 'Create tour' }}</button></div></div></div>
 
 @include('admin.tours.departures')
 @if($tour->exists)
@@ -231,7 +232,7 @@
   </div></div>
 
   {{-- Jump to a section --}}
-  <div class="card d-none d-xl-block"><div class="card-body py-2">
+  <div class="card d-none d-xl-block tf-nav-card"><div class="card-body py-2">
     <nav class="tf-nav nav flex-column" aria-label="Sections of this form">
       <a href="#basics"><i class="ri-file-text-line"></i> Basics</a>
       <a href="#seo-card"><i class="ri-search-eye-line"></i> Search engines</a>
@@ -269,7 +270,7 @@
   document.addEventListener('input', markDirty); document.addEventListener('change', markDirty);
   if (window.jQuery) jQuery(document).on('change', '#tour-main-form .js-select2-multi', () => { dirty = true; document.body.classList.add('tf-is-dirty'); });
   form.addEventListener('submit', () => { submitting = true; });
-  window.addEventListener('beforeunload', (e) => { if (dirty && !submitting) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', (e) => { if (dirty && !submitting && !window.tfDiscard) { e.preventDefault(); e.returnValue = ''; } });
   // Highlight the section in view in the side menu.
   const links = [...document.querySelectorAll('.tf-nav a')];
   if ('IntersectionObserver' in window && links.length) {
