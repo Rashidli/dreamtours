@@ -94,9 +94,9 @@ class PaymentReportTest extends TestCase
         $page = $this->report(['from' => '2026-11-01', 'to' => '2026-11-30']);
         // Received in Nov: 150 + 50 (A) + 0.25 (B) + 100 (D) + 100 (E) = 400.25 (5); B's 100.25 is October.
         // Refunded: 20.00 (1). Net: 380.25. Pending (all dates): 80.00 (1). Voided 999 and rejected 50 never count.
-        $page->assertSeeInOrder(['Received', 'CA$400.25', '5 payments', 'Refunded', 'CA$20', '1 refunds', 'Net collected', 'CA$380.25', 'Waiting for verification', 'CA$80', '1 payments'], false);
+        $page->assertSeeInOrder(['Received', 'CA$400.25', '5 payments', 'Refunded', 'CA$20', '1 refund', 'Net collected', 'CA$380.25', 'Waiting for verification', 'CA$80', '1 payment'], false);
         // Owed today: A 120 + B 100 + C 120 = 340.00 on 3 bookings; overdue: C 120.00.
-        $page->assertSeeInOrder(['Outstanding on active bookings', '3 bookings', 'CA$340', 'of which overdue', '1 bookings', 'CA$120'], false);
+        $page->assertSeeInOrder(['Outstanding on active bookings', '3 bookings', 'CA$340', 'Of which overdue', '1 booking', 'CA$120'], false);
         // By method: e-Transfer 150 + 100 received, 20 refunded → net 230; cash 50 + 0.25 = 50.25; cheque 100.
         $page->assertSeeInOrder(['Interac e-Transfer', 'CA$250', 'CA$20', 'CA$230'], false)->assertSee('CA$50.25')->assertSee('Cheque');
     }
