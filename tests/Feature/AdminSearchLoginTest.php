@@ -56,15 +56,14 @@ class AdminSearchLoginTest extends TestCase
             ->assertDontSee('data-toggle="fullscreen"', false);
     }
 
-    public function test_login_page_and_sign_in_with_remember_me(): void
+    public function test_login_page_and_sign_in(): void
     {
         $user = User::factory()->create(['password' => Hash::make('right-password')]);
 
-        $this->get(route('login'))->assertOk()->assertSee('Log in')->assertSee('name="remember"', false);
+        $this->get(route('login'))->assertOk()->assertSee('Log in')->assertDontSee('name="remember"', false);
         $this->post(route('login_submit'), ['email' => $user->email, 'password' => 'wrong'])->assertSessionHasErrors('password');
-        $this->post(route('login_submit'), ['email' => $user->email, 'password' => 'right-password', 'remember' => 1])->assertRedirect(route('home'));
+        $this->post(route('login_submit'), ['email' => $user->email, 'password' => 'right-password'])->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
-        $this->assertNotNull($user->fresh()->remember_token);
     }
 
     public function test_login_is_rate_limited(): void

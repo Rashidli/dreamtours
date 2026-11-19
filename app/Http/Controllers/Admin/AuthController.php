@@ -11,8 +11,8 @@ class AuthController extends Controller
     public function login_submit(LoginRequest $request)
     {
 
-        // "Keep me logged in" is optional; a fresh session id after login prevents session fixation.
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
+        // A fresh session id after login prevents session fixation.
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $request->session()->regenerate();
 
             return redirect()->intended(route('home'));

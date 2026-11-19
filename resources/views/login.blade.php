@@ -49,17 +49,13 @@
                 <input class="form-control @error('email') is-invalid @enderror" type="email" id="email" name="email" value="{{ old('email') }}" autocomplete="username" autofocus required>
                 @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label" for="password">Password</label>
                 <div class="position-relative">
                     <input class="form-control @error('password') is-invalid @enderror" type="password" id="password" name="password" autocomplete="current-password" required style="padding-right:44px">
                     <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false" onclick="const f=document.getElementById('password');const show=f.type==='password';f.type=show?'text':'password';this.setAttribute('aria-pressed',show);this.setAttribute('aria-label',show?'Hide password':'Show password');this.querySelector('i').className=show?'ri-eye-off-line':'ri-eye-line';"><i class="ri-eye-line"></i></button>
                 </div>
                 @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-            <div class="form-check mb-4">
-                <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1" @checked(old('remember'))>
-                <label class="form-check-label" for="remember">Keep me logged in on this device</label>
             </div>
             <button class="btn btn-primary" type="submit">Log in</button>
         </form>
