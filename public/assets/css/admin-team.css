@@ -164,3 +164,8 @@ a.tm-mail-item.active { background: #ebebeb; font-weight: 600; }
 @media (min-width: 1200px) { .tm-perm-grid { column-count: 2; } }
 @media (max-width: 575px) { .tm-savebar .tm-clean-note { display: none; } .tm-savebar { padding: 8px; } }
 .tm-table .tm-mono { color: #616161; font-size: 12.5px; }
+.tm-discard { display: none !important; }
+.tm-is-dirty .tm-discard { display: inline-flex !important; }
+.tm-set-field .tf-switch { padding-top: 0; padding-bottom: 0; }
+@media (min-width: 992px) { .tm-set-aside { position: sticky; top: 90px; align-self: start; } }
+.tm-set-field .tf-switch small { font-size: 13px; }
