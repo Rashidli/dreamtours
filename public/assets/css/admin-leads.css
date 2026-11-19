@@ -1,0 +1,199 @@
+/* Leads (sales pipeline): board, list, lead page, new lead, stages.
+   Loaded after admin-ui.css and admin-tour-form.css (tl-* list and tf-* section helpers).
+   Bootstrap 5.1 theme: no *-subtle utilities. Polaris-inspired tones from admin-ui.css. */
+
+/* ---------------------------------------------------------------- toolbar (board + list) */
+.ld-tabs-bar { justify-content: space-between; }
+.ld-tabs .tl-tab { gap: 6px; text-decoration: none; }
+.ld-tabs .tl-tab i { font-size: 15px; }
+.ld-tabs .tl-tab.active { background: #ebebeb; color: #303030; }
+.ld-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.ld-actions .btn { white-space: nowrap; }
+.ld-filters .ld-search { max-width: 420px; }
+.ld-filter { flex: 0 1 180px; min-width: 150px; }
+.ld-more-toggle.active, .ld-more-toggle[aria-expanded="true"] { background: #ebebeb !important; }
+.ld-more { flex: 1 1 100%; }
+.ld-more-inner { background: #f7f7f7; border: 1px solid #ebebeb; border-radius: 10px; padding: 12px; margin-top: 2px; }
+.ld-more-inner .form-label { margin-bottom: 4px; }
+.ld-clear { padding: 0 4px; font-size: 13px; }
+
+/* ---------------------------------------------------------------- board */
+/* Columns run the full board height, so a card can be dropped anywhere in a column's strip (Trello-style).
+   Every column has the same width; long card text is cut with … instead of widening it. */
+.lead-board { display: flex; gap: 12px; overflow-x: auto; align-items: stretch; padding: 12px;
+  height: calc(100vh - 300px); min-height: 440px; background: #fff; }
+.lead-col { flex: 1 0 0; min-width: 248px; max-width: 360px; display: flex; flex-direction: column; min-height: 0;
+  background: #f7f7f7; border: 1px solid #ebebeb; border-radius: 12px; transition: background .15s, box-shadow .15s; }
+.lead-col.drop-over { background: #eaf4ff; border-color: #a8cdfa; box-shadow: inset 0 0 0 1px #005bd3; }
+.lead-col.closed .lead-col-head { color: #616161; }
+.lead-col-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px 8px; font-weight: 650; font-size: 13px; color: #303030; }
+.lead-col-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lead-col-head .badge { flex-shrink: 0; min-width: 24px; justify-content: center; }
+.lead-col-body { flex: 1; min-height: 90px; padding: 2px 8px 8px; overflow-y: auto; border-radius: 0 0 12px 12px; }
+.lead-slot { border: 2px dashed #8ab8f0; background: rgba(0, 91, 211, .05); border-radius: 10px; margin-bottom: 8px; }
+.stage-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: 0 0 10px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); }
+
+.lead-col-body, .lead-card { min-width: 0; }
+.lead-card > *, .lead-card .d-flex > * { min-width: 0; } /* lets text-truncate work inside the card's flex rows */
+.lead-card .lead-avatar, .lead-card .text-nowrap { flex-shrink: 0; } /* avatar and age keep their size; text gives way */
+.lead-card { display: block; overflow: hidden; margin-bottom: 8px; padding: 10px 12px; color: #303030; text-decoration: none; cursor: grab;
+  background: #fff; border: 0; border-radius: 10px; box-shadow: 0 1px 0 0 rgba(26, 26, 26, .07), 0 0 0 1px rgba(0, 0, 0, .07);
+  transition: box-shadow .15s; }
+.lead-card:hover { color: #303030; box-shadow: 0 1px 0 0 rgba(26, 26, 26, .07), 0 0 0 1px rgba(0, 0, 0, .14), 0 4px 10px -4px rgba(26, 26, 26, .2); }
+.lead-card:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
+.lead-card:active { cursor: grabbing; }
+.lead-card.dragging { display: none; } /* the dashed slot stands in for it while dragging */
+.lead-card .lead-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; font-size: 14px; color: #303030; }
+.lead-card .lead-meta { font-size: 12.5px; color: #616161; overflow-wrap: anywhere; }
+.lead-card .lead-request { margin-top: 2px; font-size: 13px; color: #4a4a4a; }
+.lead-card .lead-facts { display: flex; gap: 10px; margin-top: 2px; }
+.lead-card .lead-facts i, .lead-card .lead-foot i { color: #8a8a8a; }
+.lead-card .lead-lost { font-style: italic; color: #8e0b21; }
+.lead-foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.lead-foot > * { min-width: 0; }
+.lead-chip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 130px;
+  font-size: 12px; font-weight: 550; padding: 1px 8px; border-radius: 8px; background: #f1f1f1; color: #4a4a4a; }
+.lead-card .lead-due, .lead-card .lead-due i { color: #8e0b21; font-weight: 650; }
+.lead-card .lead-follow.lead-due { background: #fedad9; border-radius: 8px; padding: 0 6px; }
+.lead-avatar { width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%; background: #e3e3e3; color: #303030;
+  font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.lead-avatar.none { background: transparent; border: 1px dashed #8a8a8a; color: #8a8a8a; }
+.lead-empty { font-size: 13px; color: #8a8a8a; text-align: center; padding: 22px 8px; border: 1px dashed #d4d4d4; border-radius: 10px; }
+.see-all { font-size: 13px; font-weight: 550; color: #005bd3; }
+.ld-board-hint { margin: 0; padding: 10px 16px; border-top: 1px solid #ebebeb; background: #f7f7f7; color: #616161; font-size: 13px; }
+.ld-board-hint i { color: #8a8a8a; }
+.ld-reason { font-weight: 450; }
+
+/* ---------------------------------------------------------------- list */
+.ld-cell-request { max-width: 280px; }
+.ld-empty-row { text-align: center; padding: 48px 16px !important; }
+.ld-empty-row > i { display: block; font-size: 32px; color: #8a8a8a; margin-bottom: 4px; }
+.ld-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.ld-dl { display: grid; grid-template-columns: minmax(110px, 34%) 1fr; gap: 8px 12px; margin: 0; font-size: 13px; }
+.ld-dl dt { font-weight: 450; color: #616161; margin: 0; }
+.ld-dl dd { margin: 0; color: #303030; min-width: 0; }
+.ld-message { white-space: pre-line; background: #f7f7f7; border: 1px solid #ebebeb; border-radius: 10px; padding: 10px 12px; font-size: 13px; color: #303030; }
+.min-w-0 { min-width: 0; }
+
+/* ---------------------------------------------------------------- lead page */
+.ld-back { width: 32px; height: 32px; padding: 0 !important; display: inline-grid !important; place-items: center; flex-shrink: 0; }
+.ld-head-card .card-body { padding: 20px; }
+.ld-head { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-start; }
+.ld-head-main { min-width: 0; flex: 1 1 320px; }
+.ld-head-name { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 20px; font-weight: 650; color: #303030; }
+.ld-head-name .badge { font-size: 12px; }
+.ld-head-meta { color: #616161; font-size: 13px; }
+.ld-head-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 13px; color: #303030; }
+.ld-head-facts span { display: inline-flex; align-items: center; gap: 4px; }
+.ld-head-facts i { color: #8a8a8a; }
+.ld-head-facts .is-due, .ld-head-facts .is-due i { color: #8e0b21; font-weight: 600; }
+.ld-head-lost { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; padding: 2px 8px; border-radius: 8px; background: #fedad9; color: #8e0b21; font-size: 13px; }
+.ld-head-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ld-head-actions .btn { white-space: nowrap; }
+
+/* Stage path: open stages as connected steps, closing actions on the right. */
+.stage-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #ebebeb; }
+.stage-steps form { margin: 0; }
+.ld-steps-label { color: #616161; font-size: 13px; margin-right: 2px; }
+.ld-path { display: flex; flex-wrap: wrap; gap: 4px; }
+.ld-step { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px;
+  background: #f1f1f1; color: #4a4a4a; font-size: 13px; font-weight: 550; cursor: pointer; transition: background .12s; }
+.ld-step:hover { background: #e3e3e3; color: #303030; }
+.ld-step:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
+.ld-step .stage-dot { width: 8px; height: 8px; flex-basis: 8px; }
+.ld-step.is-done { background: #e3e3e3; color: #303030; }
+.ld-step.is-current, .ld-step:disabled { background: #303030; color: #fff; opacity: 1; cursor: default; }
+.ld-step.is-current .stage-dot { box-shadow: 0 0 0 2px rgba(255, 255, 255, .5); }
+.ld-close-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+
+/* Cards: Polaris card titles; the main column uses tf-head with an icon tile. */
+.ld-card-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 12px; font-size: 14px; font-weight: 650; color: #303030; }
+.ld-card-title a, .ld-card-title .btn-link { font-size: 13px; font-weight: 550; }
+.ld-card .card-body { padding: 16px; }
+.ld-card .tf-head { margin-bottom: 14px; }
+.ld-card .tf-head h5 { font-size: 15px; }
+.ld-side .ld-dl { grid-template-columns: minmax(90px, 38%) 1fr; }
+.ld-side .ld-dl dd a { word-break: break-word; }
+.ld-follow-now { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; }
+.ld-follow-now.alert-info { background: #e0f0ff; color: #00527c; }
+.ld-follow-now.alert-danger { background: #fedad9; color: #8e0b21; }
+.ld-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.ld-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.ld-tag { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 4px 10px; border-radius: 8px; border: 1px solid #d4d4d4;
+  background: #fff; font-size: 13px; cursor: pointer; user-select: none; }
+.ld-tag:hover { background: #f7f7f7; }
+.ld-tag input { margin: 0; }
+.ld-tag:has(input:checked) { background: #303030; border-color: #303030; color: #fff; }
+
+/* Log a contact: type picker as Polaris segmented pills, outcomes as chips. */
+.kind-pick { display: flex; flex-wrap: wrap; gap: 4px; }
+.kind-pick .btn { display: inline-flex; align-items: center; gap: 6px; }
+.kind-pick .btn-check:checked + .btn { background: #303030 !important; color: #fff !important; box-shadow: var(--ui-bevel-primary) !important; }
+.ld-outcomes { display: flex; flex-wrap: wrap; gap: 6px; }
+.ld-outcomes label { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 4px 10px; border-radius: 8px; border: 1px solid #d4d4d4; font-size: 13px; cursor: pointer; }
+.ld-outcomes label:hover { background: #f7f7f7; }
+.ld-outcomes label:has(input:checked) { border-color: #303030; background: #f1f1f1; font-weight: 550; }
+.ld-outcomes input { margin: 0; }
+.ld-note-foot { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.ld-note-foot .text-muted { font-size: 13px; flex: 1 1 260px; }
+
+/* Timeline */
+.timeline-item { position: relative; padding: 0 0 18px 42px; }
+.timeline-item::before { content: ''; position: absolute; left: 15px; top: 34px; bottom: 4px; width: 2px; background: #ebebeb; border-radius: 1px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:last-child::before { display: none; }
+.timeline-icon { position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 10px; background: #f1f1f1; color: #303030;
+  display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.timeline-item .ld-tl-head { font-size: 13px; line-height: 32px; min-height: 32px; }
+.timeline-item .ld-tl-body { white-space: pre-line; font-size: 14px; color: #303030; background: #f7f7f7; border-radius: 10px; padding: 8px 12px; margin-top: 2px; }
+.ld-empty { text-align: center; color: #616161; padding: 28px 12px; }
+.ld-empty i { display: block; font-size: 30px; color: #8a8a8a; margin-bottom: 4px; }
+.ld-empty .fw-semibold { color: #303030; }
+
+/* History */
+.ld-history { list-style: none; margin: 0; padding: 0; }
+.ld-history li { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid #f1f1f1; font-size: 13px; }
+.ld-history li:first-child { border-top: 0; padding-top: 0; }
+.ld-history time { flex: 0 0 120px; color: #616161; white-space: nowrap; }
+.ld-danger-zone { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #ebebeb; color: #616161; font-size: 13px; }
+.ld-danger-zone form { margin: 0; }
+
+/* ---------------------------------------------------------------- new lead / edit dialog fields */
+.ld-fieldset + .ld-fieldset { margin-top: 4px; padding-top: 16px; border-top: 1px solid #ebebeb; }
+.ld-fieldset-title { font-size: 13px; font-weight: 650; color: #616161; margin: 0 0 10px; }
+.ld-form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-bottom: 24px; }
+
+/* ---------------------------------------------------------------- stages */
+.ld-stage-table td { vertical-align: middle; }
+.ld-stage-row-form { display: flex; align-items: center; gap: 8px; min-width: 520px; }
+.ld-stage-row-form .form-control { flex: 1 1 200px; min-width: 140px; }
+.ld-stage-row-form .form-select { flex: 0 0 120px; width: 120px; }
+.ld-locked { flex: 0 0 120px; justify-content: center; }
+.ld-move { display: inline-flex; gap: 2px; }
+.ld-move form { margin: 0; }
+.ld-move .btn { width: 32px; padding: 0; }
+.ld-stage-table tr.is-archived td { color: #8a8a8a; }
+.ld-stage-table tr.is-archived .form-control { color: #8a8a8a; }
+.ld-add-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #ebebeb; background: #f7f7f7; }
+.ld-add-bar .form-control { flex: 1 1 220px; max-width: 320px; }
+.ld-add-bar .form-select { flex: 0 0 130px; width: 130px; }
+.ld-intro { padding: 12px 16px; color: #616161; font-size: 13px; border-bottom: 1px solid #ebebeb; }
+
+/* ---------------------------------------------------------------- phones */
+@media (max-width: 767px) {
+  .ld-actions { margin-left: 0; width: 100%; }
+  .ld-filters .ld-search { max-width: none; flex-basis: 100%; }
+  .ld-filter { flex: 1 1 140px; }
+  .lead-board { height: calc(100vh - 230px); padding: 10px; }
+  .lead-col { flex: 0 0 82vw; min-width: 82vw; max-width: 82vw; }
+  .ld-head-actions { width: 100%; }
+  .ld-close-actions { margin-left: 0; }
+  .ld-history time { flex-basis: 96px; }
+  .ld-dl { grid-template-columns: 1fr 1.6fr; }
+}
+
+/* admin-ui.css paints .badge.bg-secondary white (a 3-class rule beats the later Polaris grey); stage badges need the grey. */
+.badge.bg-secondary:not(.bg-opacity-10) { background: #e3e3e3 !important; color: #616161 !important; }
+.ld-lead-link { font-weight: 600; color: #303030; }
+.ld-lead-link:hover { color: #005bd3; text-decoration: underline; }
+.ld-danger-zone .btn { white-space: nowrap; }
