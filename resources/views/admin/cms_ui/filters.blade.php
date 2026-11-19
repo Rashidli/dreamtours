@@ -2,12 +2,13 @@
      $action (url), $search = placeholder (null = no search box),
      $tabs = ['name' => ..., 'label' => aria label, 'options' => [value => label]] (optional; '' = All),
      $selects = [['name' => ..., 'label' => ..., 'all' => 'All …', 'options' => [value => label]], ...] (optional),
-     $keep = [name => value] hidden fields to keep (optional), $clearUrl (url without filters). --}}
+     $keep = [name => value] hidden fields to keep (optional), $clearUrl (url without filters),
+     $ignore = [names] that do not count as a filter for the "Clear filters" link (optional). --}}
 @php
   $tabs = $tabs ?? null;
   $selects = $selects ?? [];
   $filterNames = collect($selects)->pluck('name')->push('q')->when($tabs, fn ($c) => $c->push($tabs['name']));
-  $anyFilter = $filterNames->contains(fn ($n) => request()->filled($n));
+  $anyFilter = $filterNames->diff($ignore ?? [])->contains(fn ($n) => request()->filled($n));
 @endphp
 <form method="get" action="{{ $action }}" class="cms-filters">
   @foreach($keep ?? [] as $keepName => $keepValue)@if($keepValue !== null && $keepValue !== '')<input type="hidden" name="{{ $keepName }}" value="{{ $keepValue }}">@endif @endforeach
