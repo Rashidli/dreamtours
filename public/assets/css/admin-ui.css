@@ -675,3 +675,6 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 #side-menu a.menu-pick { background: #3a3d44 !important; }
 #side-menu mark.menu-hit { color: #8cc2ff !important; }
 .vertical-menu .simplebar-scrollbar::before { background: #5a5d63; }
+
+/* Bootstrap 5.1 has no fw-semibold (added in 5.2); many views use it. */
+.fw-semibold { font-weight: 600 !important; }
