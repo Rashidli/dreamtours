@@ -229,12 +229,12 @@ input[type="checkbox"]:not(.form-check-input):not(.btn-check), input[type="radio
 /* ---------- Badges ---------- */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--ui-radius-sm); font-size: 12px; font-weight: 500; line-height: 18px; letter-spacing: 0; }
 .badge.bg-primary { background: var(--ui-primary) !important; color: var(--ui-primary-foreground) !important; }
-.badge.bg-secondary:not(.bg-opacity-10) { background: var(--ui-secondary) !important; color: var(--ui-foreground) !important; }
+.badge.bg-secondary:not(.bg-opacity-10) { background: #e3e3e3 !important; color: #616161 !important; }
 .badge.bg-light { background: var(--ui-secondary) !important; color: var(--ui-foreground) !important; border: 1px solid var(--ui-border); }
-.badge.bg-success:not(.bg-opacity-10) { background: #dcfce7 !important; color: #166534 !important; }
-.badge.bg-warning:not(.bg-opacity-10) { background: #fef3c7 !important; color: #92400e !important; }
-.badge.bg-danger:not(.bg-opacity-10) { background: #fee2e2 !important; color: #991b1b !important; }
-.badge.bg-info:not(.bg-opacity-10) { background: #e0f2fe !important; color: #075985 !important; }
+.badge.bg-success:not(.bg-opacity-10) { background: #cdfee1 !important; color: #0c5132 !important; }
+.badge.bg-warning:not(.bg-opacity-10) { background: #ffeb78 !important; color: #4f4700 !important; }
+.badge.bg-danger:not(.bg-opacity-10) { background: #fedad9 !important; color: #8e0b21 !important; }
+.badge.bg-info:not(.bg-opacity-10) { background: #e0f0ff !important; color: #00527c !important; }
 .badge.bg-dark:not(.bg-opacity-10) { background: var(--ui-primary) !important; color: #fafafa !important; }
 /* Soft badges (bg-x bg-opacity-10 text-x): keep the hue, make the text readable. */
 .badge.bg-opacity-10.text-success { color: #166534 !important; }
