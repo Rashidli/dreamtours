@@ -648,3 +648,7 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 #side-menu a.menu-pick { background: #f1f1f1 !important; }
 #side-menu mark.menu-hit { color: #005bd3 !important; }
 .vertical-menu .simplebar-scrollbar::before { background: #c4c4c4; }
+#page-topbar .admin-search .form-control::placeholder { color: #6b6b6b !important; opacity: 1; }
+#page-topbar .admin-search span { color: #6b6b6b !important; }
+#page-topbar .header-item i, #page-topbar .noti-icon i, body[data-topbar="dark"] #page-topbar .header-item i { color: #4a4a4a !important; }
+#page-topbar .header-item:hover i { color: #1a1a1a !important; }
