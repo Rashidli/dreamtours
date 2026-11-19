@@ -37,6 +37,9 @@
   @else
     @if($errors->has('departure'))<div class="alert alert-danger">{{ $errors->first('departure') }}</div>@endif
 
+    {{-- Upcoming dates first; past ones are folded away behind a toggle (they are rarely edited). --}}
+    <div class="tf-dates {{ $pastCount ? 'tf-dates-collapsed' : '' }}" id="tf-dates">
+    @if($pastCount)<button type="button" class="btn btn-outline-secondary tf-past-toggle" aria-controls="tf-dates" aria-expanded="false" onclick="const box=document.getElementById('tf-dates');const open=box.classList.toggle('tf-dates-collapsed')===false;this.setAttribute('aria-expanded',open);this.querySelector('span').textContent=open?'Hide past dates':'Show {{ $pastCount }} past {{ Str::plural('date', $pastCount) }}';"><i class="ri-history-line"></i> <span>Show {{ $pastCount }} past {{ Str::plural('date', $pastCount) }}</span></button>@endif
     @forelse($tour->departures as $departure)
       @php($booked = $departure->bookedSeats())
       @php($taken = min($departure->capacity, $booked + $departure->held_seats))
@@ -143,6 +146,8 @@
     @empty
       <div class="crm-empty text-center text-muted py-4"><i class="ri-calendar-line fs-2 d-block mb-1"></i>No dates yet — add the first ones below.</div>
     @endforelse
+    @if($tour->departures->isNotEmpty() && !$upcomingCount)<div class="text-muted py-2 tf-no-upcoming">No upcoming dates — add new ones below.</div>@endif
+    </div>
 
     @can('create-tour-departures')
       <div class="tf-subtle tf-section mt-3" id="add-dates">

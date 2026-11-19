@@ -26,9 +26,9 @@
             </div>
 @include('admin.includes.flash')
 @include('admin.includes.validation_errors')
-<form id="tour-main-form" class="tf-form" method="post" enctype="multipart/form-data" action="{{$tour->exists?route('tours.update',$tour):route('tours.store')}}">@csrf @if($tour->exists)@method('PUT')@endif
 <div class="row g-4">
 <div class="col-xl-8">
+<form id="tour-main-form" class="tf-form" method="post" enctype="multipart/form-data" action="{{$tour->exists?route('tours.update',$tour):route('tours.store')}}">@csrf @if($tour->exists)@method('PUT')@endif
 
 {{-- 1. Basics --}}
 <div class="card tf-section" id="basics"><div class="card-body">
@@ -93,85 +93,9 @@
   <div class="row"><div class="col-md-4 mb-3"><label class="fw-semibold">Company / cruise line</label><input class="form-control" form="tour-main-form" name="cruise[company]" value="{{old('cruise.company',$tour->cruiseDetail?->company)}}"></div><div class="col-md-4 mb-3"><label class="fw-semibold">Departure port</label><input class="form-control" form="tour-main-form" name="cruise[departure_port]" value="{{old('cruise.departure_port',$tour->cruiseDetail?->departure_port)}}"></div><div class="col-md-4 mb-3"><label class="fw-semibold">Cabin types</label><input class="form-control" form="tour-main-form" name="cruise[cabin_type]" value="{{old('cruise.cabin_type',$tour->cruiseDetail?->cabin_type)}}" placeholder="Interior, Balcony, Suite"></div></div><div class="mb-0"><label class="fw-semibold">Required documents</label><textarea class="form-control" rows="3" form="tour-main-form" name="cruise[documents]">{{old('cruise.documents',implode("\n",$tour->cruiseDetail?->documents??[]))}}</textarea><div class="form-text">One per line.</div></div>
 </div></div>
 
-</div>{{-- /main column --}}
-
-<div class="col-xl-4"><div class="tf-sidebar">
-  {{-- Publish --}}
-  <div class="card"><div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0 fs-6 fw-semibold">Publish</h5><span class="tf-dirty badge bg-warning bg-opacity-10 text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span></div>
-    <div class="mb-3"><label class="fw-semibold">Status</label><select class="form-select" name="status" id="tf-status">@foreach($statusLabels as $s=>[$sLabel,$sHint])<option value="{{$s}}" @selected(old('status',$currentStatus)===$s)>{{$sLabel}} — {{$sHint}}</option>@endforeach</select></div>
-    <div class="row g-2 mb-2"><div class="col-7"><label class="fw-semibold">Badge</label><select class="form-select" name="badge"><option value="">None</option>@foreach($badgeLabels as $b=>$bLabel)<option value="{{$b}}" @selected(old('badge',$tour->badge)===$b)>{{$bLabel}}</option>@endforeach</select></div><div class="col-5"><label class="fw-semibold">Order</label><input type="number" min="0" class="form-control" name="sort_order" value="{{old('sort_order',$tour->sort_order??0)}}" title="Lower numbers are shown first"></div></div>
-    <div class="border-top pt-2 mt-2">
-      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-show-on-home" name="show_on_home" value="1" @checked(old('show_on_home',$tour->show_on_home))><label class="form-check-label" for="tf-show-on-home">Show on home<small>In the tours section of the home page.</small></label></div>
-      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-show-in-carousel" name="show_in_carousel" value="1" @checked(old('show_in_carousel',$tour->show_in_carousel))><label class="form-check-label" for="tf-show-in-carousel">Homepage carousel<small>As a slide at the top of the home page.</small></label></div>
-      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-is-private" name="is_private" value="1" @checked(old('is_private',$tour->is_private))><label class="form-check-label" for="tf-is-private">Private tour<small>Quote on request — no online booking.</small></label></div>
-      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-is-cruise" name="is_cruise" value="1" @checked(old('is_cruise',$tour->is_cruise))><label class="form-check-label" for="tf-is-cruise">Cruise<small>Adds the cruise details section.</small></label></div>
-    </div>
-    <div class="d-grid gap-2 mt-3"><button class="btn btn-primary btn-lg"><i class="ri-save-line align-middle me-1"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button>
-      <div class="d-flex gap-2">@if($publicUrl)<a class="btn btn-outline-secondary flex-fill" href="{{ $publicUrl }}" target="_blank" rel="noopener"><i class="ri-external-link-line align-middle me-1"></i> View on site</a>@endif<a class="btn btn-light flex-fill" href="{{route('tours.index')}}"><i class="ri-arrow-left-line align-middle me-1"></i> All tours</a></div>
-      @if($tour->exists)@can('create-tours')<button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#tour-duplicate" data-duplicate-url="{{ route('tours.duplicate', $tour) }}" data-duplicate-name="{{ $tt?->name }}" data-duplicate-days="{{ $tour->itineraryDays->count() }}" data-duplicate-items="{{ $tour->contentItems->count() }}" data-duplicate-dates="{{ $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() }}"><i class="ri-file-copy-line align-middle me-1"></i> Duplicate this tour</button>@endcan @endif</div>
-  </div></div>
-
-  {{-- Main image --}}
-  <div class="card"><div class="card-body">
-    <h5 class="fs-6 fw-semibold mb-3">Main image</h5>
-    @if($tour->main_image)<a href="{{ $tour->main_image }}" target="_blank" rel="noopener"><img src="{{ $tour->main_image }}" alt="" class="tf-image mb-3"></a>@else<div class="tf-image-empty mb-3"><span><i class="ri-image-line fs-3 d-block text-center"></i>No image yet</span></div>@endif
-    <label class="fw-semibold" for="tf-main-image">Upload a new image</label>
-    <input id="tf-main-image" type="file" class="form-control @error('main_image') is-invalid @enderror" name="main_image" accept="image/*,.heic,.heif">@error('main_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-    <input class="form-control mt-2" name="main_image_path" value="{{ old('main_image_path', $tour->getRawOriginal('main_image')) }}" placeholder="or paste an image URL / stored file name" aria-label="Image URL or stored file name">
-    <div class="form-text">Wide photo (16:9) works best. Used on cards, the tour page and link previews.</div>
-  </div></div>
-
-  {{-- Jump to a section --}}
-  <div class="card d-none d-xl-block"><div class="card-body py-2">
-    <nav class="tf-nav nav flex-column" aria-label="Sections of this form">
-      <a href="#basics"><i class="ri-file-text-line"></i> Basics</a>
-      <a href="#seo-card"><i class="ri-search-eye-line"></i> Search engines</a>
-      <a href="#placement"><i class="ri-map-pin-line"></i> Where it appears</a>
-      <a href="#details"><i class="ri-time-line"></i> Trip details</a>
-      <a href="#inclusions"><i class="ri-checkbox-multiple-line"></i> Included / not included</a>
-      <a href="#fares"><i class="ri-money-dollar-circle-line"></i> Fares & payment</a>
-      <a href="#policies"><i class="ri-file-shield-2-line"></i> Policies & rules</a>
-      <a href="#booking-form"><i class="ri-survey-line"></i> Booking form</a>
-      <a href="#cruise" data-tf-cruise-link @unless(old('is_cruise',$tour->is_cruise)) hidden @endunless><i class="ri-ship-line"></i> Cruise details</a>
-      <a href="#departures"><i class="ri-calendar-event-line"></i> Dates & prices</a>
-      @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> Additional information</a>@endif
-    </nav>
-  </div></div>
-</div></div>{{-- /sidebar --}}
-</div>
-
-<div class="tf-savebar"><span class="tf-dirty text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span><span></span><button class="btn btn-primary"><i class="ri-save-line align-middle me-1"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button></div>
 </form>
-<script>
-(function () {
-  const form = document.getElementById('tour-main-form'); if (!form) return;
-  // Cruise section follows the “Cruise” switch.
-  const cruise = document.getElementById('tf-is-cruise');
-  const toggleCruise = () => { document.getElementById('cruise').classList.toggle('d-none', !cruise.checked); document.querySelectorAll('[data-tf-cruise-link]').forEach((a) => a.hidden = !cruise.checked); };
-  cruise?.addEventListener('change', toggleCruise);
-  // “x selected” next to each inclusions list.
-  const countInclusions = () => document.querySelectorAll('[data-inclusion-type]').forEach((box) => {
-    const n = box.querySelectorAll('input:checked').length;
-    const badge = document.querySelector('[data-inclusion-count="' + box.dataset.inclusionType + '"]');
-    if (badge) badge.textContent = n ? n + ' selected' : '';
-  });
-  document.getElementById('inclusions')?.addEventListener('change', countInclusions); countInclusions();
-  // Warn before leaving with unsaved changes (fields of the main form only).
-  let dirty = false, submitting = false;
-  const markDirty = (e) => { if (e.target.form === form || e.target.getAttribute?.('form') === 'tour-main-form') { dirty = true; document.body.classList.add('tf-is-dirty'); } };
-  document.addEventListener('input', markDirty); document.addEventListener('change', markDirty);
-  if (window.jQuery) jQuery(document).on('change', '#tour-main-form .js-select2-multi', () => { dirty = true; document.body.classList.add('tf-is-dirty'); });
-  form.addEventListener('submit', () => { submitting = true; });
-  window.addEventListener('beforeunload', (e) => { if (dirty && !submitting) { e.preventDefault(); e.returnValue = ''; } });
-  // Highlight the section in view in the side menu.
-  const links = [...document.querySelectorAll('.tf-nav a')];
-  if ('IntersectionObserver' in window && links.length) {
-    const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-90px 0px -60% 0px' });
-    links.forEach((a) => { const el = document.querySelector(a.getAttribute('href')); if (el) io.observe(el); });
-  }
-})();
-</script>
+<div class="tf-savebar"><span class="tf-dirty text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span><span></span><button class="btn btn-primary" form="tour-main-form"><i class="ri-save-line align-middle me-1"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button></div>
+
 @include('admin.tours.departures')
 @if($tour->exists)
 @php($nextDay = (int) $tour->itineraryDays->max('day_number') + 1)
@@ -276,4 +200,82 @@
   </form>
   @endcan
 </div></div>
-@endif</div></div></div>@if($tour->exists)@include('admin.tours._duplicate_modal')@endif @include('admin.includes.footer')
+@endif
+</div>{{-- /main column --}}
+
+<div class="col-xl-4"><div class="tf-sidebar">
+  {{-- Publish --}}
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0 fs-6 fw-semibold">Publish</h5><span class="tf-dirty badge bg-warning bg-opacity-10 text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span></div>
+    <div class="mb-3"><label class="fw-semibold">Status</label><select class="form-select" form="tour-main-form" name="status" id="tf-status">@foreach($statusLabels as $s=>[$sLabel,$sHint])<option value="{{$s}}" @selected(old('status',$currentStatus)===$s)>{{$sLabel}} — {{$sHint}}</option>@endforeach</select></div>
+    <div class="row g-2 mb-2"><div class="col-7"><label class="fw-semibold">Badge</label><select class="form-select" form="tour-main-form" name="badge"><option value="">None</option>@foreach($badgeLabels as $b=>$bLabel)<option value="{{$b}}" @selected(old('badge',$tour->badge)===$b)>{{$bLabel}}</option>@endforeach</select></div><div class="col-5"><label class="fw-semibold">Order</label><input type="number" min="0" class="form-control" form="tour-main-form" name="sort_order" value="{{old('sort_order',$tour->sort_order??0)}}" title="Lower numbers are shown first"></div></div>
+    <div class="border-top pt-2 mt-2">
+      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-show-on-home" form="tour-main-form" name="show_on_home" value="1" @checked(old('show_on_home',$tour->show_on_home))><label class="form-check-label" for="tf-show-on-home">Show on home<small>In the tours section of the home page.</small></label></div>
+      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-show-in-carousel" form="tour-main-form" name="show_in_carousel" value="1" @checked(old('show_in_carousel',$tour->show_in_carousel))><label class="form-check-label" for="tf-show-in-carousel">Homepage carousel<small>As a slide at the top of the home page.</small></label></div>
+      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-is-private" form="tour-main-form" name="is_private" value="1" @checked(old('is_private',$tour->is_private))><label class="form-check-label" for="tf-is-private">Private tour<small>Quote on request — no online booking.</small></label></div>
+      <div class="form-check form-switch tf-switch"><input class="form-check-input" type="checkbox" role="switch" id="tf-is-cruise" form="tour-main-form" name="is_cruise" value="1" @checked(old('is_cruise',$tour->is_cruise))><label class="form-check-label" for="tf-is-cruise">Cruise<small>Adds the cruise details section.</small></label></div>
+    </div>
+    <div class="d-grid gap-2 mt-3"><button class="btn btn-primary btn-lg" form="tour-main-form"><i class="ri-save-line align-middle me-1"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button>
+      <div class="d-flex gap-2">@if($publicUrl)<a class="btn btn-outline-secondary flex-fill" href="{{ $publicUrl }}" target="_blank" rel="noopener"><i class="ri-external-link-line align-middle me-1"></i> View on site</a>@endif<a class="btn btn-light flex-fill" href="{{route('tours.index')}}"><i class="ri-arrow-left-line align-middle me-1"></i> All tours</a></div>
+      @if($tour->exists)@can('create-tours')<button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#tour-duplicate" data-duplicate-url="{{ route('tours.duplicate', $tour) }}" data-duplicate-name="{{ $tt?->name }}" data-duplicate-days="{{ $tour->itineraryDays->count() }}" data-duplicate-items="{{ $tour->contentItems->count() }}" data-duplicate-dates="{{ $tour->departures->filter(fn ($d) => $d->departs_at?->isFuture())->count() }}"><i class="ri-file-copy-line align-middle me-1"></i> Duplicate this tour</button>@endcan @endif</div>
+  </div></div>
+
+  {{-- Main image --}}
+  <div class="card"><div class="card-body">
+    <h5 class="fs-6 fw-semibold mb-3">Main image</h5>
+    @if($tour->main_image)<a href="{{ $tour->main_image }}" target="_blank" rel="noopener"><img src="{{ $tour->main_image }}" alt="" class="tf-image mb-3"></a>@else<div class="tf-image-empty mb-3"><span><i class="ri-image-line fs-3 d-block text-center"></i>No image yet</span></div>@endif
+    <label class="fw-semibold" for="tf-main-image">Upload a new image</label>
+    <input id="tf-main-image" type="file" class="form-control @error('main_image') is-invalid @enderror" form="tour-main-form" name="main_image" accept="image/*,.heic,.heif">@error('main_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    <input class="form-control mt-2" form="tour-main-form" name="main_image_path" value="{{ old('main_image_path', $tour->getRawOriginal('main_image')) }}" placeholder="or paste an image URL / stored file name" aria-label="Image URL or stored file name">
+    <div class="form-text">Wide photo (16:9) works best. Used on cards, the tour page and link previews.</div>
+  </div></div>
+
+  {{-- Jump to a section --}}
+  <div class="card d-none d-xl-block"><div class="card-body py-2">
+    <nav class="tf-nav nav flex-column" aria-label="Sections of this form">
+      <a href="#basics"><i class="ri-file-text-line"></i> Basics</a>
+      <a href="#seo-card"><i class="ri-search-eye-line"></i> Search engines</a>
+      <a href="#placement"><i class="ri-map-pin-line"></i> Where it appears</a>
+      <a href="#details"><i class="ri-time-line"></i> Trip details</a>
+      <a href="#inclusions"><i class="ri-checkbox-multiple-line"></i> Included / not included</a>
+      <a href="#fares"><i class="ri-money-dollar-circle-line"></i> Fares & payment</a>
+      <a href="#policies"><i class="ri-file-shield-2-line"></i> Policies & rules</a>
+      <a href="#booking-form"><i class="ri-survey-line"></i> Booking form</a>
+      <a href="#cruise" data-tf-cruise-link @unless(old('is_cruise',$tour->is_cruise)) hidden @endunless><i class="ri-ship-line"></i> Cruise details</a>
+      <a href="#departures"><i class="ri-calendar-event-line"></i> Dates & prices</a>
+      @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> Additional information</a>@endif
+    </nav>
+  </div></div>
+</div></div>{{-- /sidebar --}}
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById('tour-main-form'); if (!form) return;
+  // Cruise section follows the “Cruise” switch.
+  const cruise = document.getElementById('tf-is-cruise');
+  const toggleCruise = () => { document.getElementById('cruise').classList.toggle('d-none', !cruise.checked); document.querySelectorAll('[data-tf-cruise-link]').forEach((a) => a.hidden = !cruise.checked); };
+  cruise?.addEventListener('change', toggleCruise);
+  // “x selected” next to each inclusions list.
+  const countInclusions = () => document.querySelectorAll('[data-inclusion-type]').forEach((box) => {
+    const n = box.querySelectorAll('input:checked').length;
+    const badge = document.querySelector('[data-inclusion-count="' + box.dataset.inclusionType + '"]');
+    if (badge) badge.textContent = n ? n + ' selected' : '';
+  });
+  document.getElementById('inclusions')?.addEventListener('change', countInclusions); countInclusions();
+  // Warn before leaving with unsaved changes (fields of the main form only).
+  let dirty = false, submitting = false;
+  const markDirty = (e) => { if (e.target.form === form || e.target.getAttribute?.('form') === 'tour-main-form') { dirty = true; document.body.classList.add('tf-is-dirty'); } };
+  document.addEventListener('input', markDirty); document.addEventListener('change', markDirty);
+  if (window.jQuery) jQuery(document).on('change', '#tour-main-form .js-select2-multi', () => { dirty = true; document.body.classList.add('tf-is-dirty'); });
+  form.addEventListener('submit', () => { submitting = true; });
+  window.addEventListener('beforeunload', (e) => { if (dirty && !submitting) { e.preventDefault(); e.returnValue = ''; } });
+  // Highlight the section in view in the side menu.
+  const links = [...document.querySelectorAll('.tf-nav a')];
+  if ('IntersectionObserver' in window && links.length) {
+    const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-90px 0px -60% 0px' });
+    links.forEach((a) => { const el = document.querySelector(a.getAttribute('href')); if (el) io.observe(el); });
+  }
+})();
+</script>
+</div></div></div>@if($tour->exists)@include('admin.tours._duplicate_modal')@endif @include('admin.includes.footer')

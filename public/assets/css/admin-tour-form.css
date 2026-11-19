@@ -139,3 +139,16 @@
 .tl-pager:empty { display: none; }
 .tl-pager nav, .tl-pager .pagination { margin: 0; }
 .tl-search-field, .tl-search-field input { font-weight: 400; }
+
+/* Dates: upcoming first, past dates folded behind a toggle; tools on one row */
+.tf-dates { display: flex; flex-direction: column; }
+.tf-dates > .tf-date { order: 0; }
+.tf-dates > .tf-no-upcoming { order: 1; }
+.tf-dates > .tf-past-toggle { order: 2; align-self: flex-start; margin: 0 0 1rem; }
+.tf-dates > .tf-date-past { order: 3; }
+.tf-dates-collapsed > .tf-date-past { display: none; }
+.tf-date-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.tf-date-tools > .tf-details { flex: 0 0 auto; }
+.tf-date-tools > .tf-details[open] { flex: 1 1 100%; }
+.tf-date-tools > .tf-details[open] > summary { margin-bottom: 0; }
+.tf-price-add .form-check { margin: 0; }
