@@ -124,3 +124,8 @@
 /* Modals whose body and footer sit inside a <form>: keep the scrollable dialog working. */
 .modal-dialog-scrollable .modal-content > form { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .modal-dialog-scrollable .modal-content > form > .modal-body { overflow-y: auto; }
+
+/* Keep the main column readable when the table scrolls sideways on phones. */
+.tl-table > tbody > tr > td:first-child:not(.cat-icon-cell):not([colspan]) { min-width: 180px; }
+.tl-table > tbody > tr > td.cat-icon-cell + td { min-width: 200px; }
+@media (max-width: 767px) { .cat-page-hint, .tl-search-bar .tl-hint { display: none; } }
