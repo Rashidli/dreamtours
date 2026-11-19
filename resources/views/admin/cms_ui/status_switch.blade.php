@@ -1,0 +1,3 @@
+{{-- Visibility switch (keeps the plain checkbox contract: name=value 1, unchecked sends nothing).
+     $name (default is_active), $id, $checked, $label, $hint (optional), $form (optional form id), $attrs (optional raw) --}}
+<div class="form-check form-switch tf-switch" {!! $attrs ?? '' !!}><input class="form-check-input" type="checkbox" role="switch" id="{{ $id }}" name="{{ $name ?? 'is_active' }}" value="1" @if(!empty($form)) form="{{ $form }}" @endif @checked($checked)><label class="form-check-label" for="{{ $id }}"><span>{{ $label }}</span>@if(!empty($hint))<small>{{ $hint }}</small>@endif</label></div>

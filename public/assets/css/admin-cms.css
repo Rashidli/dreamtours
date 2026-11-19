@@ -1,0 +1,101 @@
+/* Website CMS pages (pages & SEO, sections, navigation, legal, site copy, FAQ, reviews, about, socials,
+   contact info, contact requests, company content). Loaded after admin-ui.css and admin-tour-form.css. */
+
+/* ---------- List pages ---------- */
+.cms-list-head { padding-bottom: 12px; }
+.cms-intro { margin: -6px 0 16px; color: #616161; font-size: 13px; max-width: 860px; }
+.cms-filters .tl-search-bar .cms-filter-select { width: auto; min-width: 150px; max-width: 240px; flex: 0 1 auto; }
+.cms-filters .cms-clear { padding-left: 4px; padding-right: 4px; box-shadow: none; }
+.cms-table { margin-bottom: 0; }
+.cms-table > tbody > tr > td { font-size: 13px; }
+.cms-table .cms-title { font-weight: 550; color: #303030; }
+.cms-table a.cms-title:hover { color: #005bd3; text-decoration: underline; }
+.cms-sub { display: block; color: #616161; font-size: 13px; margin-top: 2px; }
+.cms-table .cms-sub code, .cms-table code.cms-code { color: #616161; background: #f1f1f1; border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+.cms-table .cms-clip { display: block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cms-table .cms-wrap { white-space: normal; min-width: 220px; }
+.cms-actions { white-space: nowrap; text-align: right; }
+.cms-actions form { display: inline; margin: 0; }
+.cms-actions .btn + .btn, .cms-actions .btn + form, .cms-actions form + .btn, .cms-actions form + form { margin-left: 4px; }
+.cms-actions .btn-details { font-weight: 550; }
+.cms-thumb { width: 64px; height: 40px; object-fit: cover; border-radius: 8px; background: #f1f1f1; display: block; }
+.cms-thumb-empty { width: 64px; height: 40px; border-radius: 8px; background: #f1f1f1; color: #8a8a8a; display: grid; place-items: center; font-size: 16px; }
+.cms-stars { color: #b98900; letter-spacing: 1px; white-space: nowrap; }
+.cms-stars .off { color: #d4d4d4; }
+.cms-unread-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #005bd3; margin-right: 6px; vertical-align: middle; }
+.cms-icon-preview { width: 32px; height: 32px; border-radius: 8px; background: #f1f1f1; color: #303030; display: inline-grid; place-items: center; font-size: 17px; flex-shrink: 0; }
+.cms-cell-flex { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.cms-pending-link { text-decoration: none; }
+
+/* Empty state */
+.cms-empty-row > td { padding: 0 !important; border-bottom: 0 !important; }
+.cms-empty { text-align: center; padding: 48px 16px; color: #616161; }
+.cms-empty-icon { width: 48px; height: 48px; border-radius: 12px; background: #f1f1f1; color: #616161; display: inline-grid; place-items: center; font-size: 22px; margin-bottom: 10px; }
+.cms-empty h6 { font-size: 14px; font-weight: 600; color: #303030; margin: 0 0 4px; }
+.cms-empty p { margin: 0 auto 8px; max-width: 420px; font-size: 13px; }
+
+/* Details modal */
+.cms-details-body dl { display: grid; grid-template-columns: 150px 1fr; gap: 8px 16px; margin: 0; }
+.cms-details-body dt { color: #616161; font-weight: 500; }
+.cms-details-body dd { margin: 0; color: #303030; word-break: break-word; }
+.cms-details-body .cms-details-text { margin-top: 16px; padding: 14px 16px; background: #f7f7f7; border-radius: 10px; color: #303030; white-space: normal; line-height: 1.55; }
+.cms-details-body .cms-details-text p:last-child { margin-bottom: 0; }
+.cms-details-body .cms-details-text img { max-width: 100%; height: auto; }
+.cms-details-body .cms-details-img { max-width: 100%; max-height: 260px; border-radius: 10px; display: block; margin-bottom: 16px; object-fit: cover; }
+
+/* ---------- Form pages ---------- */
+.cms-back { width: 32px; height: 32px; border-radius: 8px; display: inline-grid; place-items: center; color: #303030; font-size: 18px; }
+.cms-back:hover { background: #e3e3e3; color: #303030; }
+.tf-form .form-label.fw-semibold, .tf-form label.fw-semibold { font-weight: 600; }
+.cms-side-title { font-size: 14px; font-weight: 600; margin: 0 0 12px; }
+.cms-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #616161; }
+.cms-meta code { color: #303030; background: #f1f1f1; border-radius: 6px; padding: 1px 6px; }
+.cms-switches { border-top: 1px solid #ebebeb; margin-top: 4px; padding-top: 6px; }
+.cms-switches .tf-switch .form-check-label span { font-weight: 600; }
+.cms-switches .tf-switch .form-check-label { font-weight: 400; }
+.tf-switch .form-check-label span { font-weight: 600; }
+.tf-switch .form-check-label { font-weight: 400; }
+.cms-list-group .list-group-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-color: #ebebeb; }
+.cms-list-group .list-group-item:first-child { border-top: 0; }
+.cms-list-group .list-group-item:last-child { border-bottom: 0; }
+.cms-details-toggle > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; }
+.cms-details-toggle > summary::-webkit-details-marker { display: none; }
+.cms-details-toggle > summary::after { content: "\ea4c"; font-family: remixicon; font-weight: 400; color: #616161; }
+.cms-details-toggle[open] > summary::after { content: "\ea76"; }
+.cms-details-toggle[open] > summary { margin-bottom: 12px; }
+
+/* Image field with preview */
+.cms-media-row { display: flex; gap: 12px; align-items: flex-start; }
+.cms-media-thumb { width: 96px; height: 72px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: #f1f1f1; display: grid; place-items: center; color: #8a8a8a; font-size: 22px; }
+.cms-media-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cms-media-inputs { flex: 1; min-width: 0; }
+.cms-photo { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; background: #f1f1f1; display: block; }
+
+/* Legal documents: summernote editor height (was inline on the page) */
+.note-editable { min-height: 320px; }
+.cms-version-body { padding: 20px 24px; border: 1px solid #ebebeb; border-radius: 10px; background: #fafafa; }
+.cms-version-body img { max-width: 100%; height: auto; }
+
+/* Contact request detail */
+.cms-message { white-space: normal; font-size: 14px; line-height: 1.6; color: #303030; background: #f7f7f7; border-radius: 10px; padding: 16px; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 767px) {
+  .cms-intro { margin-top: -4px; }
+  .cms-filters .tl-search-bar .cms-filter-select { flex: 1 1 140px; max-width: none; }
+  .cms-table .cms-clip { max-width: 200px; }
+  .cms-details-body dl { grid-template-columns: 1fr; gap: 2px; }
+  .cms-details-body dd { margin-bottom: 8px; }
+  .cms-list-head .btn-primary { margin-left: auto; }
+}
+
+/* Neutral badge: admin-ui.css line 232 (.badge.bg-secondary:not(.bg-opacity-10)) paints it white; use the Polaris grey here. */
+.badge.bg-secondary:not(.bg-opacity-10) { background: #e3e3e3 !important; color: #616161 !important; }
+/* Code samples inside hints */
+.form-text code, .cms-intro code { color: #303030; background: #f1f1f1; border-radius: 6px; padding: 1px 5px; font-size: 12px; }
+/* Same header height with or without the primary button */
+.cms-list-head > div:first-child { min-height: 36px; align-items: center !important; }
+.cms-photo-empty { aspect-ratio: auto; height: 120px; }
+.cms-version-body h1, .cms-version-body h2 { font-size: 18px; font-weight: 600; margin: 20px 0 8px; }
+.cms-version-body h3, .cms-version-body h4 { font-size: 15px; font-weight: 600; margin: 16px 0 6px; }
+.cms-version-body > h3.h4:first-child { font-size: 20px; margin-top: 0; }

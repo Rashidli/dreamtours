@@ -1,18 +1,46 @@
-@include('admin.includes.header')<div class="main-content"><div class="page-content"><div class="container-fluid">
+@include('admin.includes.header')
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-cms.css') }}?v={{ @filemtime(public_path('assets/css/admin-cms.css')) }}">
+@php
+  $filtered = request()->filled('q');
+  $newAction = ['url' => route('abouts.create'), 'label' => 'New block'];
+  $aboutKeys = ['main' => 'Our story', 'vision' => 'Vision', 'mission' => 'Mission', 'founder' => 'Founder'];
+  $media = app(\App\Services\ImageUploadService::class);
+@endphp
+<div class="main-content"><div class="page-content"><div class="container-fluid">
+@include('admin.cms_ui.list_header', ['title' => 'About content', 'count' => $abouts->total(), 'noun' => 'block', 'filtered' => $filtered, 'action' => $newAction,
+  'intro' => 'Text blocks on the About page: <b>Our story</b>, <b>Vision</b>, <b>Mission</b> and the <b>Founder</b> card.'])
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">About content</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">About</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-<div class="card"><div class="card-body">
-@if(session('message'))<div class="alert alert-success alert-dismissible fade show" role="alert">{{ session('message') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
-<div class="d-flex justify-content-between"><h4 class="card-title mb-3">Content</h4><a class="btn btn-primary" href="{{route('abouts.create')}}"><i class="ri-add-line align-middle me-1"></i> New</a></div><form class="row g-2 my-3"><div class="col-md-9"><input class="form-control" name="q" value="{{request('q')}}" placeholder="Search key or title"></div><div class="col-md-3"><button class="btn btn-outline-primary">Filter</button></div></form><table class="table"><thead><tr><th>Key</th><th>Title</th><th>Image</th><th>Actions</th></tr></thead><tbody>@foreach($abouts as $about)<tr><td>{{$about->key}}</td><td>{{$about->title}}</td><td>{{$about->image}}</td><td><a class="btn btn-sm btn-primary" title="Edit" href="{{route('abouts.edit',$about)}}"><i class="ri-pencil-line"></i></a> <form class="d-inline" method="post" action="{{route('abouts.destroy',$about)}}">@csrf @method('DELETE')<button class="btn btn-sm btn-danger" onclick="return confirm('Delete this item?')"><i class="ri-delete-bin-line"></i></button></form></td></tr>@endforeach</tbody></table>{{$abouts->links('admin.vendor.pagination.bootstrap-5')}}</div></div></div></div></div>@include('admin.includes.footer')
+<div class="card tl-card"><div class="card-body p-0">
+  @if(session('message'))<div class="alert alert-success alert-dismissible fade show m-3 mb-0" role="alert">{{ session('message') }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>@endif
+  @include('admin.cms_ui.filters', ['action' => route('abouts.index'), 'search' => 'Search key or title', 'clearUrl' => route('abouts.index')])
+
+  <div class="table-responsive"><table class="table table-hover align-middle tl-table cms-table">
+    <thead><tr><th class="d-none d-sm-table-cell" style="width:88px">Image</th><th>Block</th><th class="d-none d-md-table-cell">Key</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+    @forelse($abouts as $about)
+      <tr>
+        <td class="d-none d-sm-table-cell">@if($about->image)<img src="{{ $media->url($about->image) }}" alt="" class="cms-thumb" loading="lazy">@else<span class="cms-thumb-empty"><i class="ri-image-line"></i></span>@endif</td>
+        <td class="cms-wrap"><a class="cms-title" href="{{ route('abouts.edit', $about) }}">{{ $about->title }}</a><span class="cms-sub">{{ $aboutKeys[$about->key] ?? 'Custom block' }}</span></td>
+        <td class="d-none d-md-table-cell"><code class="cms-code">{{ $about->key }}</code></td>
+        <td class="cms-actions">
+          <button type="button" class="btn btn-sm btn-light btn-details" data-bs-toggle="modal" data-bs-target="#cms-details" data-details="#cms-d-{{ $about->id }}">Details</button>
+          <a class="btn btn-sm btn-primary" title="Edit" aria-label="Edit {{ $about->title }}" href="{{ route('abouts.edit', $about) }}"><i class="ri-pencil-line"></i></a>
+          <form method="post" action="{{ route('abouts.destroy', $about) }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete {{ $about->title }}" onclick="return confirm('Delete this About block? It disappears from the About page.')"><i class="ri-delete-bin-line"></i></button></form>
+          <template id="cms-d-{{ $about->id }}" data-title="{{ $about->title }}" data-edit="{{ route('abouts.edit', $about) }}">
+            @if($about->image)<img src="{{ $media->url($about->image) }}" alt="" class="cms-details-img">@endif
+            <dl><dt>Block</dt><dd>{{ $aboutKeys[$about->key] ?? 'Custom block' }} <code>{{ $about->key }}</code></dd></dl>
+            <div class="cms-details-text">{!! $about->description !!}</div>
+          </template>
+        </td>
+      </tr>
+    @empty
+      @include('admin.cms_ui.empty', ['colspan' => 4, 'icon' => 'ri-article-line', 'title' => 'No About blocks yet', 'text' => 'Start with “Our story” (key main), then add Vision, Mission and Founder.', 'filtered' => $filtered, 'clearUrl' => route('abouts.index'), 'action' => $newAction])
+    @endforelse
+    </tbody>
+  </table></div>
+  <div class="tl-pager">{{ $abouts->links('admin.vendor.pagination.bootstrap-5') }}</div>
+</div></div>
+</div></div></div>
+@include('admin.cms_ui.details_modal')
+@include('admin.includes.footer')
