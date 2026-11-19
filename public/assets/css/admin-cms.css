@@ -10,7 +10,7 @@
 .cms-table > tbody > tr > td { font-size: 13px; }
 .cms-table .cms-title { font-weight: 550; color: #303030; }
 .cms-table a.cms-title:hover { color: #005bd3; text-decoration: underline; }
-.cms-table .cms-sub { display: block; color: #616161; font-size: 13px; margin-top: 2px; }
+.cms-sub { display: block; color: #616161; font-size: 13px; margin-top: 2px; }
 .cms-table .cms-sub code, .cms-table code.cms-code { color: #616161; background: #f1f1f1; border-radius: 6px; padding: 1px 6px; font-size: 12px; }
 .cms-table .cms-clip { display: block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cms-table .cms-wrap { white-space: normal; min-width: 220px; }
@@ -96,3 +96,6 @@
 /* Same header height with or without the primary button */
 .cms-list-head > div:first-child { min-height: 36px; align-items: center !important; }
 .cms-photo-empty { aspect-ratio: auto; height: 120px; }
+.cms-version-body h1, .cms-version-body h2 { font-size: 18px; font-weight: 600; margin: 20px 0 8px; }
+.cms-version-body h3, .cms-version-body h4 { font-size: 15px; font-weight: 600; margin: 16px 0 6px; }
+.cms-version-body > h3.h4:first-child { font-size: 20px; margin-top: 0; }
