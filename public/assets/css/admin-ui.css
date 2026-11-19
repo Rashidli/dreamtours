@@ -444,3 +444,7 @@ textarea.form-control { padding: 6px 12px; }
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3.2' fill='%23fff'/%3e%3c/svg%3e");
   background-size: 16px 16px;
 }
+
+/* The theme sets overflow:hidden on .main-content, which disables position:sticky for
+   side panels; clip keeps the same visual result without breaking sticky. */
+.main-content { overflow: clip; }

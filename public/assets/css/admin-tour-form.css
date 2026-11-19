@@ -152,3 +152,7 @@
 .tf-date-tools > .tf-details[open] { flex: 1 1 100%; }
 .tf-date-tools > .tf-details[open] > summary { margin-bottom: 0; }
 .tf-price-add .form-check { margin: 0; }
+.tf-day-head { flex-wrap: nowrap; align-items: center; }
+.tf-day-head > form.row { flex: 1 1 0; min-width: 0; margin: 0; }
+.tf-day-head > form:not(.row) { flex: 0 0 auto; }
+@media (max-width: 767px) { .tf-day-head { flex-wrap: wrap; } }
