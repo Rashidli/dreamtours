@@ -74,10 +74,12 @@ Route::post('tours/{slug}/reviews', [FrontReviewController::class, 'store'])->mi
 Route::prefix('admin')->group(function () {
     // Someone already signed in goes straight to the dashboard (redirectUsersTo in bootstrap/app.php).
     Route::get('/', [PageController::class, 'login'])->middleware('guest')->name('login');
-    Route::post('/login', [AuthController::class, 'login_submit'])->middleware('guest')->name('login_submit');
+    // At most 6 attempts a minute per visitor, so passwords cannot be guessed at speed.
+    Route::post('/login', [AuthController::class, 'login_submit'])->middleware(['guest', 'throttle:6,1'])->name('login_submit');
 
     Route::middleware('auth')->group(function () {
         Route::get('/home', [PageController::class, 'home'])->name('home');
+        Route::get('search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
         Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('activity-history', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-log.index');
 

@@ -46,10 +46,12 @@
             <div class="d-flex">
                 <!-- LOGO -->
                 <div class="navbar-brand-box">
-                    <a href="{{route('home')}}" class="logo logo-light">
-                        <span class="logo-lg" style="color: #fff; font-weight: bold; font-size: 18px;">
-                            {{ config('app.name') }}
-                        </span>
+                    {{-- The company's own logo (Settings → General → Logo); its name when there is none. --}}
+                    @php
+                      $adminLogo = setting_image('logo');
+                    @endphp
+                    <a href="{{route('home')}}" class="logo logo-light admin-logo" aria-label="{{ setting('site_name', config('app.name')) }} — dashboard">
+                        @if($adminLogo)<img src="{{ $adminLogo }}" alt="{{ setting('site_name', config('app.name')) }}" class="admin-logo-img">@else<span class="admin-logo-text">{{ setting('site_name', config('app.name')) }}</span>@endif
                     </a>
                 </div>
 
@@ -59,9 +61,9 @@
                 </button>
 
                 <!-- App Search-->
-                <form class="app-search d-none d-lg-block">
+                <form class="app-search admin-search d-none d-lg-block" method="get" action="{{ route('admin.search') }}" role="search">
                     <div class="position-relative">
-                        <input type="text" class="form-control" placeholder="Search...">
+                        <input type="search" name="q" value="{{ request()->routeIs('admin.search') ? request('q') : '' }}" class="form-control" placeholder="Search tours, customers, bookings, leads…" aria-label="Search the admin">
                         <span class="ri-search-line"></span>
                     </div>
                 </form>
@@ -78,10 +80,10 @@
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
                          aria-labelledby="page-header-search-dropdown">
 
-                        <form class="p-3">
+                        <form class="p-3" method="get" action="{{ route('admin.search') }}" role="search">
                             <div class="mb-3 m-0">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Search ...">
+                                    <input type="search" name="q" class="form-control" placeholder="Search…" aria-label="Search the admin">
                                     <div class="input-group-append">
                                         <button class="btn btn-primary" type="submit"><i class="ri-search-line"></i>
                                         </button>
@@ -122,24 +124,26 @@
                 </script>
                 @endauth
 
-                <div class="dropdown d-none d-lg-inline-block ms-1">
-                    <button type="button" class="btn header-item noti-icon waves-effect" data-toggle="fullscreen">
-                        <i class="ri-fullscreen-line"></i>
-                    </button>
-                </div>
 
                 <div class="dropdown d-inline-block user-dropdown">
-                    <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="d-none d-xl-inline-block ms-1">{{Auth::user()->name}}</span>
-                        <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
+                    @php
+                      $adminUser = Auth::user();
+                      $adminInitials = collect(preg_split('/\s+/', trim((string) $adminUser->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+                    @endphp
+                    <button type="button" class="btn header-item waves-effect admin-user-btn" id="page-header-user-dropdown"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
+                        <span class="admin-avatar" aria-hidden="true">{{ $adminInitials ?: '?' }}</span>
+                        <span class="d-none d-xl-inline-block admin-user-name">{{ $adminUser->name }}</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="javascript: void(0)"><i
-                                class="ri-user-line align-middle me-1"></i> Profile</a>
+                    <div class="dropdown-menu dropdown-menu-end admin-user-menu">
+                        <div class="px-3 py-2">
+                            <div class="fw-semibold text-body">{{ $adminUser->name }}</div>
+                            <div class="text-muted small text-truncate">{{ $adminUser->email }}</div>
+                            @if($adminUser->getRoleNames()->isNotEmpty())<div class="mt-1"><span class="badge bg-secondary">{{ $adminUser->getRoleNames()->implode(', ') }}</span></div>@endif
+                        </div>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item text-danger" href="{{route('logout')}}"><i
-                                class="ri-shut-down-line align-middle me-1 text-danger"></i> Log out</a>
+                        <a class="dropdown-item" href="{{ url('/') }}" target="_blank" rel="noopener"><i class="ri-external-link-line align-middle me-1"></i> View website</a>
+                        <a class="dropdown-item text-danger" href="{{route('logout')}}"><i class="ri-logout-box-r-line align-middle me-1"></i> Log out</a>
                     </div>
                 </div>
 
