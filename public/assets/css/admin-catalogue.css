@@ -106,7 +106,7 @@
 .cat-drop:focus-within { outline: 2px solid #005bd3; outline-offset: 2px; }
 .cat-drop i { font-size: 32px; color: #4a4a4a; display: block; line-height: 1.2; }
 .cat-drop .fw-semibold { color: #303030; display: block; margin-top: 4px; }
-.cat-drop-hint { display: block; margin-top: 2px; font-size: 13px; }
+.cat-drop-hint { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; }
 .cat-link-add { display: grid; grid-template-columns: 120px 1fr 1fr auto; gap: 8px; align-items: end; }
 
 @media (max-width: 767px) {
@@ -117,3 +117,6 @@
   .cat-group-head, .cat-group-settings, .cat-add-panel { padding: 14px 16px; }
   .cat-intro { margin-top: -4px; }
 }
+
+/* Bootstrap 5.1 has no .fw-semibold utility: define it for these pages. */
+.main-content .fw-semibold, .modal .fw-semibold { font-weight: 600; }
