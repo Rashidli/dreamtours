@@ -1,0 +1,306 @@
+/* =============================================================================
+   Admin UI — shadcn/ui-style layer over the Bootstrap 5.1 theme.
+   Loaded last in admin/includes/header so it wins over app.min.css, bootstrap.min.css,
+   select2 and brand.css. Every colour is a token below: a tenant (white label) can
+   override --ui-primary / --ui-primary-foreground / --ui-ring without touching rules.
+   Covers: typography, cards, buttons, inputs, selects, textareas, checkboxes,
+   radios, switches, input groups, labels and help text, tables, badges, select2,
+   dropdowns, modals, alerts, tabs and pagination.
+   ============================================================================= */
+
+:root {
+  --ui-background: #ffffff;
+  --ui-page: #fafafa;
+  --ui-foreground: #09090b;
+  --ui-muted: #f4f4f5;
+  --ui-muted-foreground: #71717a;
+  --ui-subtle-foreground: #52525b;
+  --ui-border: #e4e4e7;
+  --ui-input: #e4e4e7;
+  --ui-input-hover: #d4d4d8;
+  --ui-ring: #a1a1aa;
+  --ui-ring-soft: rgba(161, 161, 170, .35);
+  --ui-primary: #18181b;
+  --ui-primary-hover: #27272a;
+  --ui-primary-foreground: #fafafa;
+  --ui-secondary: #f4f4f5;
+  --ui-secondary-hover: #e4e4e7;
+  --ui-accent: #f4f4f5;
+  --ui-destructive: #dc2626;
+  --ui-destructive-hover: #b91c1c;
+  --ui-link: #2563eb;
+  --ui-radius: 8px;
+  --ui-radius-sm: 6px;
+  --ui-shadow-xs: 0 1px 2px rgba(0, 0, 0, .05);
+  --ui-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .08), 0 2px 4px -2px rgba(0, 0, 0, .06);
+  --ui-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .08), 0 4px 6px -4px rgba(0, 0, 0, .06);
+  --ui-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Bootstrap's own variables follow the tokens, so utilities (text-primary, bg-primary…) match. */
+  --bs-primary: var(--ui-primary);
+  --bs-primary-rgb: 24, 24, 27;
+  --bs-body-font-family: var(--ui-font);
+  --bs-body-color: var(--ui-foreground);
+  --bs-border-color: var(--ui-border);
+}
+
+/* ---------- Base & typography ---------- */
+body { font-family: var(--ui-font); color: var(--ui-foreground); font-size: 14px; -webkit-font-smoothing: antialiased; }
+.page-content { background: var(--ui-page); }
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { font-family: var(--ui-font); color: var(--ui-foreground); letter-spacing: -.01em; }
+a { color: var(--ui-link); }
+a:hover { color: #1d4ed8; }
+.text-muted { color: var(--ui-muted-foreground) !important; }
+.text-primary { color: var(--ui-primary) !important; }
+.bg-primary { background-color: var(--ui-primary) !important; }
+.border, .border-top, .border-bottom, .border-start, .border-end { border-color: var(--ui-border) !important; }
+hr { border-color: var(--ui-border); opacity: 1; }
+::selection { background: #e4e4e7; }
+
+/* Page header: sentence case title instead of the theme's small uppercase. */
+.page-title-box h4 { text-transform: none; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.page-title-box .breadcrumb-item, .page-title-box .breadcrumb-item a { color: var(--ui-muted-foreground); font-size: 13px; }
+.page-title-box .breadcrumb-item.active { color: var(--ui-foreground); }
+
+/* ---------- Cards ---------- */
+.card { border: 1px solid var(--ui-border); border-radius: 12px; box-shadow: var(--ui-shadow-xs); background: var(--ui-background); margin-bottom: 20px; }
+.card-header, .card-footer { background: transparent; border-color: var(--ui-border); }
+.card-body { padding: 20px 24px; }
+.card-title, .card-body > h4:first-child, .card-body > h5:first-child { font-size: 16px; font-weight: 600; color: var(--ui-foreground); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 0 16px; border-radius: var(--ui-radius-sm);
+  font-family: var(--ui-font); font-size: 14px; font-weight: 500; line-height: 1.25;
+  border: 1px solid transparent; box-shadow: none; transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s;
+}
+.btn i { font-size: 16px; line-height: 1; }
+.btn:focus, .btn:focus-visible, .btn-check:focus + .btn { box-shadow: 0 0 0 3px var(--ui-ring-soft) !important; outline: none; }
+.btn:disabled, .btn.disabled { opacity: .5; }
+.btn-sm, .btn-group-sm > .btn { min-height: 32px; padding: 0 12px; font-size: 13px; border-radius: var(--ui-radius-sm); }
+.btn-lg, .btn-group-lg > .btn { min-height: 40px; padding: 0 24px; font-size: 15px; border-radius: var(--ui-radius-sm); }
+.d-grid > .btn, .btn.w-100 { width: 100%; }
+
+.btn-primary, .btn-dark { background: var(--ui-primary); border-color: var(--ui-primary); color: var(--ui-primary-foreground); }
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active,
+.btn-dark:hover, .btn-dark:focus, .btn-dark:active { background: var(--ui-primary-hover) !important; border-color: var(--ui-primary-hover) !important; color: var(--ui-primary-foreground) !important; }
+
+.btn-secondary, .btn-light, .btn-soft-secondary {
+  background: var(--ui-secondary); border-color: var(--ui-secondary); color: var(--ui-foreground);
+}
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active,
+.btn-light:hover, .btn-light:focus, .btn-light:active { background: var(--ui-secondary-hover) !important; border-color: var(--ui-secondary-hover) !important; color: var(--ui-foreground) !important; }
+
+/* shadcn "outline": white, hairline border, neutral text. Coloured outlines keep their text colour as a hint. */
+.btn-outline-primary, .btn-outline-secondary, .btn-outline-dark, .btn-outline-light, .btn-outline-info {
+  background: var(--ui-background); border-color: var(--ui-input); color: var(--ui-foreground); box-shadow: var(--ui-shadow-xs);
+}
+.btn-outline-success, .btn-outline-warning { background: var(--ui-background); border-color: var(--ui-input); box-shadow: var(--ui-shadow-xs); }
+.btn-outline-success { color: #15803d; }
+.btn-outline-warning { color: #b45309; }
+.btn-outline-primary:hover, .btn-outline-secondary:hover, .btn-outline-dark:hover, .btn-outline-light:hover, .btn-outline-info:hover,
+.btn-outline-success:hover, .btn-outline-warning:hover,
+.btn-outline-primary:focus, .btn-outline-secondary:focus, .btn-outline-primary:active, .btn-outline-secondary:active {
+  background: var(--ui-accent) !important; border-color: var(--ui-input) !important; color: var(--ui-foreground) !important;
+}
+.btn-check:checked + .btn-outline-primary, .btn-check:checked + .btn-outline-secondary, .btn-check:checked + .btn-outline-dark,
+.btn-outline-primary.active, .btn-outline-secondary.active {
+  background: var(--ui-primary) !important; border-color: var(--ui-primary) !important; color: var(--ui-primary-foreground) !important;
+}
+
+.btn-danger { background: var(--ui-destructive); border-color: var(--ui-destructive); color: #fff; }
+.btn-danger:hover, .btn-danger:focus, .btn-danger:active { background: var(--ui-destructive-hover) !important; border-color: var(--ui-destructive-hover) !important; color: #fff !important; }
+.btn-outline-danger { background: var(--ui-background); border-color: var(--ui-input); color: var(--ui-destructive); box-shadow: var(--ui-shadow-xs); }
+.btn-outline-danger:hover, .btn-outline-danger:focus, .btn-outline-danger:active { background: #fef2f2 !important; border-color: #fecaca !important; color: var(--ui-destructive-hover) !important; }
+.btn-success { background: #16a34a; border-color: #16a34a; color: #fff; }
+.btn-success:hover { background: #15803d; border-color: #15803d; color: #fff; }
+.btn-warning { background: #f59e0b; border-color: #f59e0b; color: #18181b; }
+.btn-info { background: var(--ui-secondary); border-color: var(--ui-secondary); color: var(--ui-foreground); }
+.btn-link { color: var(--ui-foreground); text-decoration: underline; text-underline-offset: 4px; min-height: 0; padding: 0; }
+.btn-link:hover { color: var(--ui-subtle-foreground); }
+.btn-link.text-danger { color: var(--ui-destructive) !important; }
+
+/* Segmented groups: one outline, dividers between items. */
+.btn-group > .btn:not(:first-child), .btn-group > .btn-check + .btn:not(:first-of-type) { margin-left: -1px; }
+.btn-group > .btn { box-shadow: none; }
+
+/* ---------- Labels & help text ---------- */
+.form-label, label.form-label, .col-form-label { font-size: 14px; font-weight: 500; color: var(--ui-foreground); margin-bottom: 6px; }
+.form-text { font-size: 13px; color: var(--ui-muted-foreground); margin-top: 6px; }
+.invalid-feedback { font-size: 13px; color: var(--ui-destructive); }
+
+/* ---------- Inputs, selects, textareas ---------- */
+.form-control, .form-select {
+  min-height: 36px; padding: 6px 12px; font-family: var(--ui-font); font-size: 14px; line-height: 1.5;
+  color: var(--ui-foreground); background-color: var(--ui-background);
+  border: 1px solid var(--ui-input); border-radius: var(--ui-radius-sm); box-shadow: var(--ui-shadow-xs);
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-control:hover, .form-select:hover { border-color: var(--ui-input-hover); }
+.form-control:focus, .form-select:focus {
+  border-color: var(--ui-ring); box-shadow: 0 0 0 3px var(--ui-ring-soft); outline: none; color: var(--ui-foreground); background-color: var(--ui-background);
+}
+.form-control::placeholder { color: var(--ui-muted-foreground); opacity: 1; }
+.form-control:disabled, .form-control[readonly], .form-select:disabled { background-color: var(--ui-muted); color: var(--ui-muted-foreground); opacity: 1; cursor: not-allowed; }
+.form-control-sm, .form-select-sm { min-height: 32px; padding: 4px 10px; font-size: 13px; }
+.form-control-lg, .form-select-lg { min-height: 40px; font-size: 15px; }
+textarea.form-control { min-height: 72px; padding: 8px 12px; }
+.form-control[type="file"] { padding: 0; line-height: 34px; }
+.form-control[type="file"]::file-selector-button { height: 34px; margin: 0 12px 0 0; padding: 0 12px; border: 0; border-right: 1px solid var(--ui-input); background: var(--ui-muted); color: var(--ui-foreground); font-weight: 500; }
+.form-control[type="color"] { padding: 4px; width: 48px; }
+input[type="date"].form-control, input[type="datetime-local"].form-control, input[type="time"].form-control { font-variant-numeric: tabular-nums; }
+
+/* Select: lucide chevron-down, room for it on the right. */
+.form-select {
+  padding-right: 36px; appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='m6 9 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 16px 16px;
+}
+.form-select[multiple], .form-select[size]:not([size="1"]) { background-image: none; padding-right: 12px; }
+
+/* Validation */
+.form-control.is-invalid, .form-select.is-invalid, .was-validated .form-control:invalid { border-color: #f87171; background-image: none; padding-right: 12px; }
+.form-control.is-invalid:focus, .form-select.is-invalid:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, .2); border-color: var(--ui-destructive); }
+.form-control.is-valid, .form-select.is-valid { border-color: var(--ui-input); background-image: none; }
+
+/* Input groups: one rounded box, muted addons. */
+.input-group > .form-control, .input-group > .form-select { box-shadow: none; }
+.input-group { box-shadow: var(--ui-shadow-xs); border-radius: var(--ui-radius-sm); }
+.input-group-text { min-height: 36px; padding: 0 12px; font-size: 14px; color: var(--ui-muted-foreground); background: var(--ui-muted); border: 1px solid var(--ui-input); border-radius: var(--ui-radius-sm); }
+.input-group > .btn { box-shadow: none; }
+
+/* ---------- Checkbox, radio, switch ---------- */
+.form-check { min-height: 20px; margin-bottom: 4px; }
+.form-check-input {
+  width: 16px; height: 16px; margin-top: 2px; border: 1px solid var(--ui-primary); border-radius: 4px;
+  background-color: var(--ui-background); box-shadow: var(--ui-shadow-xs); cursor: pointer;
+}
+.form-check-input[type="radio"] { border-radius: 50%; }
+.form-check-input:checked { background-color: var(--ui-primary); border-color: var(--ui-primary); }
+.form-check-input:checked[type="checkbox"] {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M20 6 9 17l-5-5'/%3e%3c/svg%3e");
+  background-size: 12px 12px;
+}
+.form-check-input:checked[type="radio"] { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%23fafafa'/%3e%3c/svg%3e"); }
+.form-check-input:focus { box-shadow: 0 0 0 3px var(--ui-ring-soft); border-color: var(--ui-primary); }
+.form-check-input:disabled { opacity: .5; }
+.form-check-label { font-size: 14px; color: var(--ui-foreground); cursor: pointer; }
+/* Bare checkboxes without .form-check-input still get the dark accent. */
+input[type="checkbox"]:not(.form-check-input):not(.btn-check), input[type="radio"]:not(.form-check-input):not(.btn-check) { accent-color: var(--ui-primary); width: 16px; height: 16px; vertical-align: -3px; }
+
+/* shadcn switch: 36×20 track, white thumb. */
+.form-switch { padding-left: 46px; }
+.form-switch .form-check-input {
+  width: 36px; height: 20px; margin-left: -46px; margin-top: 1px; border: 0; border-radius: 999px;
+  background-color: var(--ui-input); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .04);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3.2' fill='%23fff'/%3e%3c/svg%3e");
+  background-position: left 1px center; background-size: 18px 18px; transition: background-position .15s, background-color .15s;
+}
+.form-switch .form-check-input:focus {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3.2' fill='%23fff'/%3e%3c/svg%3e");
+}
+.form-switch .form-check-input:checked { background-color: var(--ui-primary); background-position: right 1px center; }
+
+/* ---------- Tables ---------- */
+.table { --bs-table-bg: transparent; --bs-table-striped-bg: #fafafa; --bs-table-hover-bg: #f4f4f580; font-size: 14px; color: var(--ui-foreground); margin-bottom: 0; border-color: var(--ui-border); }
+.table > :not(caption) > * > * { padding: 10px 12px; border-bottom-color: var(--ui-border); box-shadow: none; }
+.table > thead > tr > th, .table thead th, .table-light > tr > th, .table .table-light th {
+  height: 40px; padding-top: 0; padding-bottom: 0; vertical-align: middle;
+  background: transparent; color: var(--ui-muted-foreground); font-size: 13px; font-weight: 500;
+  text-transform: none; letter-spacing: normal; border-bottom: 1px solid var(--ui-border); white-space: nowrap;
+}
+.table > :not(:first-child) { border-top: 0; }
+.table-hover > tbody > tr:hover > * { --bs-table-accent-bg: #fafafa; color: var(--ui-foreground); }
+.table-sm > :not(caption) > * > * { padding: 6px 10px; }
+.table > tbody > tr:last-child > * { border-bottom: 0; }
+/* A table directly in a card gets the shadcn bordered, rounded container. */
+.card-body > .table-responsive, .card-body > .table-responsive-md, .card-body > .table-responsive-lg { border: 1px solid var(--ui-border); border-radius: var(--ui-radius); }
+.card-body > .table-responsive > .table > thead > tr > th { background: #fafafa; }
+.card-body > .table-responsive > .table > thead > tr:first-child > th:first-child { border-top-left-radius: var(--ui-radius); }
+.card-body > .table-responsive > .table > thead > tr:first-child > th:last-child { border-top-right-radius: var(--ui-radius); }
+.table td .sub, .crm-table .sub { color: var(--ui-muted-foreground); }
+
+/* ---------- Badges ---------- */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--ui-radius-sm); font-size: 12px; font-weight: 500; line-height: 18px; letter-spacing: 0; }
+.badge.bg-primary { background: var(--ui-primary) !important; color: var(--ui-primary-foreground) !important; }
+.badge.bg-secondary:not(.bg-opacity-10) { background: var(--ui-secondary) !important; color: var(--ui-foreground) !important; }
+.badge.bg-light { background: var(--ui-secondary) !important; color: var(--ui-foreground) !important; border: 1px solid var(--ui-border); }
+.badge.bg-success:not(.bg-opacity-10) { background: #dcfce7 !important; color: #166534 !important; }
+.badge.bg-warning:not(.bg-opacity-10) { background: #fef3c7 !important; color: #92400e !important; }
+.badge.bg-danger:not(.bg-opacity-10) { background: #fee2e2 !important; color: #991b1b !important; }
+.badge.bg-info:not(.bg-opacity-10) { background: #e0f2fe !important; color: #075985 !important; }
+.badge.bg-dark:not(.bg-opacity-10) { background: var(--ui-primary) !important; color: #fafafa !important; }
+/* Soft badges (bg-x bg-opacity-10 text-x): keep the hue, make the text readable. */
+.badge.bg-opacity-10.text-success { color: #166534 !important; }
+.badge.bg-opacity-10.text-warning { color: #92400e !important; }
+.badge.bg-opacity-10.text-danger { color: #991b1b !important; }
+.badge.bg-opacity-10.text-info { color: #075985 !important; }
+.badge.bg-opacity-10.text-secondary { color: #3f3f46 !important; }
+.badge.bg-opacity-10.text-primary { background: var(--ui-secondary) !important; color: var(--ui-foreground) !important; }
+
+/* ---------- select2 (bootstrap-5 theme) ---------- */
+.select2-container--bootstrap-5 .select2-selection {
+  min-height: 36px; border: 1px solid var(--ui-input); border-radius: var(--ui-radius-sm); box-shadow: var(--ui-shadow-xs);
+  font-family: var(--ui-font); font-size: 14px; color: var(--ui-foreground); background-color: var(--ui-background);
+}
+.select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.select2-container--bootstrap-5.select2-container--open .select2-selection { border-color: var(--ui-ring); box-shadow: 0 0 0 3px var(--ui-ring-soft); }
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice {
+  background: var(--ui-secondary); border: 1px solid var(--ui-border); border-radius: var(--ui-radius-sm); color: var(--ui-foreground); font-size: 13px; padding: 1px 8px;
+}
+.select2-container--bootstrap-5 .select2-dropdown { border: 1px solid var(--ui-border); border-radius: var(--ui-radius); box-shadow: var(--ui-shadow-lg); overflow: hidden; }
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option { font-size: 14px; padding: 6px 10px; border-radius: 4px; margin: 2px 4px; }
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option--highlighted { background: var(--ui-accent); color: var(--ui-foreground); }
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option--selected { background: transparent; color: var(--ui-foreground); font-weight: 600; }
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field { border: 1px solid var(--ui-input); border-radius: var(--ui-radius-sm); }
+
+/* ---------- Dropdowns, modals, alerts ---------- */
+.dropdown-menu { border: 1px solid var(--ui-border); border-radius: var(--ui-radius); box-shadow: var(--ui-shadow-lg); padding: 4px; font-size: 14px; }
+.dropdown-item { border-radius: 4px; padding: 6px 10px; color: var(--ui-foreground); }
+.dropdown-item:hover, .dropdown-item:focus { background: var(--ui-accent); color: var(--ui-foreground); }
+.dropdown-divider { border-color: var(--ui-border); margin: 4px -4px; }
+.modal-content { border: 1px solid var(--ui-border); border-radius: 12px; box-shadow: var(--ui-shadow-lg); }
+.modal-header, .modal-footer { border-color: var(--ui-border); padding: 16px 24px; }
+.modal-body { padding: 20px 24px; }
+.modal-title { font-size: 17px; font-weight: 600; }
+.modal-backdrop.show { opacity: .5; }
+.alert { border-radius: var(--ui-radius); font-size: 14px; padding: 12px 16px; border: 1px solid var(--ui-border); }
+.alert-success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.alert-danger { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.alert-warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+.alert-info { background: #f0f9ff; border-color: #bae6fd; color: #075985; }
+
+/* ---------- Tabs (shadcn "tabs list") & pagination ---------- */
+.nav-tabs { border-bottom: 1px solid var(--ui-border); gap: 4px; }
+.nav-tabs .nav-link { border: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--ui-muted-foreground); font-weight: 500; padding: 8px 12px; margin-bottom: -1px; }
+.nav-tabs .nav-link:hover { color: var(--ui-foreground); border-color: transparent; }
+.nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link { color: var(--ui-foreground); background: transparent; border-bottom-color: var(--ui-primary); }
+.nav-pills .nav-link { border-radius: var(--ui-radius-sm); color: var(--ui-subtle-foreground); font-weight: 500; }
+.nav-pills .nav-link.active { background: var(--ui-primary); color: var(--ui-primary-foreground); }
+.pagination { gap: 4px; }
+.page-link { min-width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: var(--ui-radius-sm) !important; color: var(--ui-foreground); font-size: 14px; }
+.page-link:hover { background: var(--ui-accent); color: var(--ui-foreground); border-color: transparent; }
+.page-link:focus { box-shadow: 0 0 0 3px var(--ui-ring-soft); }
+.page-item.active .page-link { background: var(--ui-background); border-color: var(--ui-input); color: var(--ui-foreground); box-shadow: var(--ui-shadow-xs); }
+.page-item.disabled .page-link { color: var(--ui-muted-foreground); background: transparent; }
+
+/* ---------- Shared CRM helpers (admin-crm.css) in the same language ---------- */
+.crm-tile { border-radius: 12px; }
+.crm-filters label, .crm-filters .form-label { font-weight: 500; }
+
+/* ---------- Text colours: theme greys and pastel status colours made readable ---------- */
+body, .main-content, #layout-wrapper { background-color: var(--ui-page); }
+.text-body, .text-dark { color: var(--ui-foreground) !important; }
+.table td, .table th { color: inherit; }
+.table > tbody { color: var(--ui-foreground); }
+.text-success { color: #15803d !important; }
+.text-danger { color: var(--ui-destructive) !important; }
+.text-warning { color: #b45309 !important; }
+.text-info { color: #0369a1 !important; }
+.text-secondary { color: var(--ui-subtle-foreground) !important; }
+small, .small { color: inherit; }
+
+/* Checkbox / radio labels read as normal text, not bold field labels. */
+.form-check-label, label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { font-weight: 400; }
+label:has(> input[type="checkbox"]) input, label:has(> input[type="radio"]) input { margin-right: 6px; }

@@ -84,7 +84,6 @@
 
 <script src="{{asset('/')}}assets/libs/dropzone/min/dropzone.min.js"></script>
 
-<script src="{{asset('assets/js/pages/dashboard.init.js')}}"></script>
 
 <!-- App js -->
 <script src="{{asset('assets/js/app.js')}}"></script>
@@ -95,7 +94,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <!-- Rich text editor: every textarea with class="js-editor" -->
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
@@ -108,8 +106,6 @@
         });
     });
 </script>
-@livewireScripts
-<script src="https://cdn.jsdelivr.net/gh/livewire/sortable@v1.x.x/dist/livewire-sortable.js"></script>
 <script>
 
     $(document).ready(function (){
