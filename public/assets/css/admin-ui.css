@@ -606,3 +606,45 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 #side-menu a.menu-pick { background: #303030 !important; }
 #side-menu mark.menu-hit { color: #6cb3ff !important; }
 .vertical-menu .simplebar-scrollbar::before { background: #6b6b6b; }
+
+/* =============================================================================
+   Light frame (replaces the dark one): white top bar and side menu with hairline
+   borders around the light-grey work area. Defined last, so it wins.
+   ============================================================================= */
+#page-topbar, body[data-topbar="dark"] #page-topbar, body[data-topbar="dark"] .navbar-brand-box, .navbar-brand-box {
+  background: #ffffff; border-bottom: 1px solid #e3e3e3; box-shadow: none;
+}
+.navbar-brand-box { border-right: 1px solid #ebebeb; }
+.admin-logo { gap: 10px; }
+.admin-logo-mark { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; flex: 0 0 30px; }
+.admin-logo-initial { display: grid; place-items: center; background: #303030; color: #fff; font-weight: 700; font-size: 14px; }
+.admin-logo-text { color: #1a1a1a; font-size: 16px; font-weight: 700; }
+#page-topbar .header-item, body[data-topbar="dark"] #page-topbar .header-item { color: #4a4a4a; }
+#page-topbar .header-item:hover { color: #1a1a1a; }
+.admin-search .form-control { background: #f1f1f1 !important; border: 1px solid transparent !important; color: #303030 !important; }
+.admin-search .form-control:hover { background: #ebebeb !important; }
+.admin-search .form-control::placeholder { color: #8a8a8a; }
+.admin-search .form-control:focus { background: #fff !important; border-color: #8a8a8a !important; }
+.admin-search span { color: #8a8a8a; }
+.admin-user-name { color: #303030; }
+.admin-avatar { background: #e3f1df; color: #0c5132; }
+
+.vertical-menu { background: #ffffff; border-right: 1px solid #ebebeb; }
+#sidebar-menu .menu-title { color: #8a8a8a !important; }
+#sidebar-menu ul li a, #sidebar-menu ul li a span { color: #303030; }
+#sidebar-menu ul li a i { color: #616161; }
+#sidebar-menu ul li a:hover, #sidebar-menu ul li a:focus { background: #f6f6f6; }
+#sidebar-menu ul li a:hover, #sidebar-menu ul li a:hover i, #sidebar-menu ul li a:hover span { color: #1a1a1a !important; }
+#sidebar-menu ul li.mm-active > a:not(.has-arrow), #sidebar-menu ul li a.active,
+#sidebar-menu ul li ul.sub-menu li.mm-active > a, #sidebar-menu ul li ul.sub-menu li a.active { background: #f1f1f1; box-shadow: none; }
+#sidebar-menu .mm-active > a, #sidebar-menu .mm-active > a i, #sidebar-menu .mm-active > a span, #sidebar-menu a.active, #sidebar-menu a.active i,
+#sidebar-menu .mm-active .active, #sidebar-menu .mm-active .active i { color: #1a1a1a !important; }
+#sidebar-menu ul li.mm-active > a:not(.has-arrow) span, #sidebar-menu ul li a.active span { font-weight: 650; }
+#sidebar-menu ul li ul.sub-menu li a { color: #4a4a4a; }
+#sidebar-menu .has-arrow::after { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23616161' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='m9 18 6-6-6-6'/%3e%3c/svg%3e"); }
+#sidebar-menu .badge.bg-primary, #sidebar-menu .badge.bg-secondary { background: #e3e3e3 !important; color: #303030 !important; }
+.vertical-menu .menu-search .form-control { background: #f6f6f6 !important; border: 1px solid #ebebeb !important; color: #303030 !important; }
+.vertical-menu .menu-search .form-control:focus { background: #fff !important; border-color: #8a8a8a !important; }
+#side-menu a.menu-pick { background: #f1f1f1 !important; }
+#side-menu mark.menu-hit { color: #005bd3 !important; }
+.vertical-menu .simplebar-scrollbar::before { background: #c4c4c4; }
