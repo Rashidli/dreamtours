@@ -1,62 +1,87 @@
-@include('admin.includes.header')<div class="main-content"><div class="page-content"><div class="container-fluid">
-@include('admin.leads._styles')
+@include('admin.includes.header')
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-leads.css') }}?v={{ @filemtime(public_path('assets/css/admin-leads.css')) }}">
+<div class="main-content"><div class="page-content"><div class="container-fluid">
 @php
   $tz = \App\Http\Controllers\Admin\ActivityLogController::DISPLAY_TIMEZONE;
   $filters = collect(request()->except(['page', 'view']))->filter(fn ($v) => $v !== null && $v !== '');
   $moreFilters = $filters->keys()->intersect(['type', 'campaign', 'tour', 'from', 'to', 'trip_from', 'trip_to', 'contacted_from', 'contacted_to'])->isNotEmpty();
+  $total = $view === 'list' ? $leads->total() : $counts->sum();
+
+  // Active filters as removable chips (same pattern as the tours list).
+  $remove = fn (array $keys) => request()->fullUrlWithQuery(array_fill_keys($keys, null) + ['page' => null]);
+  $day = fn ($value) => rescue(fn () => \Illuminate\Support\Carbon::parse($value)->format('M j, Y'), $value, false);
+  $range = fn (string $label, string $from, string $to) => request()->filled($from) || request()->filled($to)
+      ? [$label.': '.(request()->filled($from) ? $day(request($from)) : '…').' – '.(request()->filled($to) ? $day(request($to)) : '…'), $remove([$from, $to])] : null;
+  $assignedLabel = ['me' => 'Assigned to me', 'none' => 'Unassigned'][request('assigned')] ?? ('Assigned: '.($users->firstWhere('id', request('assigned'))?->name ?? '#'.request('assigned')));
+  $chips = collect([
+    request()->filled('q') ? ['Search: “'.request('q').'”', $remove(['q'])] : null,
+    request()->boolean('due') ? ['Follow-up due', $remove(['due'])] : null,
+    request()->filled('assigned') ? [$assignedLabel, $remove(['assigned'])] : null,
+    request()->filled('source') ? ['Source: '.(\App\Models\Lead::SOURCES[request('source')] ?? request('source')), $remove(['source'])] : null,
+    request()->filled('stage') ? ['Stage: '.($stages->firstWhere('id', request('stage'))?->name ?? '#'.request('stage')), $remove(['stage'])] : null,
+    request()->filled('type') ? ['Request: '.(\App\Models\Lead::TYPES[request('type')] ?? request('type')), $remove(['type'])] : null,
+    request()->filled('campaign') ? ['Campaign: '.request('campaign'), $remove(['campaign'])] : null,
+    request()->filled('tour') ? ['Tour: '.($tours->firstWhere('id', request('tour'))?->name ?? '#'.request('tour')), $remove(['tour'])] : null,
+    $range('Received', 'from', 'to'),
+    $range('Trip date', 'trip_from', 'trip_to'),
+    $range('Last contact', 'contacted_from', 'contacted_to'),
+  ])->filter();
 @endphp
 
             <div class="row">
                 <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">Leads</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Leads</li>
-                            </ol>
-                        </div>
+                    <div class="page-title-box d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-baseline gap-2"><h4 class="mb-0">Leads</h4><span class="text-muted">{{ $total }} {{ Str::plural('lead', $total) }}{{ $filters->isNotEmpty() ? ' match the filters' : '' }}</span></div>
                     </div>
                 </div>
             </div>
 @include('admin.includes.flash')
 
-<div class="card crm-filters"><div class="card-body pb-2">
-  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-    <div class="btn-group" role="group" aria-label="View">
-      <a class="btn btn-sm {{ $view === 'board' ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ request()->fullUrlWithQuery(['view' => null, 'page' => null]) }}"><i class="ri-layout-column-line align-middle"></i> Board</a>
-      <a class="btn btn-sm {{ $view === 'list' ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}"><i class="ri-list-check align-middle"></i> List</a>
+<div class="card tl-card crm-filters"><div class="card-body p-0">
+  <div class="tl-tabs-bar ld-tabs-bar">
+    <div class="tl-tabs ld-tabs" role="group" aria-label="View">
+      <a class="tl-tab {{ $view === 'board' ? 'active' : '' }}" href="{{ request()->fullUrlWithQuery(['view' => null, 'page' => null]) }}" @if($view === 'board') aria-current="page" @endif><i class="ri-layout-column-line"></i> Board</a>
+      <a class="tl-tab {{ $view === 'list' ? 'active' : '' }}" href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" @if($view === 'list') aria-current="page" @endif><i class="ri-list-check"></i> List</a>
     </div>
-    <div class="d-flex flex-wrap gap-2">
-      @if($due)<a class="btn btn-sm {{ request()->boolean('due') ? 'btn-danger' : 'btn-outline-danger' }}" href="{{ request()->fullUrlWithQuery(['due' => request()->boolean('due') ? null : 1]) }}"><i class="ri-alarm-warning-line align-middle"></i> {{ $due }} follow-up{{ $due === 1 ? '' : 's' }} due</a>@endif
-      @can('manage-lead-stages')<a class="btn btn-sm btn-light" href="{{ route('lead-stages.index') }}"><i class="ri-settings-3-line align-middle"></i> Stages</a>@endcan
-      @can('export-leads')<div class="btn-group"><a class="btn btn-sm btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'xlsx', 'page' => null]) }}" title="Download the leads matching these filters"><i class="ri-file-excel-2-line"></i> Excel</a><a class="btn btn-sm btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'csv', 'page' => null]) }}">CSV</a></div>@endcan
-      @can('create-leads')<a class="btn btn-sm btn-primary" href="{{ route('leads.create') }}"><i class="ri-add-line align-middle"></i> New lead</a>@endcan
+    <div class="ld-actions">
+      @if($due)<a class="btn {{ request()->boolean('due') ? 'btn-danger' : 'btn-outline-danger' }}" href="{{ request()->fullUrlWithQuery(['due' => request()->boolean('due') ? null : 1]) }}"><i class="ri-alarm-warning-line"></i> {{ $due }} follow-up{{ $due === 1 ? '' : 's' }} due</a>@endif
+      @can('manage-lead-stages')<a class="btn btn-light" href="{{ route('lead-stages.index') }}"><i class="ri-settings-3-line"></i> Stages</a>@endcan
+      @can('export-leads')<div class="btn-group"><a class="btn btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'xlsx', 'page' => null]) }}" title="Download the leads matching these filters"><i class="ri-file-excel-2-line"></i> Excel</a><a class="btn btn-outline-secondary" href="{{ request()->fullUrlWithQuery(['export' => 'csv', 'page' => null]) }}">CSV</a></div>@endcan
+      @can('create-leads')<a class="btn btn-primary" href="{{ route('leads.create') }}"><i class="ri-add-line"></i> New lead</a>@endcan
     </div>
   </div>
 
-  <form class="row g-2" id="lead-filters">
+  <form class="tl-search-bar ld-filters" id="lead-filters">
     @if($view === 'list')<input type="hidden" name="view" value="list">@endif
     @if(request()->boolean('due'))<input type="hidden" name="due" value="1">@endif
-    <div class="col-md-3"><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Name, email, phone or L-reference"></div>
-    <div class="col-md-2"><select class="form-select" name="assigned" aria-label="Assigned to" onchange="this.form.submit()">
+    <label class="tl-search-field ld-search"><i class="ri-search-line" aria-hidden="true"></i><input type="search" name="q" value="{{ request('q') }}" placeholder="Name, email, phone or L-reference" aria-label="Search leads">@if(request()->filled('q'))<a href="{{ $remove(['q']) }}" class="tl-search-clear" aria-label="Clear the search"><i class="ri-close-circle-fill"></i></a>@endif</label>
+    <div class="ld-filter"><select class="form-select" name="assigned" aria-label="Assigned to" onchange="this.form.submit()">
       <option value="">Everyone</option><option value="me" @selected(request('assigned') === 'me')>Assigned to me</option><option value="none" @selected(request('assigned') === 'none')>Unassigned</option>
       @foreach($users as $user)<option value="{{ $user->id }}" @selected(request('assigned') == $user->id)>{{ $user->name }}</option>@endforeach
     </select></div>
-    <div class="col-md-2"><select class="form-select" name="source" aria-label="Source" onchange="this.form.submit()"><option value="">All sources</option>@foreach(\App\Models\Lead::SOURCES as $value => $label)<option value="{{ $value }}" @selected(request('source') === $value)>{{ $label }}</option>@endforeach</select></div>
-    @if($view === 'list')<div class="col-md-2"><select class="form-select" name="stage" aria-label="Stage" onchange="this.form.submit()"><option value="">All stages</option>@foreach($stages as $stage)<option value="{{ $stage->id }}" @selected(request('stage') == $stage->id)>{{ $stage->name }}</option>@endforeach</select></div>@endif
-    <div class="col-md-auto d-flex gap-2"><button class="btn btn-sm btn-outline-primary">Filter</button>@if($filters->isNotEmpty())<a class="btn btn-sm btn-light" href="{{ route('leads.index', $view === 'list' ? ['view' => 'list'] : []) }}">Reset</a>@endif
-      <a class="btn btn-sm btn-link" data-bs-toggle="collapse" href="#moreLeadFilters" role="button" aria-expanded="{{ $moreFilters ? 'true' : 'false' }}">More filters</a></div>
-    <div class="collapse {{ $moreFilters ? 'show' : '' }}" id="moreLeadFilters"><div class="row g-2 pt-1">
-      <div class="col-md-2"><label class="form-label">Request type</label><select class="form-select" name="type"><option value="">Any</option>@foreach(\App\Models\Lead::TYPES as $value => $label)<option value="{{ $value }}" @selected(request('type') === $value)>{{ $label }}</option>@endforeach</select></div>
-      <div class="col-md-2"><label class="form-label">Campaign</label><select class="form-select" name="campaign"><option value="">Any</option>@foreach($campaigns as $campaign)<option @selected(request('campaign') === $campaign)>{{ $campaign }}</option>@endforeach</select></div>
-      <div class="col-md-2"><label class="form-label">Tour</label><select class="form-select" name="tour"><option value="">Any</option>@foreach($tours as $tour)<option value="{{ $tour->id }}" @selected(request('tour') == $tour->id)>{{ $tour->name }}</option>@endforeach</select></div>
-      <div class="col-md-3"><label class="form-label">Received between</label><div class="input-group"><input class="form-control" type="date" name="from" value="{{ request('from') }}" aria-label="Received from"><input class="form-control" type="date" name="to" value="{{ request('to') }}" aria-label="Received to"></div></div>
-      <div class="col-md-3"><label class="form-label">Trip date between</label><div class="input-group"><input class="form-control" type="date" name="trip_from" value="{{ request('trip_from') }}" aria-label="Trip from"><input class="form-control" type="date" name="trip_to" value="{{ request('trip_to') }}" aria-label="Trip to"></div></div>
-      <div class="col-md-3"><label class="form-label">Last contact between</label><div class="input-group"><input class="form-control" type="date" name="contacted_from" value="{{ request('contacted_from') }}" aria-label="Contacted from"><input class="form-control" type="date" name="contacted_to" value="{{ request('contacted_to') }}" aria-label="Contacted to"></div></div>
+    <div class="ld-filter"><select class="form-select" name="source" aria-label="Source" onchange="this.form.submit()"><option value="">All sources</option>@foreach(\App\Models\Lead::SOURCES as $value => $label)<option value="{{ $value }}" @selected(request('source') === $value)>{{ $label }}</option>@endforeach</select></div>
+    @if($view === 'list')<div class="ld-filter"><select class="form-select" name="stage" aria-label="Stage" onchange="this.form.submit()"><option value="">All stages</option>@foreach($stages as $stage)<option value="{{ $stage->id }}" @selected(request('stage') == $stage->id)>{{ $stage->name }}</option>@endforeach</select></div>@endif
+    <div class="d-flex align-items-center gap-2"><button class="visually-hidden">Search</button>
+      <a class="btn btn-light ld-more-toggle {{ $moreFilters ? 'active' : '' }}" data-bs-toggle="collapse" href="#moreLeadFilters" role="button" aria-expanded="{{ $moreFilters ? 'true' : 'false' }}" aria-controls="moreLeadFilters"><i class="ri-filter-3-line"></i> More filters</a></div>
+    <div class="collapse ld-more {{ $moreFilters ? 'show' : '' }}" id="moreLeadFilters"><div class="ld-more-inner"><div class="row g-3">
+      <div class="col-sm-6 col-lg-4 col-xl-2"><label class="fw-semibold form-label" for="f-type">Request type</label><select class="form-select" id="f-type" name="type"><option value="">Any</option>@foreach(\App\Models\Lead::TYPES as $value => $label)<option value="{{ $value }}" @selected(request('type') === $value)>{{ $label }}</option>@endforeach</select></div>
+      <div class="col-sm-6 col-lg-4 col-xl-2"><label class="fw-semibold form-label" for="f-campaign">Campaign</label><select class="form-select" id="f-campaign" name="campaign"><option value="">Any</option>@foreach($campaigns as $campaign)<option @selected(request('campaign') === $campaign)>{{ $campaign }}</option>@endforeach</select></div>
+      <div class="col-sm-12 col-lg-4 col-xl-2"><label class="fw-semibold form-label" for="f-tour">Tour</label><select class="form-select" id="f-tour" name="tour"><option value="">Any</option>@foreach($tours as $tour)<option value="{{ $tour->id }}" @selected(request('tour') == $tour->id)>{{ $tour->name }}</option>@endforeach</select></div>
+      <div class="col-md-6 col-lg-4 col-xl-2"><label class="fw-semibold form-label">Received between</label><div class="input-group"><input class="form-control" type="date" name="from" value="{{ request('from') }}" aria-label="Received from"><input class="form-control" type="date" name="to" value="{{ request('to') }}" aria-label="Received to"></div></div>
+      <div class="col-md-6 col-lg-4 col-xl-2"><label class="fw-semibold form-label">Trip date between</label><div class="input-group"><input class="form-control" type="date" name="trip_from" value="{{ request('trip_from') }}" aria-label="Trip from"><input class="form-control" type="date" name="trip_to" value="{{ request('trip_to') }}" aria-label="Trip to"></div></div>
+      <div class="col-md-6 col-lg-4 col-xl-2"><label class="fw-semibold form-label">Last contact between</label><div class="input-group"><input class="form-control" type="date" name="contacted_from" value="{{ request('contacted_from') }}" aria-label="Contacted from"><input class="form-control" type="date" name="contacted_to" value="{{ request('contacted_to') }}" aria-label="Contacted to"></div></div>
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3">@if($moreFilters)<a class="btn btn-light" href="{{ $remove(['type', 'campaign', 'tour', 'from', 'to', 'trip_from', 'trip_to', 'contacted_from', 'contacted_to']) }}">Clear these</a>@endif<button class="btn btn-primary">Apply filters</button></div>
     </div></div>
   </form>
-</div></div>
+
+  @if($chips->isNotEmpty())
+    <div class="tl-chips tl-chips-bar">
+      @foreach($chips as [$label, $removeUrl])<a href="{{ $removeUrl }}" class="tl-chip" title="Remove this filter">{{ $label }} <i class="ri-close-line"></i></a>@endforeach
+      <a class="btn btn-link text-danger ld-clear" href="{{ route('leads.index', $view === 'list' ? ['view' => 'list'] : []) }}">Clear all filters</a>
+    </div>
+  @endif
 
 @if($view === 'board')
   <div class="lead-board" id="lead-board" data-csrf="{{ csrf_token() }}">
@@ -64,71 +89,106 @@
       <div class="lead-col {{ $stage->isClosed() ? 'closed' : '' }}" data-stage="{{ $stage->id }}" data-kind="{{ $stage->kind }}" data-name="{{ $stage->name }}">
         <div class="lead-col-head">
           <span class="stage-dot" style="background:{{ \App\Models\LeadStage::HEX[$stage->color] ?? '#6c757d' }}"></span>
-          <span class="flex-grow-1">{{ $stage->name }}</span>
-          <span class="badge bg-light text-body" data-count>{{ $counts[$stage->id] ?? 0 }}</span>
+          <span class="lead-col-title">{{ $stage->name }}</span>
+          <span class="badge bg-light" data-count>{{ $counts[$stage->id] ?? 0 }}</span>
         </div>
         <div class="lead-col-body" data-drop>
           @forelse($board[$stage->id] as $lead)
             <a class="lead-card" href="{{ route('leads.show', $lead) }}" draggable="true" data-lead="{{ $lead->id }}" data-url="{{ route('leads.stage', $lead) }}">
-              <div class="d-flex justify-content-between gap-2">
+              <div class="d-flex justify-content-between align-items-baseline gap-2">
                 <span class="lead-name text-truncate">{{ $lead->full_name }}</span>
-                <span class="lead-meta text-nowrap" title="{{ $lead->created_at->timezone($tz)->format('M j, Y g:i A') }}">{{ $lead->created_at->diffForHumans(null, true, true) }}</span>
+                <span class="lead-meta text-nowrap" title="Received {{ $lead->created_at->timezone($tz)->format('M j, Y g:i A') }}">{{ $lead->created_at->diffForHumans(null, true, true) }}</span>
               </div>
-              <div class="lead-meta text-truncate">{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour) · {{ $lead->tour->name }}@endif</div>
-              @if($lead->departure || $lead->guests)<div class="lead-meta">@if($lead->departure)<i class="ri-calendar-line"></i> {{ $lead->departure->departs_at->format('M j') }}@endif @if($lead->guests)<i class="ri-user-line ms-1"></i> {{ $lead->guests }}@endif</div>@endif
-              @if($lead->stage?->kind === 'lost' && $lead->lost_reason)<div class="lead-meta text-truncate fst-italic">{{ $lead->lost_reason }}</div>@endif
-              <div class="d-flex align-items-center gap-1 mt-2">
+              <div class="lead-meta lead-request text-truncate">{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour) · {{ $lead->tour->name }}@endif</div>
+              @if($lead->departure || $lead->guests)<div class="lead-meta lead-facts">@if($lead->departure)<span><i class="ri-calendar-line"></i> {{ $lead->departure->departs_at->format('M j') }}</span>@endif @if($lead->guests)<span><i class="ri-user-line"></i> {{ $lead->guests }}</span>@endif</div>@endif
+              @if($lead->stage?->kind === 'lost' && $lead->lost_reason)<div class="lead-meta lead-lost text-truncate">{{ $lead->lost_reason }}</div>@endif
+              <div class="lead-foot">
                 @if($lead->assignedUser)<span class="lead-avatar" title="Assigned to {{ $lead->assignedUser->name }}">{{ \App\Models\Lead::initials($lead->assignedUser->name) }}</span>@else<span class="lead-avatar none" title="Unassigned">?</span>@endif
-                <span class="lead-chip text-truncate" style="max-width:120px" title="{{ $lead->sourceLabel() }}">{{ $lead->utm_campaign ?: (\App\Models\Lead::SOURCES[$lead->source] ?? $lead->source) }}</span>
+                <span class="lead-chip text-truncate" title="{{ $lead->sourceLabel() }}">{{ $lead->utm_campaign ?: (\App\Models\Lead::SOURCES[$lead->source] ?? $lead->source) }}</span>
                 @if($lead->contact_attempts)<span class="lead-meta ms-auto" title="{{ $lead->contact_attempts }} contact attempts"><i class="ri-phone-line"></i> {{ $lead->contact_attempts }}</span>@endif
-                @if($lead->next_follow_up_at && !$stage->isClosed())<span class="lead-meta {{ $lead->isFollowUpDue() ? 'lead-due' : '' }} {{ $lead->contact_attempts ? '' : 'ms-auto' }}" title="Follow up {{ $lead->next_follow_up_at->timezone($tz)->format('D, M j g:i A') }}"><i class="ri-alarm-line"></i> {{ $lead->next_follow_up_at->timezone($tz)->format('M j') }}</span>@endif
+                @if($lead->next_follow_up_at && !$stage->isClosed())<span class="lead-meta lead-follow {{ $lead->isFollowUpDue() ? 'lead-due' : '' }} {{ $lead->contact_attempts ? '' : 'ms-auto' }}" title="Follow up {{ $lead->next_follow_up_at->timezone($tz)->format('D, M j g:i A') }}"><i class="ri-alarm-line"></i> {{ $lead->next_follow_up_at->timezone($tz)->format('M j') }}</span>@endif
               </div>
             </a>
           @empty
             <div class="lead-empty" data-empty>{{ $stage->isClosed() ? 'Nothing here yet' : 'Drop a lead here' }}</div>
           @endforelse
           @if($stage->isClosed() && ($counts[$stage->id] ?? 0) > $board[$stage->id]->count())
-            <a class="small d-block text-center py-1 see-all" href="{{ request()->fullUrlWithQuery(['view' => 'list', 'stage' => $stage->id]) }}">See all {{ $counts[$stage->id] }}</a>
+            <a class="d-block text-center py-2 see-all" href="{{ request()->fullUrlWithQuery(['view' => 'list', 'stage' => $stage->id]) }}">See all {{ $counts[$stage->id] }} <i class="ri-arrow-right-s-line"></i></a>
           @endif
         </div>
       </div>
     @endforeach
   </div>
-  <p class="text-muted mt-1"><i class="ri-drag-move-line"></i> Drag a card to another column to change its stage, or open it to log a call, set a reminder or convert it to a booking.</p>
+  <p class="ld-board-hint"><i class="ri-drag-move-line"></i> Drag a card to another column to change its stage, or open it to log a call, set a reminder or convert it to a booking.</p>
 
   {{-- Lost needs a reason: asked here instead of a browser prompt. --}}
-  <div class="modal fade" id="lostReason" tabindex="-1" aria-labelledby="lostReasonTitle" aria-hidden="true"><div class="modal-dialog"><form class="modal-content">
+  <div class="modal fade" id="lostReason" tabindex="-1" aria-labelledby="lostReasonTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><form class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="lostReasonTitle">Why was this lead lost?</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
     <div class="modal-body">
-      <div class="d-flex flex-wrap gap-1 mb-2">@foreach(['Price too high', 'Chose another company', 'Dates did not work', 'No reply', 'Tour sold out', 'Just asking'] as $reason)<button type="button" class="btn btn-sm btn-light" data-reason="{{ $reason }}">{{ $reason }}</button>@endforeach</div>
-      <input class="form-control" name="lost_reason" maxlength="255" placeholder="Reason" required>
+      <p class="text-muted mb-2">Pick a common reason or type your own. It's shown on the card and helps the sales reports.</p>
+      <div class="d-flex flex-wrap gap-2 mb-3">@foreach(['Price too high', 'Chose another company', 'Dates did not work', 'No reply', 'Tour sold out', 'Just asking'] as $reason)<button type="button" class="btn btn-light ld-reason" data-reason="{{ $reason }}">{{ $reason }}</button>@endforeach</div>
+      <label class="fw-semibold form-label" for="lost-reason-input">Reason</label>
+      <input class="form-control" id="lost-reason-input" name="lost_reason" maxlength="255" placeholder="e.g. Booked with a competitor" required>
     </div>
     <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger">Mark as lost</button></div>
   </form></div></div>
 @else
-  <div class="card"><div class="card-body">
-    <div class="table-responsive"><table class="table table-hover crm-table mb-0">
-      <thead><tr><th>Lead</th><th>Request</th><th>Stage</th><th>Assigned</th><th>Source</th><th>Last contact</th><th>Follow-up</th><th></th></tr></thead>
+    <div class="table-responsive"><table class="table table-hover align-middle tl-table crm-table mb-0">
+      <thead><tr><th>Lead</th><th class="d-none d-sm-table-cell">Request</th><th>Stage</th><th class="d-none d-md-table-cell">Assigned</th><th class="d-none d-lg-table-cell">Source</th><th class="d-none d-lg-table-cell">Last contact</th><th class="d-none d-md-table-cell">Follow-up</th><th class="text-end">Actions</th></tr></thead>
       <tbody>
       @forelse($leads as $lead)
         <tr>
-          <td><span class="fw-semibold">{{ $lead->full_name }}</span><br><span class="text-muted">{{ $lead->reference }} · {{ $lead->created_at->timezone($tz)->format('M j, Y') }}</span></td>
-          <td>{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour)<br><span class="text-muted">{{ $lead->tour->name }}@if($lead->departure) · {{ $lead->departure->departs_at->format('M j') }}@endif @if($lead->guests) · {{ $lead->guests }} {{ str('guest')->plural($lead->guests) }}@endif</span>@endif</td>
+          <td><a class="ld-lead-link" href="{{ route('leads.show', $lead) }}">{{ $lead->full_name }}</a><div class="text-muted text-nowrap">{{ $lead->reference }} · {{ $lead->created_at->timezone($tz)->format('M j, Y') }}</div></td>
+          <td class="ld-cell-request d-none d-sm-table-cell">{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour)<div class="text-muted text-truncate">{{ $lead->tour->name }}@if($lead->departure) · {{ $lead->departure->departs_at->format('M j') }}@endif @if($lead->guests) · {{ $lead->guests }} {{ str('guest')->plural($lead->guests) }}@endif</div>@endif</td>
           <td><span class="badge bg-{{ $lead->stage?->color }}">{{ $lead->stage?->name }}</span></td>
-          <td>{{ $lead->assignedUser?->name ?? '—' }}</td>
-          <td class="text-muted">{{ $lead->sourceLabel() }}</td>
-          <td>{{ $lead->last_contacted_at?->timezone($tz)->format('M j') ?? '—' }}@if($lead->contact_attempts) <span class="text-muted">({{ $lead->contact_attempts }})</span>@endif</td>
-          <td class="{{ $lead->isFollowUpDue() ? 'text-danger fw-semibold' : '' }}">{{ $lead->next_follow_up_at?->timezone($tz)->format('M j, g:i A') ?? '—' }}</td>
-          <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('leads.show', $lead) }}">Details</a></td>
+          <td class="d-none d-md-table-cell">@if($lead->assignedUser)<span class="d-inline-flex align-items-center gap-2"><span class="lead-avatar">{{ \App\Models\Lead::initials($lead->assignedUser->name) }}</span>{{ $lead->assignedUser->name }}</span>@else<span class="text-muted">Unassigned</span>@endif</td>
+          <td class="d-none d-lg-table-cell text-muted">{{ $lead->sourceLabel() }}</td>
+          <td class="d-none d-lg-table-cell text-nowrap">{{ $lead->last_contacted_at?->timezone($tz)->format('M j') ?? '—' }}@if($lead->contact_attempts) <span class="text-muted">({{ $lead->contact_attempts }})</span>@endif</td>
+          <td class="d-none d-md-table-cell text-nowrap {{ $lead->isFollowUpDue() ? 'text-danger fw-semibold' : '' }}">@if($lead->next_follow_up_at)<i class="ri-alarm-line"></i> {{ $lead->next_follow_up_at->timezone($tz)->format('M j, g:i A') }}@else<span class="text-muted">—</span>@endif</td>
+          <td class="text-end text-nowrap"><button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#lead-details-{{ $lead->id }}">Details</button></td>
         </tr>
       @empty
-        <tr><td colspan="8" class="text-muted">No leads match these filters.</td></tr>
+        <tr><td colspan="8" class="ld-empty-row"><i class="ri-inbox-line"></i><div class="fw-semibold">{{ $filters->isNotEmpty() ? 'No leads match these filters' : 'No leads yet' }}</div><div class="text-muted">{{ $filters->isNotEmpty() ? 'Try another search or remove a filter.' : 'Website requests appear here automatically. Add phone calls and walk-ins with “New lead”.' }}</div>@if($filters->isNotEmpty())<a class="btn btn-light mt-2" href="{{ route('leads.index', ['view' => 'list']) }}">Clear all filters</a>@endif</td></tr>
       @endforelse
       </tbody>
     </table></div>
-    {{ $leads->links('admin.vendor.pagination.bootstrap-5') }}
-  </div></div>
+    <div class="tl-pager">{{ $leads->links('admin.vendor.pagination.bootstrap-5') }}</div>
+
+    {{-- Details: a short summary with quick actions; the full page has the timeline and all tools. --}}
+    @foreach($leads as $lead)
+      @php
+        $phone = $lead->phone ?: $lead->whatsapp;
+        $wa = preg_replace('/\D/', '', (string) ($lead->whatsapp ?: $lead->phone));
+      @endphp
+      <div class="modal fade" id="lead-details-{{ $lead->id }}" tabindex="-1" aria-labelledby="lead-details-title-{{ $lead->id }}" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header"><div class="min-w-0"><h5 class="modal-title d-flex align-items-center flex-wrap gap-2" id="lead-details-title-{{ $lead->id }}">{{ $lead->full_name }} <span class="badge bg-{{ $lead->stage?->color }}">{{ $lead->stage?->name }}</span></h5><div class="text-muted">{{ $lead->reference }} · received {{ $lead->created_at->timezone($tz)->format('M j, Y g:i A') }}</div></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          @if($phone || strlen($wa) >= 7 || $lead->email)
+            <div class="ld-quick mb-3">
+              @if($phone)<a class="btn btn-light" href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}"><i class="ri-phone-line"></i> Call</a>@endif
+              @if(strlen($wa) >= 7)<a class="btn btn-light" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener"><i class="ri-whatsapp-line"></i> WhatsApp</a>@endif
+              @if($lead->email)<a class="btn btn-light" href="mailto:{{ $lead->email }}"><i class="ri-mail-line"></i> Email</a>@endif
+            </div>
+          @endif
+          <dl class="ld-dl mb-0">
+            <dt>Request</dt><dd>{{ \App\Models\Lead::TYPES[$lead->type] ?? $lead->type }}@if($lead->tour) · {{ $lead->tour->name }}@endif</dd>
+            @if($lead->departure)<dt>Departure</dt><dd>{{ $lead->departure->departs_at->format('D, M j, Y g:i A') }}</dd>@endif
+            @if($lead->guests)<dt>Guests</dt><dd>{{ $lead->guests }}</dd>@endif
+            <dt>Phone</dt><dd>{{ $lead->phone ?: ($lead->whatsapp ?: '—') }}</dd>
+            <dt>Email</dt><dd class="text-break">{{ $lead->email ?: '—' }}</dd>
+            <dt>Assigned</dt><dd>{{ $lead->assignedUser?->name ?? 'Unassigned' }}</dd>
+            <dt>Source</dt><dd>{{ $lead->sourceLabel() }}</dd>
+            <dt>Last contact</dt><dd>{{ $lead->last_contacted_at?->timezone($tz)->format('M j, Y g:i A') ?? 'Not contacted yet' }}@if($lead->contact_attempts) <span class="text-muted">· {{ $lead->contact_attempts }} {{ str('attempt')->plural($lead->contact_attempts) }}</span>@endif</dd>
+            <dt>Follow-up</dt><dd class="{{ $lead->isFollowUpDue() ? 'text-danger fw-semibold' : '' }}">{{ $lead->next_follow_up_at?->timezone($tz)->format('D, M j, g:i A') ?? 'None set' }}{{ $lead->isFollowUpDue() ? ' — overdue' : '' }}@if($lead->follow_up_note)<div class="text-muted fw-normal">{{ $lead->follow_up_note }}</div>@endif</dd>
+            @if($lead->stage?->kind === 'lost' && $lead->lost_reason)<dt>Lost because</dt><dd>{{ $lead->lost_reason }}</dd>@endif
+          </dl>
+          @if($lead->message)<div class="ld-message mt-3">{{ Str::limit($lead->message, 400) }}</div>@endif
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button><a class="btn btn-primary" href="{{ route('leads.show', $lead) }}">Open lead <i class="ri-arrow-right-s-line"></i></a></div>
+      </div></div></div>
+    @endforeach
 @endif
+</div></div>
 </div></div></div>
 
 @if($view === 'board')
