@@ -28,7 +28,10 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <link href="{{asset('assets/css/brand.css')}}?v={{ filemtime(public_path('assets/css/brand.css')) }}" rel="stylesheet" type="text/css"/>
-    @livewireStyles
+    {{-- shadcn-style UI layer: loaded last so it wins over the theme, Bootstrap and select2. --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('assets/css/admin-ui.css') }}?v={{ @filemtime(public_path('assets/css/admin-ui.css')) }}" rel="stylesheet" type="text/css"/>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
