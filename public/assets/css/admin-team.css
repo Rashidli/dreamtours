@@ -114,7 +114,7 @@
 .tm-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #ebebeb; align-items: center; }
 .tm-filters .tl-search-field { flex: 1 1 260px; max-width: 360px; }
 .tm-filters .form-select, .tm-filters .form-control { width: auto; flex: 0 1 auto; }
-.tm-filters .tm-f-id { width: 96px; }
+.tm-filters .tm-f-id { width: 118px; }
 .tm-filters .tm-f-date { width: 150px; }
 .tm-filters .tm-f-dates { display: inline-flex; align-items: center; gap: 6px; color: #616161; }
 .tm-when { white-space: nowrap; }
@@ -169,3 +169,11 @@ a.tm-mail-item.active { background: #ebebeb; font-weight: 600; }
 .tm-set-field .tf-switch { padding-top: 0; padding-bottom: 0; }
 @media (min-width: 992px) { .tm-set-aside { position: sticky; top: 90px; align-self: start; } }
 .tm-set-field .tf-switch small { font-size: 13px; }
+/* Activity details dialog: the shared entry partial (also used on bookings) at readable size. */
+.tm-activity-body .small { font-size: 14px; }
+.tm-activity-body ul.list-unstyled { border: 1px solid #ebebeb; border-radius: 10px; }
+.tm-activity-body ul.list-unstyled > li { padding: 8px 12px; border-top: 1px solid #f1f1f1; }
+.tm-activity-body ul.list-unstyled > li:first-child { border-top: 0; }
+.tm-activity-body ul.list-unstyled + div { margin-top: 12px !important; }
+.tm-activity-body .text-success { color: #0c5132 !important; }
+.tm-activity-body .text-danger { color: #8e0b21 !important; }
