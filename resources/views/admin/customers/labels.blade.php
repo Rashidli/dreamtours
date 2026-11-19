@@ -1,4 +1,7 @@
-@include('admin.includes.header')<div class="main-content"><div class="page-content"><div class="container-fluid">
+@include('admin.includes.header')
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-customers.css') }}?v={{ @filemtime(public_path('assets/css/admin-customers.css')) }}">
+<div class="main-content"><div class="page-content"><div class="container-fluid">
 
             <div class="row">
                 <div class="col-12">
@@ -17,39 +20,39 @@
 @include('admin.includes.flash')
 @include('admin.includes.validation_errors')
 @php($colors = \App\Models\CustomerStatus::COLORS)
-<div class="row">
-@foreach(['status' => ['Statuses', 'Each customer has one status. A status that blocks promotions (like “Do Not Contact”) stops all marketing messages to its customers.', $statuses], 'tag' => ['Tags', 'Customers can have several tags.', $tags]] as $kind => [$title, $help, $labels])
-  <div class="col-lg-6">
-    <div class="card"><div class="card-body">
-      <h5 class="card-title mb-1">{{ $title }}</h5>
-      <p class="text-muted">{{ $help }} Archived labels stay on the customers that have them but can no longer be chosen.</p>
-      <table class="table crm-table align-middle">
-        <thead><tr><th>Name</th><th>Colour</th>@if($kind === 'status')<th title="Blocks promotional messages">No promos</th>@endif<th class="text-end">Customers</th><th></th></tr></thead>
-        <tbody>
-        @foreach($labels as $label)
-          <tr class="{{ $label->archived_at ? 'text-muted' : '' }}">
-            <td colspan="{{ $kind === 'status' ? 3 : 2 }}">
-              <form class="d-flex gap-2 align-items-center" method="post" action="{{ route('customer-labels.update', [$kind, $label->id]) }}">@csrf @method('PUT')
-                <input class="form-control" name="name" value="{{ $label->name }}" maxlength="60" required aria-label="Name">
-                <select class="form-select" name="color" style="max-width:120px" aria-label="Colour">@foreach($colors as $color)<option @selected($label->color === $color)>{{ $color }}</option>@endforeach</select>
-                @if($kind === 'status')<input type="checkbox" name="blocks_marketing" value="1" @checked($label->blocks_marketing) title="Blocks promotional messages" aria-label="Blocks promotions">@endif
-                <button class="btn btn-sm btn-outline-primary" title="Save"><i class="ri-save-line"></i></button>
-              </form>
-            </td>
-            <td class="text-end"><span class="badge bg-{{ $label->color }}">{{ $label->customers_count }}</span></td>
-            <td class="text-end text-nowrap">
-              <form class="d-inline" method="post" action="{{ route('customer-labels.archive', [$kind, $label->id]) }}">@csrf<button class="btn btn-sm btn-light" title="{{ $label->archived_at ? 'Restore' : 'Archive' }}">{{ $label->archived_at ? 'Restore' : 'Archive' }}</button></form>
-              @if($label->customers_count === 0)<form class="d-inline" method="post" action="{{ route('customer-labels.destroy', [$kind, $label->id]) }}" onsubmit="return confirm('Delete “{{ $label->name }}”?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete"><i class="ri-delete-bin-line"></i></button></form>@endif
-            </td>
-          </tr>
-        @endforeach
-        </tbody>
-      </table>
-      <form class="d-flex gap-2 align-items-center" method="post" action="{{ route('customer-labels.store', $kind) }}">@csrf
-        <input class="form-control" name="name" placeholder="New {{ $kind }}" maxlength="60" required>
-        <select class="form-select" name="color" style="max-width:120px" aria-label="Colour">@foreach($colors as $color)<option>{{ $color }}</option>@endforeach</select>
-        @if($kind === 'status')<label class="small text-nowrap mb-0"><input type="checkbox" name="blocks_marketing" value="1"> No promos</label>@endif
-        <button class="btn btn-sm btn-primary text-nowrap"><i class="ri-add-line"></i> Add</button>
+<div class="row gx-lg-4">
+@foreach(['status' => ['Statuses', 'Each customer has one status. A status that blocks promotions (like “Do Not Contact”) stops all marketing messages to its customers.', $statuses, 'ri-shield-user-line'], 'tag' => ['Tags', 'Customers can have several tags.', $tags, 'ri-price-tag-3-line']] as $kind => [$title, $help, $labels, $icon])
+  <div class="col-12">
+    <div class="card tl-card cs-labels"><div class="card-body p-0">
+      <div class="cs-labels-head">
+        <div class="tf-head mb-0"><span class="tf-icon"><i class="{{ $icon }}"></i></span><div><h5>{{ $title }} <span class="text-muted fw-normal">{{ $labels->count() }}</span></h5><p>{{ $help }} Archived labels stay on the customers that have them but can no longer be chosen.</p></div></div>
+      </div>
+      <ul class="cs-label-list">
+        @forelse($labels as $label)
+          <li class="cs-label-row {{ $label->archived_at ? 'is-archived' : '' }}">
+            <form class="cs-label-edit" method="post" action="{{ route('customer-labels.update', [$kind, $label->id]) }}">@csrf @method('PUT')
+              <span class="cs-swatch bg-{{ $label->color }}" aria-hidden="true"></span>
+              <input class="form-control cs-label-name" name="name" value="{{ $label->name }}" maxlength="60" required aria-label="Name">
+              <select class="form-select cs-label-color" name="color" aria-label="Colour" onchange="this.form.querySelector('.cs-swatch').className = 'cs-swatch bg-' + this.value">@foreach($colors as $color)<option value="{{ $color }}" @selected($label->color === $color)>{{ ucfirst($color) }}</option>@endforeach</select>
+              @if($kind === 'status')<div class="form-check mb-0 cs-label-check" title="Blocks promotional messages"><input class="form-check-input" type="checkbox" id="bm-{{ $label->id }}" name="blocks_marketing" value="1" @checked($label->blocks_marketing)><label class="form-check-label" for="bm-{{ $label->id }}">No promos</label></div>@endif
+              <button class="btn btn-light" title="Save changes to “{{ $label->name }}”"><i class="ri-save-line"></i> Save</button>
+            </form>
+            <div class="cs-label-meta">
+              <span class="cs-label-count" title="Customers with this {{ $kind }}"><i class="ri-user-3-line"></i>{{ $label->customers_count }}</span>
+              @if($label->archived_at)<span class="badge bg-secondary bg-opacity-10 text-secondary">Archived</span>@endif
+              <form class="d-inline" method="post" action="{{ route('customer-labels.archive', [$kind, $label->id]) }}">@csrf<button class="btn btn-light" title="{{ $label->archived_at ? 'Restore' : 'Archive' }}">@if($label->archived_at)<i class="ri-arrow-go-back-line"></i> Restore @else<i class="ri-inbox-archive-line"></i> Archive @endif</button></form>
+              @if($label->customers_count === 0)<form class="d-inline" method="post" action="{{ route('customer-labels.destroy', [$kind, $label->id]) }}" onsubmit="return confirm('Delete “{{ $label->name }}”? This cannot be undone.')">@csrf @method('DELETE')<button class="btn btn-outline-danger cs-icon-btn" title="Delete" aria-label="Delete {{ $label->name }}"><i class="ri-delete-bin-line"></i></button></form>@else<span class="cs-icon-spacer" aria-hidden="true"></span>@endif
+            </div>
+          </li>
+        @empty
+          <li class="cs-empty cs-empty-sm"><i class="{{ $icon }}"></i>No {{ Str::plural($kind) }} yet. Add the first one below.</li>
+        @endforelse
+      </ul>
+      <form class="cs-label-add" method="post" action="{{ route('customer-labels.store', $kind) }}">@csrf
+        <input class="form-control cs-label-name" name="name" placeholder="New {{ $kind }} name" maxlength="60" required aria-label="New {{ $kind }} name">
+        <select class="form-select cs-label-color" name="color" aria-label="Colour">@foreach($colors as $color)<option value="{{ $color }}">{{ ucfirst($color) }}</option>@endforeach</select>
+        @if($kind === 'status')<div class="form-check mb-0 cs-label-check"><input class="form-check-input" type="checkbox" id="bm-new" name="blocks_marketing" value="1"><label class="form-check-label text-nowrap" for="bm-new">No promos</label></div>@endif
+        <button class="btn btn-primary text-nowrap"><i class="ri-add-line"></i> Add {{ $kind }}</button>
       </form>
     </div></div>
   </div>
