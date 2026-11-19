@@ -1,128 +1,41 @@
 @include('admin.includes.header')
-@php($groups = ['header' => 'Header', 'footer_company' => 'Footer: Company', 'footer_support' => 'Footer: Support', 'footer_legal' => 'Footer: Legal'])
-<div class="main-content">
-    <div class="page-content">
-        <div class="container-fluid">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-cms.css') }}?v={{ @filemtime(public_path('assets/css/admin-cms.css')) }}">
+@php
+  $groups = ['header' => 'Header', 'footer_company' => 'Footer: Company', 'footer_support' => 'Footer: Support', 'footer_legal' => 'Footer: Legal'];
+  $filtered = request()->filled('q') || request()->filled('location') || request()->filled('status');
+  $newAction = ['url' => route('navigation-items.create'), 'label' => 'New link', 'can' => 'create-navigation'];
+@endphp
+<div class="main-content"><div class="page-content"><div class="container-fluid">
+@include('admin.cms_ui.list_header', ['title' => 'Navigation & footer links', 'count' => $items->total(), 'noun' => 'link', 'filtered' => $filtered, 'action' => $newAction,
+  'intro' => 'The menu at the top of the website and the link columns in the footer.'])
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">Navigation & footer links</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Navigation & footer</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="card tl-card"><div class="card-body p-0">
+  @if(session('message'))<div class="alert alert-success alert-dismissible fade show m-3 mb-0" role="alert">{{ session('message') }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>@endif
+  @include('admin.cms_ui.filters', ['action' => route('navigation-items.index'), 'search' => 'Search titles', 'clearUrl' => route('navigation-items.index'),
+    'tabs' => ['name' => 'location', 'label' => 'Link group', 'options' => ['' => 'All'] + $groups],
+    'selects' => [['name' => 'status', 'label' => 'Status', 'all' => 'All statuses', 'options' => ['1' => 'Active', '0' => 'Inactive']]]])
 
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            @if(session('message'))
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    {{ session('message') }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            @endif
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 class="card-title mb-0">Links</h4>
-                                @can('create-navigation')
-                                    <a href="{{ route('navigation-items.create') }}" class="btn btn-primary">
-                                        <i class="ri-add-line align-middle me-1"></i> New
-                                    </a>
-                                @endcan
-                            </div>
-
-                            <form class="row g-2 mb-3" method="get">
-                                <div class="col-md-4">
-                                    <input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search title">
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select" name="location">
-                                        <option value="">All groups</option>
-                                        @foreach($groups as $value => $label)
-                                            <option value="{{ $value }}" @selected(request('location')===$value)>{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select class="form-select" name="status">
-                                        <option value="">All statuses</option>
-                                        <option value="1" @selected(request('status')==='1')>Active</option>
-                                        <option value="0" @selected(request('status')==='0')>Inactive</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-outline-primary">Filter</button>
-                                    <a class="btn btn-light" href="{{ route('navigation-items.index') }}">Reset</a>
-                                </div>
-                            </form>
-
-                            <div class="table-responsive">
-                                <table class="table table-centered mb-0 align-middle table-hover table-nowrap">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Title</th>
-                                            <th>Group</th>
-                                            <th>Parent link</th>
-                                            <th>URL</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    @forelse($items as $key => $item)
-                                        <tr>
-                                            <td>{{ $items->firstItem() + $key }}</td>
-                                            <td>{{ $item->title }}</td>
-                                            <td>{{ $groups[$item->location] ?? $item->location }}</td>
-                                            <td>{{ $item->parent?->title ?: '—' }}</td>
-                                            <td><code>{{ $item->url }}</code></td>
-                                            <td>
-                                                @if($item->is_active)
-                                                    <span class="badge bg-success">Active</span>
-                                                @else
-                                                    <span class="badge bg-danger">Inactive</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @can('edit-navigation')
-                                                    <a href="{{ route('navigation-items.edit', $item) }}" class="btn btn-sm btn-primary" title="Edit">
-                                                        <i class="ri-pencil-line"></i>
-                                                    </a>
-                                                @endcan
-                                                @can('delete-navigation')
-                                                    <form action="{{ route('navigation-items.destroy', $item) }}" method="post" style="display: inline-block">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete"
-                                                                onclick="return confirm('Delete this link?')">
-                                                            <i class="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </form>
-                                                @endcan
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="7" class="text-center text-muted">No links found.</td></tr>
-                                    @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3">{{ $items->links('admin.vendor.pagination.bootstrap-5') }}</div>
-                            <small class="text-muted">Total {{ $items->total() }} links.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
+  <div class="table-responsive"><table class="table table-hover align-middle tl-table cms-table">
+    <thead><tr><th>Link</th><th class="d-none d-md-table-cell">Group</th><th class="d-none d-lg-table-cell">Parent link</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+    @forelse($items as $item)
+      <tr>
+        <td>@can('edit-navigation')<a class="cms-title" href="{{ route('navigation-items.edit', $item) }}">{{ $item->title }}</a>@else<span class="cms-title">{{ $item->title }}</span>@endcan<span class="cms-sub"><code>{{ $item->url }}</code>@if($item->target === '_blank') <i class="ri-external-link-line" title="Opens in a new tab"></i>@endif</span></td>
+        <td class="d-none d-md-table-cell text-nowrap">{{ $groups[$item->location] ?? $item->location }}</td>
+        <td class="d-none d-lg-table-cell">{{ $item->parent?->title ?: '—' }}</td>
+        <td><span class="badge bg-{{ $item->is_active ? 'success' : 'secondary' }}">{{ $item->is_active ? 'Active' : 'Inactive' }}</span></td>
+        <td class="cms-actions">
+          @can('edit-navigation')<a href="{{ route('navigation-items.edit', $item) }}" class="btn btn-sm btn-primary" title="Edit" aria-label="Edit {{ $item->title }}"><i class="ri-pencil-line"></i></a>@endcan
+          @can('delete-navigation')<form action="{{ route('navigation-items.destroy', $item) }}" method="post">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete {{ $item->title }}" onclick="return confirm('Delete this link? It disappears from the website menu.')"><i class="ri-delete-bin-line"></i></button></form>@endcan
+        </td>
+      </tr>
+    @empty
+      @include('admin.cms_ui.empty', ['colspan' => 5, 'icon' => 'ri-menu-line', 'title' => 'No links yet', 'text' => 'Add the pages visitors should reach from the header menu and the footer.', 'filtered' => $filtered, 'clearUrl' => route('navigation-items.index'), 'action' => $newAction])
+    @endforelse
+    </tbody>
+  </table></div>
+  <div class="tl-pager">{{ $items->links('admin.vendor.pagination.bootstrap-5') }}</div>
+</div></div>
+</div></div></div>
 @include('admin.includes.footer')
