@@ -19,6 +19,7 @@
 .tm-empty i { display: block; font-size: 32px; color: #8a8a8a; margin-bottom: 6px; }
 .tm-empty strong { display: block; color: #303030; font-size: 14px; margin-bottom: 2px; }
 .tm-muted { color: #616161; }
+.tm-strong { font-weight: 600; color: #303030; }
 .tm-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; color: #303030; }
 
 /* Person cell: avatar initials + name + email */
@@ -157,3 +158,8 @@ a.tm-mail-item.active { background: #ebebeb; font-weight: 600; }
   .tm-mail-frame { height: 70vh; min-height: 420px; }
 }
 @media (min-width: 768px) { .tm-choice-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Permission sections flow in two balanced columns (masonry) so a long section leaves no gap. */
+.tm-perm-grid { column-gap: 16px; }
+.tm-perm-item { break-inside: avoid; padding-bottom: 16px; }
+@media (min-width: 1200px) { .tm-perm-grid { column-count: 2; } }
+@media (max-width: 575px) { .tm-savebar .tm-clean-note { display: none; } .tm-savebar { padding: 8px; } }
