@@ -572,3 +572,10 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 .admin-avatar { width: 30px; height: 30px; border-radius: 8px; display: inline-grid; place-items: center; background: #2e7d5b; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
 .admin-user-name { color: #f1f1f1; font-size: 13px; font-weight: 550; }
 .admin-user-menu { min-width: 240px; }
+
+/* Side menu, a size up (14px items, 19px icons) for easier reading. */
+#sidebar-menu ul li a { min-height: 36px; padding: 6px 12px; font-size: 14px; gap: 10px; }
+#sidebar-menu ul li a i { width: 20px; font-size: 19px; }
+#sidebar-menu ul li ul.sub-menu li a { min-height: 32px; padding: 5px 12px 5px 42px; font-size: 14px; }
+#sidebar-menu .menu-title { padding: 18px 20px 6px; font-size: 13px; }
+#sidebar-menu .badge.float-end { font-size: 12px; line-height: 20px; padding: 0 7px; }

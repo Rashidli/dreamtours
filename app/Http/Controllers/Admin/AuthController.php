@@ -11,14 +11,16 @@ class AuthController extends Controller
     public function login_submit(LoginRequest $request)
     {
 
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-            return redirect()->route('home');
-        }else{
-            $error = \Illuminate\Validation\ValidationException::withMessages([
-                'password' => ['The password is incorrect'],
-            ]);
-            throw $error;
+        // "Keep me logged in" is optional; a fresh session id after login prevents session fixation.
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('home'));
         }
+
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            'password' => ['The email or password is incorrect.'],
+        ]);
 
     }
 

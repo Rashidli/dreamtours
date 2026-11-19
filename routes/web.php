@@ -71,7 +71,8 @@ Route::post('tours/{slug}/reviews', [FrontReviewController::class, 'store'])->mi
 
 Route::prefix('admin')->group(function () {
     Route::get('/', [PageController::class, 'login'])->name('login');
-    Route::post('/login', [AuthController::class, 'login_submit'])->name('login_submit');
+    // At most 6 attempts a minute per visitor, so passwords cannot be guessed at speed.
+    Route::post('/login', [AuthController::class, 'login_submit'])->middleware('throttle:6,1')->name('login_submit');
 
     Route::middleware('auth')->group(function () {
         Route::get('/home', [PageController::class, 'home'])->name('home');
