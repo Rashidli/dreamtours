@@ -555,3 +555,20 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 #sidebar-menu .mm-active .active, #sidebar-menu .mm-active .active i, #sidebar-menu ul li a:hover, #sidebar-menu ul li a:hover i { color: #1a1a1a !important; }
 #sidebar-menu .menu-title { color: #616161 !important; }
 #sidebar-menu .menu-title { opacity: 1 !important; }
+
+/* ---------- Top bar: logo, search, account ---------- */
+.navbar-brand-box { display: flex; align-items: center; padding: 0 20px; }
+.admin-logo { display: flex; align-items: center; height: 70px; line-height: 1; }
+.admin-logo-img { max-height: 30px; max-width: 180px; width: auto; display: block; }
+.admin-logo-text { color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -.01em; }
+.admin-search { padding: 17px 0; }
+.admin-search .form-control { width: 420px; max-width: 42vw; height: 36px; min-height: 36px; padding-left: 38px; border-radius: 10px; background: #303030 !important; color: #f1f1f1 !important; border: 1px solid #3d3d3d !important; }
+.admin-search .form-control::placeholder { color: #a8a8a8; }
+.admin-search .form-control:focus { background: #fff !important; color: #303030 !important; outline: 2px solid #005bd3; outline-offset: 1px; }
+.admin-search span { left: 12px; color: #a8a8a8; line-height: 36px; }
+#page-topbar .header-item { color: #e3e3e3; }
+#page-topbar .header-item:hover { color: #fff; }
+.admin-user-btn { display: inline-flex; align-items: center; gap: 8px; }
+.admin-avatar { width: 30px; height: 30px; border-radius: 8px; display: inline-grid; place-items: center; background: #2e7d5b; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+.admin-user-name { color: #f1f1f1; font-size: 13px; font-weight: 550; }
+.admin-user-menu { min-width: 240px; }

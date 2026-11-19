@@ -75,6 +75,7 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::get('/home', [PageController::class, 'home'])->name('home');
+        Route::get('search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
         Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('activity-history', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-log.index');
 
