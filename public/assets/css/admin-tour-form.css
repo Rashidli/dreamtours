@@ -138,3 +138,4 @@
 .tl-pager { padding: 12px 16px; border-top: 1px solid #ebebeb; background: #f7f7f7; }
 .tl-pager:empty { display: none; }
 .tl-pager nav, .tl-pager .pagination { margin: 0; }
+.tl-search-field, .tl-search-field input { font-weight: 400; }
