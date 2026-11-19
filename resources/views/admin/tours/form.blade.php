@@ -26,6 +26,27 @@
             </div>
 @include('admin.includes.flash')
 @include('admin.includes.validation_errors')
+{{-- Sticky section bar: jump to any part of the form, Save always at hand. --}}
+<div class="tf-sectionbar">
+  <nav class="tf-sectionbar-links" aria-label="Sections of this form">
+      <a href="#basics"><i class="ri-file-text-line"></i> Basics</a>
+      <a href="#seo-card"><i class="ri-search-eye-line"></i> Search engines</a>
+      <a href="#placement"><i class="ri-map-pin-line"></i> Where it appears</a>
+      <a href="#details"><i class="ri-time-line"></i> Trip details</a>
+      <a href="#inclusions"><i class="ri-checkbox-multiple-line"></i> Included / not included</a>
+      <a href="#fares"><i class="ri-money-dollar-circle-line"></i> Fares & payment</a>
+      <a href="#policies"><i class="ri-file-shield-2-line"></i> Policies & rules</a>
+      <a href="#booking-form"><i class="ri-survey-line"></i> Booking form</a>
+      <a href="#cruise" data-tf-cruise-link @unless(old('is_cruise',$tour->is_cruise)) hidden @endunless><i class="ri-ship-line"></i> Cruise details</a>
+      <a href="#departures"><i class="ri-calendar-event-line"></i> Dates & prices</a>
+      @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> Additional information</a>@endif
+    </nav>
+  <div class="tf-sectionbar-actions">
+    <span class="tf-dirty badge bg-warning bg-opacity-10 text-warning align-items-center gap-1"><i class="ri-edit-2-line"></i> Unsaved changes</span>
+    <a href="{{ url()->current() }}" class="btn btn-light tf-dirty" onclick="window.tfDiscard = true">Discard</a>
+    <button class="btn btn-primary" form="tour-main-form"><i class="ri-save-line"></i> {{ $tour->exists ? 'Save changes' : 'Create tour' }}</button>
+  </div>
+</div>
 <div class="row g-4">
 <div class="col-xl-8">
 <form id="tour-main-form" class="tf-form" method="post" enctype="multipart/form-data" action="{{$tour->exists?route('tours.update',$tour):route('tours.store')}}">@csrf @if($tour->exists)@method('PUT')@endif
@@ -94,8 +115,7 @@
 </div></div>
 
 </form>
-{{-- Shopify-style contextual save bar: appears at the top as soon as something changes. --}}
-<div class="tf-savebar" role="region" aria-label="Unsaved changes"><div class="tf-savebar-inner"><span class="tf-savebar-title"><i class="ri-error-warning-line"></i> Unsaved changes</span><div class="d-flex gap-2"><a href="{{ url()->current() }}" class="btn btn-light" onclick="window.tfDiscard = true">Discard</a><button class="btn btn-success" form="tour-main-form"><i class="ri-save-line"></i> {{ $tour->exists ? 'Save' : 'Create tour' }}</button></div></div></div>
+
 
 @include('admin.tours.departures')
 @if($tour->exists)
@@ -231,22 +251,6 @@
     <div class="form-text">Wide photo (16:9) works best. Used on cards, the tour page and link previews.</div>
   </div></div>
 
-  {{-- Jump to a section --}}
-  <div class="card d-none d-xl-block tf-nav-card"><div class="card-body py-2">
-    <nav class="tf-nav nav flex-column" aria-label="Sections of this form">
-      <a href="#basics"><i class="ri-file-text-line"></i> Basics</a>
-      <a href="#seo-card"><i class="ri-search-eye-line"></i> Search engines</a>
-      <a href="#placement"><i class="ri-map-pin-line"></i> Where it appears</a>
-      <a href="#details"><i class="ri-time-line"></i> Trip details</a>
-      <a href="#inclusions"><i class="ri-checkbox-multiple-line"></i> Included / not included</a>
-      <a href="#fares"><i class="ri-money-dollar-circle-line"></i> Fares & payment</a>
-      <a href="#policies"><i class="ri-file-shield-2-line"></i> Policies & rules</a>
-      <a href="#booking-form"><i class="ri-survey-line"></i> Booking form</a>
-      <a href="#cruise" data-tf-cruise-link @unless(old('is_cruise',$tour->is_cruise)) hidden @endunless><i class="ri-ship-line"></i> Cruise details</a>
-      <a href="#departures"><i class="ri-calendar-event-line"></i> Dates & prices</a>
-      @if($tour->exists)<a href="#itinerary"><i class="ri-route-line"></i> Itinerary</a><a href="#additional"><i class="ri-information-line"></i> Additional information</a>@endif
-    </nav>
-  </div></div>
 </div></div>{{-- /sidebar --}}
 </div>
 
@@ -273,9 +277,9 @@
   form.addEventListener('submit', () => { submitting = true; });
   window.addEventListener('beforeunload', (e) => { if (dirty && !submitting && !window.tfDiscard) { e.preventDefault(); e.returnValue = ''; } });
   // Highlight the section in view in the side menu.
-  const links = [...document.querySelectorAll('.tf-nav a')];
+  const links = [...document.querySelectorAll('.tf-sectionbar-links a')];
   if ('IntersectionObserver' in window && links.length) {
-    const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-90px 0px -60% 0px' });
+    const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-150px 0px -55% 0px' });
     links.forEach((a) => { const el = document.querySelector(a.getAttribute('href')); if (el) io.observe(el); });
   }
 })();

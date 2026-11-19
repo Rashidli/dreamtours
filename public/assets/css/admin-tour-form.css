@@ -170,3 +170,17 @@
 .tf-savebar .btn-light:hover { background: #4a4a4a !important; }
 .tf-savebar .btn-success { background: #fff !important; color: #1a1a1a !important; box-shadow: none !important; }
 .tf-day-head .btn { white-space: nowrap; }
+
+/* Sticky section bar under the top bar: section links (scrollspy) + Save. */
+.tf-sectionbar { position: sticky; top: 70px; z-index: 50; display: flex; align-items: center; gap: 12px; margin: 0 0 20px;
+  padding: 6px 8px 6px 8px; background: #fff; border-radius: 12px; box-shadow: 0 1px 0 0 rgba(26, 26, 26, .07), 0 0 0 1px rgba(0, 0, 0, .06), 0 6px 12px -8px rgba(26, 26, 26, .25); }
+.tf-sectionbar-links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; min-width: 0; }
+.tf-sectionbar-links::-webkit-scrollbar { display: none; }
+.tf-sectionbar-links a { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 8px; white-space: nowrap;
+  color: #616161; font-weight: 550; font-size: 13px; text-decoration: none; }
+.tf-sectionbar-links a i { font-size: 15px; }
+.tf-sectionbar-links a:hover { background: #f1f1f1; color: #303030; }
+.tf-sectionbar-links a.active { background: #ebebeb; color: #303030; }
+.tf-sectionbar-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.tf-section, .tf-date, .tf-day, .tf-stop { scroll-margin-top: 150px; }
+@media (max-width: 991px) { .tf-sectionbar-links a span, .tf-sectionbar-links a { font-size: 12px; } .tf-sectionbar-actions .tf-dirty.badge { display: none !important; } }
