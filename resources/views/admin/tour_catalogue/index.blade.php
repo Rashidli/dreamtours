@@ -1,131 +1,90 @@
 @include('admin.includes.header')
-@php($labels = ['categories' => 'Tour categories', 'destinations' => 'Destinations', 'transportations' => 'Transportation', 'pickup-points' => 'Pickup points'])
-@php($title = $labels[$resource] ?? str($resource)->replace('-', ' ')->title())
-<div class="main-content">
-    <div class="page-content">
-        <div class="container-fluid">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-catalogue.css') }}?v={{ @filemtime(public_path('assets/css/admin-catalogue.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+@php
+  $labels = ['categories' => 'Tour categories', 'destinations' => 'Destinations', 'transportations' => 'Transportation', 'pickup-points' => 'Pickup points'];
+  $singular = ['categories' => 'category', 'destinations' => 'destination', 'transportations' => 'vehicle', 'pickup-points' => 'pickup point'];
+  $icons = ['categories' => 'ri-price-tag-3-line', 'destinations' => 'ri-map-pin-line', 'transportations' => 'ri-bus-2-line', 'pickup-points' => 'ri-map-pin-user-line'];
+  $title = $labels[$resource] ?? str($resource)->replace('-', ' ')->title();
+  $one = $singular[$resource] ?? str($resource)->singular()->replace('-', ' ');
+  $isPickup = $resource === 'pickup-points';
+  $hasTours = in_array($resource, ['categories', 'destinations'], true);
+  $status = (string) request('status', '');
+  $filtered = request()->filled('q') || $status !== '';
+@endphp
+<div class="main-content"><div class="page-content"><div class="container-fluid">
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">{{ $title }}</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">{{ $title }}</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
+  <div class="page-title-box cat-header">
+    <div class="d-flex align-items-baseline gap-2 flex-wrap"><h4>{{ $title }}</h4><span class="cat-count">{{ $items->total() }} {{ Str::plural($one, $items->total()) }}{{ $filtered ? ' match' : '' }}</span></div>
+    @can('create-'.$permission)<a href="{{ route('tour-catalogue.create', $resource) }}" class="btn btn-primary"><i class="ri-add-line"></i> New {{ $one }}</a>@endcan
+  </div>
+  @if($resource === 'categories')<p class="cat-intro">How long or what kind of trip it is — One-Day, Multi-Day, International, plus services such as Private tours and Cruises. A tour can be in several. Where it goes is set separately under <a href="{{ route('tour-catalogue.index', 'destinations') }}">Destinations</a>.</p>@endif
+  @if($resource === 'destinations')<p class="cat-intro">Where a trip goes — continents, countries, provinces and cities, nested with “Parent destination” (e.g. Europe › France › Paris). Each tour picks one destination on its edit page; how long it is comes from <a href="{{ route('tour-catalogue.index', 'categories') }}">Tour categories</a>, so a tour can be Multi-Day and in Europe.</p>@endif
+
+  @include('admin.includes.flash')
+
+  <div class="card tl-card"><div class="card-body p-0">
+    <form method="get" action="{{ route('tour-catalogue.index', $resource) }}">
+      <div class="tl-tabs-bar">
+        <div class="tl-tabs" role="radiogroup" aria-label="Status">@foreach(['' => 'All', '1' => 'Active', '0' => 'Inactive'] as $value => $label)<input type="radio" class="btn-check" name="status" id="status-{{ $value === '' ? 'all' : $value }}" value="{{ $value }}" @checked($status === (string) $value) onchange="this.form.submit()"><label class="tl-tab" for="status-{{ $value === '' ? 'all' : $value }}">{{ $label }}</label>@endforeach</div>
+      </div>
+      <div class="tl-search-bar">
+        <label class="tl-search-field"><i class="ri-search-line" aria-hidden="true"></i><input type="search" name="q" value="{{ request('q') }}" placeholder="Search {{ Str::plural($one) }} by name" aria-label="Search by name">@if(request()->filled('q'))<a href="{{ route('tour-catalogue.index', ['resource' => $resource] + ($status !== '' ? ['status' => $status] : [])) }}" class="tl-search-clear" aria-label="Clear the search"><i class="ri-close-circle-fill"></i></a>@endif</label>
+        <button type="submit" class="visually-hidden">Search</button>
+      </div>
+    </form>
+
+    <div class="table-responsive"><table class="table table-hover align-middle tl-table mb-0">
+      <thead><tr>
+        <th>{{ $isPickup ? 'Pickup point' : 'Name' }}</th>
+        <th class="{{ $isPickup ? '' : 'd-none d-md-table-cell' }}">{{ $isPickup ? 'Address' : 'Type' }}</th>
+        @if($resource === 'transportations')<th class="d-none d-md-table-cell">Seats</th>@endif
+        <th>Status</th>
+        <th class="text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+      @forelse($items as $item)
+        <tr>
+          <td>
+            <div class="cat-name">
+              @unless($isPickup)
+                @if($item->image)<img src="{{ $item->image }}" alt="" class="cat-thumb" loading="lazy">@else<span class="cat-thumb-empty"><i class="{{ $icons[$resource] ?? 'ri-image-line' }}"></i></span>@endif
+              @endunless
+              <div class="cat-name-text">
+                @can('edit-'.$permission)<a href="{{ route('tour-catalogue.edit', [$resource, $item]) }}" class="fw-semibold">@else<span class="fw-semibold">@endcan
+                  @if($resource === 'destinations' && $item->parent)<span class="cat-path">{{ $item->parent->parent ? $item->parent->parent->name.' › ' : '' }}{{ $item->parent->name }} › </span>@endif{{ $item->name }}
+                @can('edit-'.$permission)</a>@else</span>@endcan
+                @if($hasTours)<div class="cat-sub">{{ $item->tours_count }} {{ Str::plural('tour', $item->tours_count) }}</div>@endif
+                @if($isPickup && $item->map_url)<div class="cat-sub"><a href="{{ $item->map_url }}" target="_blank" rel="noopener"><i class="ri-map-2-line"></i> Open map</a></div>@endif
+              </div>
             </div>
+          </td>
+          <td class="{{ $isPickup ? '' : 'd-none d-md-table-cell' }}">{{ $isPickup ? ($item->address ?: '—') : (\App\Http\Controllers\Admin\TourCatalogueController::TYPES[$resource][$item->type] ?? ($item->type ?: '—')) }}</td>
+          @if($resource === 'transportations')<td class="d-none d-md-table-cell">{{ $item->seat_count ?: '—' }}</td>@endif
+          <td>@if($item->is_active)<span class="badge bg-success bg-opacity-10 text-success">Active</span>@else<span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>@endif</td>
+          <td class="cat-actions">
+            @can('edit-'.$permission)<a href="{{ route('tour-catalogue.edit', [$resource, $item]) }}" class="btn btn-sm btn-primary" title="Edit" aria-label="Edit {{ $item->name }}"><i class="ri-pencil-line"></i></a>@endcan
+            @can('delete-'.$permission)<form action="{{ route('tour-catalogue.destroy', [$resource, $item]) }}" method="post">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete {{ $item->name }}" onclick="return confirm('Delete “{{ addslashes($item->name) }}”?{{ $hasTours && $item->tours_count ? ' It is used by '.$item->tours_count.' '.Str::plural('tour', $item->tours_count).'.' : '' }}')"><i class="ri-delete-bin-line"></i></button></form>@endcan
+          </td>
+        </tr>
+      @empty
+        <tr><td colspan="5">
+          <div class="cat-empty">
+            <div class="cat-empty-icon"><i class="{{ $filtered ? 'ri-search-line' : ($icons[$resource] ?? 'ri-folder-line') }}"></i></div>
+            @if($filtered)
+              <h5>No {{ Str::plural($one) }} match</h5><p>Try another name or status.</p>
+              <a class="btn btn-light" href="{{ route('tour-catalogue.index', $resource) }}">Clear filters</a>
+            @else
+              <h5>No {{ Str::plural($one) }} yet</h5><p>Add the first one — it becomes available on the tour edit page.</p>
+              @can('create-'.$permission)<a href="{{ route('tour-catalogue.create', $resource) }}" class="btn btn-primary"><i class="ri-add-line"></i> New {{ $one }}</a>@endcan
+            @endif
+          </div>
+        </td></tr>
+      @endforelse
+      </tbody>
+    </table></div>
+    <div class="tl-pager">{{ $items->links('admin.vendor.pagination.bootstrap-5') }}</div>
+  </div></div>
 
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            @if(session('message'))
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    {{ session('message') }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            @endif
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <h4 class="card-title mb-0">{{ $title }} list</h4>
-                                    @if($resource === 'categories')<p class="text-muted small mb-0 mt-1">How long or what kind of trip it is — One-Day, Multi-Day, International, plus services such as Private tours and Cruises. A tour can be in several. Where it goes is set separately under <a href="{{ route('tour-catalogue.index', 'destinations') }}">Destinations</a>.</p>@endif
-                                    @if($resource === 'destinations')<p class="text-muted small mb-0 mt-1">Where a trip goes — continents, countries, provinces and cities, nested with “Parent destination” (e.g. Europe › France › Paris). Each tour picks one destination on its edit page; how long it is comes from <a href="{{ route('tour-catalogue.index', 'categories') }}">Tour categories</a>, so a tour can be Multi-Day and in Europe.</p>@endif
-                                </div>
-                                @can('create-'.$permission)
-                                    <a href="{{ route('tour-catalogue.create', $resource) }}" class="btn btn-primary">
-                                        <i class="ri-add-line align-middle me-1"></i> New
-                                    </a>
-                                @endcan
-                            </div>
-
-                            <form class="row g-2 mb-3" method="get">
-                                <div class="col-md-6">
-                                    <input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search name">
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select" name="status">
-                                        <option value="">All statuses</option>
-                                        <option value="1" @selected(request('status')==='1')>Active</option>
-                                        <option value="0" @selected(request('status')==='0')>Inactive</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-outline-primary">Filter</button>
-                                    <a class="btn btn-light" href="{{ route('tour-catalogue.index', $resource) }}">Reset</a>
-                                </div>
-                            </form>
-
-                            <div class="table-responsive">
-                                <table class="table table-centered mb-0 align-middle table-hover table-nowrap">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>#</th>
-                                            @if($resource !== 'pickup-points')<th>Image</th>@endif
-                                            <th>Name</th>
-                                            <th>{{ $resource === 'pickup-points' ? 'Address' : 'Type' }}</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    @forelse($items as $key => $item)
-                                        <tr>
-                                            <td>{{ $items->firstItem() + $key }}</td>
-                                            @if($resource !== 'pickup-points')
-                                                <td>
-                                                    @if($item->image)
-                                                        <img src="{{ $item->image }}" alt="" width="60" height="40" style="object-fit: cover; border-radius: 4px;">
-                                                    @else
-                                                        <span class="text-muted">—</span>
-                                                    @endif
-                                                </td>
-                                            @endif
-                                            <td>@if($resource === 'destinations' && $item->parent)<span class="text-muted">{{ $item->parent->parent ? $item->parent->parent->name.' › ' : '' }}{{ $item->parent->name }} › </span>@endif{{ $item->name }}@if(in_array($resource, ['categories', 'destinations']))<small class="text-muted d-block">{{ $item->tours_count }} {{ Str::plural('tour', $item->tours_count) }}</small>@endif</td>
-                                            <td>{{ $resource === 'pickup-points' ? $item->address : (\App\Http\Controllers\Admin\TourCatalogueController::TYPES[$resource][$item->type] ?? $item->type) }}</td>
-                                            <td>
-                                                @if($item->is_active)
-                                                    <span class="badge bg-success">Active</span>
-                                                @else
-                                                    <span class="badge bg-danger">Inactive</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @can('edit-'.$permission)
-                                                    <a href="{{ route('tour-catalogue.edit', [$resource, $item]) }}" class="btn btn-sm btn-primary" title="Edit">
-                                                        <i class="ri-pencil-line"></i>
-                                                    </a>
-                                                @endcan
-                                                @can('delete-'.$permission)
-                                                    <form action="{{ route('tour-catalogue.destroy', [$resource, $item]) }}" method="post" style="display: inline-block">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete"
-                                                                onclick="return confirm('Delete this item?')">
-                                                            <i class="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </form>
-                                                @endcan
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="6" class="text-center text-muted">No items found.</td></tr>
-                                    @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3">{{ $items->links('admin.vendor.pagination.bootstrap-5') }}</div>
-                            <small class="text-muted">Total {{ $items->total() }} records.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
+</div></div></div>
 @include('admin.includes.footer')
