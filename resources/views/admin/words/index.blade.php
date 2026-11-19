@@ -1,85 +1,31 @@
 @include('admin.includes.header')
-<div class="main-content">
-    <div class="page-content">
-        <div class="container-fluid">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-cms.css') }}?v={{ @filemtime(public_path('assets/css/admin-cms.css')) }}">
+@php
+  $filtered = request()->filled('q');
+@endphp
+<div class="main-content"><div class="page-content"><div class="container-fluid">
+@include('admin.cms_ui.list_header', ['title' => 'Site copy', 'count' => $words->total(), 'noun' => 'text', 'filtered' => $filtered,
+  'intro' => 'Button, heading and label text used across the website. Each text is swapped in place; its position on the page does not change.'])
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">Site copy</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Site copy</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="card tl-card"><div class="card-body p-0">
+  @if(session('message'))<div class="alert alert-success alert-dismissible fade show m-3 mb-0" role="alert">{{ session('message') }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>@endif
+  @include('admin.cms_ui.filters', ['action' => route('words.index'), 'search' => 'Search text', 'clearUrl' => route('words.index')])
 
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            @if(session('message'))
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    {{ session('message') }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            @endif
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 class="card-title mb-0">Site copy</h4>
-                                <small class="text-muted">Button, heading and label text used across the site.</small>
-                            </div>
-
-                            <form class="row g-2 mb-3" method="get">
-                                <div class="col-md-9">
-                                    <input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search text">
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-outline-primary">Search</button>
-                                    <a class="btn btn-light" href="{{ route('words.index') }}">Reset</a>
-                                </div>
-                            </form>
-
-                            <div class="table-responsive">
-                                <table class="table table-centered mb-0 align-middle table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width:70px">#</th>
-                                            <th>Text</th>
-                                            <th style="width:110px">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    @forelse($words as $key => $word)
-                                        <tr>
-                                            <td>{{ $words->firstItem() + $key }}</td>
-                                            <td>{{ $word->title }}</td>
-                                            <td>
-                                                @can('edit-words')
-                                                    <a href="{{ route('words.edit', $word) }}" class="btn btn-sm btn-primary" title="Edit">
-                                                        <i class="ri-pencil-line"></i>
-                                                    </a>
-                                                @endcan
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="3" class="text-center text-muted">No text found.</td></tr>
-                                    @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3">{{ $words->links('admin.vendor.pagination.bootstrap-5') }}</div>
-                            <small class="text-muted">Total {{ $words->total() }} items.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
+  <div class="table-responsive"><table class="table table-hover align-middle tl-table cms-table">
+    <thead><tr><th>Text</th><th class="text-end" style="width:90px">Actions</th></tr></thead>
+    <tbody>
+    @forelse($words as $word)
+      <tr>
+        <td class="cms-wrap">@can('edit-words')<a class="cms-title" href="{{ route('words.edit', $word) }}">{{ $word->title }}</a>@else{{ $word->title }}@endcan</td>
+        <td class="cms-actions">@can('edit-words')<a href="{{ route('words.edit', $word) }}" class="btn btn-sm btn-primary" title="Edit" aria-label="Edit this text"><i class="ri-pencil-line"></i></a>@endcan</td>
+      </tr>
+    @empty
+      @include('admin.cms_ui.empty', ['colspan' => 2, 'icon' => 'ri-translate-2', 'title' => 'No site copy yet', 'text' => 'Texts appear here once the website uses them.', 'filtered' => $filtered, 'clearUrl' => route('words.index')])
+    @endforelse
+    </tbody>
+  </table></div>
+  <div class="tl-pager">{{ $words->links('admin.vendor.pagination.bootstrap-5') }}</div>
+</div></div>
+</div></div></div>
 @include('admin.includes.footer')

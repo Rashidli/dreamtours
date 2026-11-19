@@ -357,7 +357,7 @@ class ChangeRequestTest extends TestCase
 
         $this->actingAs(User::factory()->create())->get(route('email-previews.index'))->assertForbidden();
         $this->actingAs(tap(User::factory()->create())->assignRole('superadmin'));
-        $this->get(route('email-previews.index'))->assertOk()->assertSee('Booking request received')->assertSee('no sample yet');
+        $this->get(route('email-previews.index'))->assertOk()->assertSee('Booking request received')->assertSee('No sample yet');
         $this->get(route('email-previews.show', 'booking-received'))->assertOk()->assertSee('We received your booking request');
         $this->get(route('email-previews.show', 'booking-confirmed'))->assertOk()->assertSee('Booking confirmed');
         $this->get(route('email-previews.show', 'visa-enquiry'))->assertNotFound();
