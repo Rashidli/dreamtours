@@ -47,7 +47,9 @@
                 <!-- LOGO -->
                 <div class="navbar-brand-box">
                     {{-- The company's own logo (Settings → General → Logo); its name when there is none. --}}
-                    @php($adminLogo = setting_image('logo'))
+                    @php
+                      $adminLogo = setting_image('logo');
+                    @endphp
                     <a href="{{route('home')}}" class="logo logo-light admin-logo" aria-label="{{ setting('site_name', config('app.name')) }} — dashboard">
                         @if($adminLogo)<img src="{{ $adminLogo }}" alt="{{ setting('site_name', config('app.name')) }}" class="admin-logo-img">@else<span class="admin-logo-text">{{ setting('site_name', config('app.name')) }}</span>@endif
                     </a>
@@ -94,8 +96,10 @@
 
 
                 <div class="dropdown d-inline-block user-dropdown">
-                    @php($adminUser = Auth::user())
-                    @php($adminInitials = collect(preg_split('/\s+/', trim((string) $adminUser->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode(''))
+                    @php
+                      $adminUser = Auth::user();
+                      $adminInitials = collect(preg_split('/\s+/', trim((string) $adminUser->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+                    @endphp
                     <button type="button" class="btn header-item waves-effect admin-user-btn" id="page-header-user-dropdown"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
                         <span class="admin-avatar" aria-hidden="true">{{ $adminInitials ?: '?' }}</span>
