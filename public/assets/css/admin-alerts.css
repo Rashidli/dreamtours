@@ -1,0 +1,86 @@
+/* Staff alerts page (resources/views/admin/alerts/index.blade.php). Builds on the tl-* list card in admin-tour-form.css.
+   The bell dropdown (_dropdown.blade.php) carries its own scoped styles, since it appears on every admin page. */
+
+/* Tone colours (Polaris-like): icon tile background + foreground per severity colour from Alerts::TYPES. */
+.al-tone-danger  { --al-bg: #fedad9; --al-fg: #8e0b21; --al-bar: #e51c00; }
+.al-tone-warning { --al-bg: #fff1b8; --al-fg: #5e4200; --al-bar: #e8a700; }
+.al-tone-info    { --al-bg: #e0f0ff; --al-fg: #00527c; --al-bar: #0094d5; }
+.al-tone-primary { --al-bg: #eaf4ff; --al-fg: #005bd3; --al-bar: #005bd3; }
+.al-tone-success { --al-bg: #cdfee1; --al-fg: #0c5132; --al-bar: #29845a; }
+.al-tone-secondary { --al-bg: #ebebeb; --al-fg: #616161; --al-bar: #8a8a8a; }
+.al-c-danger { color: #c70a24; } .al-c-warning { color: #8a6116; } .al-c-info { color: #00527c; }
+.al-c-primary { color: #005bd3; } .al-c-success { color: #29845a; } .al-c-secondary { color: #616161; }
+
+/* Tabs bar extras */
+.al-tab-count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 10px; background: #e51c00; color: #fff; font-size: 12px; line-height: 20px; text-align: center; font-weight: 600; }
+a.tl-tab { text-decoration: none; }
+a.tl-tab.active { background: #ebebeb; color: #303030; }
+.al-mine { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #e3e3e3; color: #303030; font-weight: 550; text-decoration: none; white-space: nowrap; }
+.al-mine:hover { background: #f7f7f7; color: #303030; }
+.al-mine.active { background: #303030; border-color: #303030; color: #fff; }
+.al-mine i { font-size: 16px; }
+
+/* Kind chips — one line that scrolls sideways on a phone. */
+.al-types { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; border-bottom: 1px solid #ebebeb; }
+.al-type { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; height: 30px; padding: 0 10px; border-radius: 15px; background: #f1f1f1; color: #303030; font-weight: 550; text-decoration: none; white-space: nowrap; }
+.al-type:hover { background: #e3e3e3; color: #303030; }
+.al-type.active { background: #303030; color: #fff; }
+.al-type.active i { color: #fff; }
+.al-type i { font-size: 15px; }
+.al-type-count { min-width: 18px; padding: 0 5px; border-radius: 9px; background: rgba(0,0,0,.08); font-size: 12px; line-height: 18px; text-align: center; }
+.al-type.active .al-type-count { background: rgba(255,255,255,.22); }
+
+/* Day groups */
+.al-group { padding: 6px 16px; background: #f7f7f7; border-bottom: 1px solid #ebebeb; color: #616161; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Alert rows */
+.al-row { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #f1f1f1; }
+.al-row:hover { background: #fafafa; }
+.al-row.is-open::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--al-bar); }
+.al-icon { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; background: var(--al-bg); color: var(--al-fg); }
+.al-main { flex: 1 1 auto; min-width: 0; }
+.al-kind { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .03em; }
+.al-assignee { display: inline-flex; align-items: center; gap: 3px; color: #616161; font-weight: 550; text-transform: none; letter-spacing: 0; font-size: 13px; }
+.al-title { margin-top: 2px; font-size: 14px; font-weight: 650; color: #303030; overflow-wrap: anywhere; }
+.al-title a { color: inherit; text-decoration: none; }
+.al-title a:hover { color: #005bd3; text-decoration: underline; }
+.al-body { color: #303030; overflow-wrap: anywhere; }
+.al-hint { margin-top: 4px; color: #616161; font-size: 13px; }
+.al-resolved { margin-top: 4px; display: flex; align-items: baseline; gap: 5px; color: #0c5132; font-size: 13px; }
+.al-resolved i { color: #29845a; }
+.al-side { display: flex; align-items: center; gap: 16px; flex: 0 0 auto; }
+.al-when { display: flex; flex-direction: column; align-items: flex-end; color: #303030; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 64px; }
+.al-when span { color: #8a8a8a; font-size: 12px; }
+.al-actions { display: flex; gap: 8px; }
+.al-actions form { margin: 0; }
+.al-actions .btn { white-space: nowrap; }
+.al-done { background: transparent; border: 0; box-shadow: none; color: #616161; font-weight: 550; }
+.al-done:hover, .al-done:focus { background: #ebebeb; color: #303030; box-shadow: none; }
+
+/* Done: quieter, the open ones are what need eyes. */
+.al-row.is-done .al-icon { background: #f1f1f1; color: #29845a; }
+.al-row.is-done .al-title { font-weight: 550; color: #4a4a4a; }
+.al-row.is-done .al-body { color: #616161; }
+
+/* Empty state */
+.al-empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 48px 16px; text-align: center; color: #616161; }
+.al-empty-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 8px; background: #cdfee1; color: #29845a; font-size: 28px; }
+.al-empty strong { color: #303030; font-size: 15px; }
+
+/* Settings modal */
+.al-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; }
+.al-switch { margin: 0; }
+.al-switch .form-check-label { cursor: pointer; }
+
+/* Phone: actions go under the text, full width and easy to tap. */
+@media (max-width: 767.98px) {
+  .al-row { flex-wrap: wrap; }
+  .al-main { flex-basis: calc(100% - 48px); }
+  .al-side { flex: 1 1 100%; flex-direction: column; align-items: stretch; padding-left: 48px; gap: 8px; }
+  .al-when { order: -1; flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
+  .al-actions > a, .al-actions > form:only-child { flex: 1 1 auto; }
+  .al-actions .btn { height: 36px; }
+  .al-actions > a.btn, .al-actions > form:only-child .btn { width: 100%; }
+  .al-types { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .al-switches { grid-template-columns: 1fr; }
+}
