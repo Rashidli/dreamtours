@@ -28,7 +28,7 @@
                 <div class="col-12">
                     <div class="page-title-box mt-title">
                         <a class="mt-back" href="{{ route('my-trips.index') }}"><i class="ri-arrow-left-line"></i>My trips</a>
-                        <h4 class="mb-0">{{ $tour->name }}</h4>
+                        <h4 class="mb-0">{{ $tour->name }}@if($tour->trashed()) <span class="badge bg-secondary align-middle">Deleted tour</span>@endif</h4>
                     </div>
                 </div>
             </div>

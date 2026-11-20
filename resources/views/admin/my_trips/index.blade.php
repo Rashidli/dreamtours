@@ -46,7 +46,7 @@
     <div class="card-body">
       <div class="mt-next-kicker">{{ $when === 'Today' ? 'Today’s trip' : 'Next trip' }}</div>
       <div class="mt-hero-date">@if($when)<span class="badge rounded-pill {{ $when === 'Today' ? 'bg-success' : 'bg-info' }}">{{ $when }}</span>@endif {{ \App\Support\DepartureCalendar::range($d) }}</div>
-      <h2 class="mt-next-title">{{ $d->tour?->name }}</h2>
+      <h2 class="mt-next-title">{{ $d->tour?->name ?? 'Deleted tour' }}@if($d->tour?->trashed()) <span class="badge bg-secondary align-middle">Deleted tour</span>@endif</h2>
       <div class="mt-next-facts">
         <span><i class="ri-time-line"></i>Departs <b>{{ $d->departs_at->format('g:i A') }}</b></span>
         <span><i class="ri-group-line"></i><b>{{ $seats }}</b> {{ str('passenger')->plural($seats) }}</span>
@@ -106,7 +106,7 @@
     <a class="mt-row {{ $past ? 'is-past' : '' }}" href="{{ route('my-trips.show', $d) }}">
       <span class="mt-cal"><span class="m">{{ $d->departs_at->format('M') }}</span><span class="d">{{ $d->departs_at->format('j') }}</span><span class="w">{{ $d->departs_at->format('D') }}</span></span>
       <span class="mt-row-body">
-        <span class="mt-row-title">{{ $d->tour?->name }}</span>
+        <span class="mt-row-title">{{ $d->tour?->name ?? 'Deleted tour' }}@if($d->tour?->trashed()) <span class="badge bg-secondary">Deleted tour</span>@endif</span>
         <span class="mt-row-meta">
           <span><i class="ri-time-line"></i>{{ $d->departs_at->format('g:i A') }}@if($d->returns_at && !$d->returns_at->isSameDay($d->departs_at)) · until {{ $d->returns_at->format('M j') }}@endif</span>
           <span><i class="ri-group-line"></i>{{ $d->bookedSeats() }} {{ str('passenger')->plural($d->bookedSeats()) }}</span>
