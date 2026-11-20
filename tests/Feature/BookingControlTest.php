@@ -75,7 +75,7 @@ class BookingControlTest extends TestCase
     public function test_staff_create_a_booking_priced_from_the_dates_fares_and_linked_to_the_existing_customer(): void
     {
         $existing = Customer::create(['first_name' => 'Maria', 'last_name' => 'Lopez', 'email' => 'maria@example.com', 'phone' => '416-555-0101']);
-        $this->actingAs($this->admin)->get(route('bookings.create', ['customer' => $existing->id]))->assertOk()->assertSee('Linked to customer')->assertSee('Niagara Falls');
+        $this->actingAs($this->admin)->get(route('bookings.create', ['customer' => $existing->id]))->assertOk()->assertSee('Linked to existing customer')->assertSee('Niagara Falls');
         $this->getJson(route('bookings.customer-lookup', ['q' => 'lope']))->assertOk()->assertJsonPath('results.0.id', $existing->id);
 
         Mail::fake();
