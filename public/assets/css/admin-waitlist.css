@@ -1,0 +1,125 @@
+/* Waitlist (/admin/waitlist): stat strip, filters, one card per departure with a queue of people, details modal.
+   Builds on admin-ui.css and the list helpers in admin-tour-form.css (tl-*). */
+
+/* Stat strip */
+.wl-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; margin-bottom: 12px; }
+.wl-stat { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-left: 1px solid #ebebeb; min-width: 0; color: #303030; }
+.wl-stat:first-child { border-left: 0; }
+.wl-stat-label { display: flex; align-items: center; gap: 6px; color: #616161; font-weight: 550; font-size: 13px; }
+.wl-stat-label i { font-size: 15px; }
+.wl-stat-value { font-size: 22px; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.wl-stat-note { color: #616161; font-size: 13px; }
+.wl-stat.is-go { background: #f2fdf6; }
+.wl-stat.is-go .wl-stat-label, .wl-stat.is-go .wl-stat-value { color: #0c5132; }
+.wl-stat.is-warn .wl-stat-note { color: #8a6116; }
+@media (max-width: 991px) {
+  .wl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wl-stat:nth-child(odd) { border-left: 0; }
+  .wl-stat:nth-child(n+3) { border-top: 1px solid #ebebeb; }
+}
+
+/* Tabs + filters */
+.wl-filters { margin-bottom: 16px; }
+.wl-filters .tl-search-bar { border-bottom: 0; }
+.wl-filters .tl-chips-bar { border-top: 1px solid #ebebeb; border-bottom: 0; }
+.wl-how-toggle { font-size: 13px; color: #616161; text-decoration: none; padding: 0 6px; }
+.wl-how-toggle:hover { color: #303030; }
+.wl-how { margin: 0; padding: 10px 16px 12px 36px; background: #f7f7f7; border-bottom: 1px solid #ebebeb; color: #4a4a4a; font-size: 13px; }
+.wl-how li { margin: 2px 0; }
+.wl-date-select { width: auto; max-width: 340px; flex: 0 1 auto; }
+.wl-seg { display: inline-flex; padding: 2px; gap: 2px; background: #e3e3e3; border-radius: 10px; }
+.wl-seg-item { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; margin: 0; border-radius: 8px; color: #303030; font-weight: 550; font-size: 13px; cursor: pointer; white-space: nowrap; user-select: none; }
+.wl-seg-item:hover { background: rgba(255, 255, 255, .6); }
+.btn-check:checked + .wl-seg-item { background: #fff; box-shadow: 0 1px 0 rgba(0, 0, 0, .08), 0 0 0 1px rgba(0, 0, 0, .06); }
+.btn-check:focus-visible + .wl-seg-item { outline: 2px solid #005bd3; outline-offset: 1px; }
+.wl-filter-bar .tl-search-field { flex: 1 1 220px; }
+
+/* One card per departure */
+.wl-group { margin-bottom: 16px; }
+.wl-group.has-open { box-shadow: 0 0 0 1px #29845a, 0 1px 0 rgba(0, 0, 0, .05); }
+.wl-group-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #ebebeb; }
+.wl-date { width: 52px; flex: 0 0 52px; text-align: center; border-radius: 10px; background: #f1f1f1; padding: 5px 0; line-height: 1.1; color: #303030; }
+.wl-date span { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #616161; }
+.wl-date strong { display: block; font-size: 19px; font-weight: 700; }
+.wl-date.is-soon { background: #303030; color: #fff; }
+.wl-date.is-soon span { color: #d4d4d4; }
+.wl-group-main { flex: 1; min-width: 0; }
+.wl-group-title { margin: 0; font-size: 15px; font-weight: 650; color: #303030; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl-group-meta { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 2px; color: #616161; font-size: 13px; }
+.wl-group-meta i { margin-right: 2px; }
+.wl-group-side { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.wl-seats { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 8px; font-weight: 650; font-size: 13px; white-space: nowrap; }
+.wl-seats.is-open { background: #cdfee1; color: #0c5132; }
+.wl-seats.is-some { background: #fff1b8; color: #5e4200; }
+.wl-seats.is-full { background: #f1f1f1; color: #616161; }
+.wl-callout { display: flex; align-items: flex-start; gap: 8px; padding: 10px 16px; background: #f2fdf6; border-bottom: 1px solid #c8eed6; color: #0c5132; font-size: 14px; }
+.wl-callout i { font-size: 17px; line-height: 1.3; }
+.wl-callout.is-some { background: #fffbeb; border-bottom-color: #f5e3a3; color: #5e4200; }
+
+/* The queue */
+.wl-list { list-style: none; margin: 0; padding: 0; }
+.wl-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #f1f1f1; }
+.wl-row:last-child { border-bottom: 0; border-radius: 0 0 12px 12px; }
+.wl-row:hover { background: #fcfcfc; }
+.wl-row.is-fit { background: #f7fdf9; }
+.wl-pos { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f1f1f1; color: #303030; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+.wl-pos span { font-size: 11px; color: #8a8a8a; font-weight: 600; margin-right: 1px; }
+.wl-row.is-fit .wl-pos { background: #29845a; color: #fff; }
+.wl-row.is-fit .wl-pos span { color: #cdfee1; }
+.wl-main { flex: 1; min-width: 0; }
+.wl-name-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.wl-name { font-weight: 650; color: #303030; font-size: 14px; }
+.wl-party { display: inline-flex; align-items: center; gap: 2px; color: #303030; font-weight: 550; font-size: 13px; }
+.wl-party i { color: #8a8a8a; }
+.wl-sub { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 2px; color: #616161; font-size: 13px; }
+.wl-offered { color: #00527c; }
+.wl-note { margin-top: 2px; color: #4a4a4a; font-size: 13px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl-note i { font-style: normal; color: #8a8a8a; }
+.wl-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+.wl-contact, .wl-do { display: flex; align-items: center; gap: 4px; }
+.wl-contact { min-width: 104px; justify-content: flex-end; }
+.wl-icon-btn { width: 32px; padding-left: 0; padding-right: 0; display: inline-flex; align-items: center; justify-content: center; }
+.wl-do .dropdown-menu form { margin: 0; }
+.wl-do .dropdown-item:disabled { color: #b5b5b5; }
+
+/* Details modal */
+.wl-dl { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 10px 16px; margin: 0; font-size: 14px; }
+.wl-dl dt { color: #616161; font-weight: 500; }
+.wl-dl dd { margin: 0; color: #303030; overflow-wrap: anywhere; }
+.wl-dd-sub { display: block; color: #616161; font-size: 13px; }
+.wl-modal-foot { justify-content: flex-start; }
+.wl-reason { font-size: 13px; }
+
+/* Empty states */
+.wl-empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 40px 16px; text-align: center; color: #616161; }
+.wl-empty > i { font-size: 30px; color: #8a8a8a; margin-bottom: 4px; }
+.wl-empty strong { color: #303030; font-weight: 650; font-size: 15px; }
+.wl-empty > span { max-width: 520px; }
+.wl-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+
+/* Tablets: actions under the person */
+@media (max-width: 1199px) {
+  .wl-row { flex-wrap: wrap; }
+  .wl-actions { width: 100%; padding-left: 48px; justify-content: space-between; }
+}
+/* Phones */
+@media (max-width: 575px) {
+  .wl-group-head { flex-wrap: wrap; gap: 10px 12px; }
+  .wl-group-title { white-space: normal; }
+  .wl-group-side { width: 100%; justify-content: space-between; }
+  .wl-row { align-items: flex-start; gap: 10px; padding: 12px; }
+  .wl-actions { padding-left: 0; flex-wrap: wrap; gap: 8px; }
+  .wl-contact { min-width: 0; justify-content: flex-start; }
+  .wl-contact:empty { display: none; }
+  .wl-do { width: 100%; }
+  .wl-do > .btn, .wl-do > .btn-group:not(:last-child) { flex: 1 1 0; }
+  .wl-do > .btn-group:not(:last-child) > .btn { width: 100%; }
+  .wl-stat-note { display: none; }
+  .wl-stat { padding: 12px; }
+  .wl-how-toggle span { display: none; }
+  .wl-filter-bar .wl-date-select { max-width: none; width: 100%; }
+  .wl-filter-bar .tl-search-field { flex-basis: 100%; }
+  .wl-dl { grid-template-columns: 1fr; gap: 2px; }
+  .wl-dl dd { margin-bottom: 8px; }
+  .wl-modal-foot .btn { flex: 1 1 auto; }
+}
