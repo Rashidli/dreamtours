@@ -22,6 +22,7 @@ class RosterController extends Controller
         abort_unless($request->user()->can('list-bookings'), 403);
         $f = $this->filters($request);
         $all = Roster::all($departure);
+        abort_unless($departure->tour, 404, 'The tour of this departure no longer exists.');
         $stops = Roster::stops($departure, $all);
         $rows = Roster::filter($all, $f, $stops, $request->user());
         if ($format = $request->query('export')) {

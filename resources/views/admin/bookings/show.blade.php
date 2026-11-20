@@ -40,7 +40,7 @@
       <div class="card bk-card"><div class="card-body">
         <div class="tf-head"><span class="tf-icon"><i class="ri-route-line"></i></span><div><h5>Trip & date</h5><p>What was booked and when it leaves.</p></div></div>
         <div class="bk-facts">
-          <div><div class="bk-fact-label">Trip</div><div class="bk-fact-value">@if($booking->tour)<a href="{{ route('tours.edit', $booking->tour) }}">{{ $booking->tour->name }}</a>@else — @endif</div></div>
+          <div><div class="bk-fact-label">Trip</div><div class="bk-fact-value">@if($booking->tour && $booking->tour->trashed()){{ $booking->tour->name ?: 'Tour #'.$booking->tour->id }} <span class="badge bg-secondary">Deleted tour</span>@elseif($booking->tour)<a href="{{ route('tours.edit', $booking->tour) }}">{{ $booking->tour->name }}</a>@else — @endif</div></div>
           <div><div class="bk-fact-label">Date</div><div class="bk-fact-value">@if($booking->departure){{ \App\Support\DepartureCalendar::range($booking->departure) }} · {{ $booking->departure->departs_at->format('g:i A') }} @can('list-bookings')<div class="bk-sub"><a href="{{ route('tour-departures.passengers', $booking->departure) }}">Passenger list for this date</a></div>@endcan @else — @endif</div></div>
           <div><div class="bk-fact-label">Passengers</div><div class="bk-fact-value">{{ $booking->participant_count }}@if($booking->seat_count !== $booking->participant_count) <div class="bk-sub">{{ $booking->seat_count }} {{ Str::plural('seat', $booking->seat_count) }} (lap infants have no seat)</div>@endif</div></div>
           @if($booking->roommate_request)<div><div class="bk-fact-label">Roommate request</div><div class="bk-fact-value">{{ $booking->roommate_request }}</div></div>@endif

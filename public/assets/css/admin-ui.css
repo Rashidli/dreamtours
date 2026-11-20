@@ -678,3 +678,79 @@ body .select2-container--bootstrap-5 .select2-selection--multiple .select2-selec
 
 /* Bootstrap 5.1 has no fw-semibold (added in 5.2); many views use it. */
 .fw-semibold { font-weight: 600 !important; }
+
+/* =====================================================================
+   Feedback layer (toasts, banners, confirm dialog) + modal consistency.
+   Markup: includes/flash, includes/validation_errors, includes/footer.
+   ===================================================================== */
+
+/* Toasts: dark, bottom centre, auto-hide (success) — Polaris style */
+.dt-toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1090; display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; }
+.dt-toast { pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; min-height: 44px; max-width: 520px; padding: 11px 8px 11px 14px; border-radius: 12px; background: #1a1a1a; color: #fff; font-size: 14px; font-weight: 550; line-height: 1.45; box-shadow: 0 12px 24px -6px rgba(0, 0, 0, .35), 0 0 0 1px rgba(255, 255, 255, .06) inset; animation: dt-toast-in .22s cubic-bezier(.2, .8, .2, 1); }
+.dt-toast.is-out { opacity: 0; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
+.dt-toast-icon { font-size: 18px; line-height: 1.2; color: #7ee2a8; flex: 0 0 auto; }
+.dt-toast-text { flex: 1; min-width: 0; padding-top: 1px; overflow-wrap: anywhere; }
+.dt-toast-close { flex: 0 0 auto; display: grid; place-items: center; width: 28px; height: 28px; margin: -3px 0; border: 0; border-radius: 8px; background: transparent; color: #b5b5b5; font-size: 18px; padding: 0; }
+.dt-toast-close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.dt-toast-close:focus-visible { outline: 2px solid #8cc2ff; outline-offset: 1px; }
+.dt-toast-critical { background: #8e0b21; }
+.dt-toast-critical .dt-toast-icon, .dt-toast-critical .dt-toast-close { color: #fff; }
+.dt-toast-warning { background: #ffd79d; color: #5e4200; }
+.dt-toast-warning .dt-toast-icon, .dt-toast-warning .dt-toast-close { color: #5e4200; }
+@keyframes dt-toast-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 575px) { .dt-toasts { bottom: 16px; width: calc(100vw - 32px); } .dt-toast { width: 100%; max-width: none; } }
+@media (prefers-reduced-motion: reduce) { .dt-toast { animation: none; } .dt-toast.is-out { transition: none; } }
+
+/* Banners: problems / warnings at the top of the content */
+.ui-banner { position: relative; display: flex; align-items: flex-start; gap: 10px; margin: 0 0 16px; padding: 12px 44px 12px 14px; border-radius: 12px; font-size: 14px; line-height: 1.45; color: #303030; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .07), 0 1px 0 rgba(0, 0, 0, .05); border-top: 4px solid transparent; }
+.ui-banner:focus { outline: none; }
+.ui-banner:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
+.ui-banner-icon { font-size: 20px; line-height: 1.1; flex: 0 0 auto; }
+.ui-banner-body { flex: 1; min-width: 0; padding-top: 1px; }
+.ui-banner-title { margin: 0 0 4px; font-size: 14px; font-weight: 650; color: inherit; }
+.ui-banner-list { margin: 0; padding-left: 18px; }
+.ui-banner-list li { margin: 2px 0; }
+.ui-banner-list a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ui-banner-list a:hover { text-decoration-thickness: 2px; }
+.ui-banner-close { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 18px; opacity: .75; }
+.ui-banner-close:hover { opacity: 1; background: rgba(0, 0, 0, .06); }
+.ui-banner-critical { background: #fff4f4; border-top-color: #e51c00; color: #8e0b21; }
+.ui-banner-critical .ui-banner-icon { color: #e51c00; }
+.ui-banner-warning { background: #fff8db; border-top-color: #ffb800; color: #5e4200; }
+.ui-banner-warning .ui-banner-icon { color: #b28400; }
+.ui-banner-info { background: #f2f9ff; border-top-color: #0094d5; color: #00527c; }
+.ui-banner-info .ui-banner-icon { color: #0094d5; }
+.modal .ui-banner { margin-bottom: 12px; }
+
+/* Modals: one rhythm everywhere */
+.modal-header { padding: 14px 20px; border-bottom: 1px solid var(--ui-border); align-items: center; }
+.modal-title { font-size: 16px; font-weight: 650; line-height: 1.35; color: #303030; overflow-wrap: anywhere; }
+.modal-header .btn-close { margin: -6px -8px -6px auto; padding: 8px; border-radius: 8px; }
+.modal-header .btn-close:hover { background-color: #e3e3e3; }
+.modal-body { padding: 16px 20px; font-size: 14px; }
+.modal-footer { padding: 12px 20px; gap: 8px; }
+.modal-footer > * { margin: 0; }
+.modal-dialog { max-width: 520px; }
+.modal-sm { max-width: 380px; }
+@media (min-width: 992px) { .modal-lg, .modal-xl { max-width: 800px; } }
+@media (min-width: 1200px) { .modal-xl { max-width: 1140px; } }
+/* A <form> wrapping body + footer inside a scrollable dialog: keep the header/footer fixed and scroll the body. */
+.modal-dialog-scrollable .modal-content > form { display: flex; flex-direction: column; overflow: hidden; min-height: 0; max-height: 100%; }
+.modal-dialog-scrollable .modal-content > form > .modal-body { overflow-y: auto; }
+@media (max-width: 575px) {
+  .modal-dialog { margin: 12px; }
+  .modal-header, .modal-body, .modal-footer { padding-left: 16px; padding-right: 16px; }
+  .modal-footer { flex-wrap: wrap; }
+}
+/* A dialog opened over another one (e.g. confirm from a details modal) */
+.modal-backdrop.show ~ .modal-backdrop.show { z-index: 1060; }
+
+/* Confirm dialog */
+.dt-confirm { z-index: 1065; }
+.dt-confirm .modal-dialog { max-width: 440px; }
+.dt-confirm .modal-header { background: #fff; border-bottom: 0; padding-bottom: 4px; }
+.dt-confirm .modal-body { padding-top: 4px; color: #4a4a4a; }
+.dt-confirm .modal-body[hidden] { display: none; }
+.dt-confirm .modal-footer { border-top: 0; padding-top: 8px; }
+@media (max-width: 575px) { .dt-confirm .modal-footer .btn { flex: 1 1 0; } }
+.modal-fullscreen { max-width: none; }
