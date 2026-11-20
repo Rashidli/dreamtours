@@ -235,6 +235,13 @@ sudo -u www-data php artisan up
   - Qəsdən toxunulmayanlar: PDF-lər (`receipts/*`, `roster/pdf`, `seating/pdf`) və `vendor/pagination`.
   - Tövsiyə olunan sıra: 1–2, sonra 3–6. Paralel aparmaq olar (3 agent).
 - **Növbəti UX işi (istifadəçi istədi):** müştəri detal səhifəsi (`/admin/customers/{id}`). Yalnız görünüş yox, istifadə rahatlığı da düşünülməlidir.
+- **İstifadəçinin tələbi (2026-11-20):** detal səhifələri, popup-lar, bildirişlər, success/error mesajları da UX və UI baxımından yenilənməlidir, heç biri unudulmamalıdır. Agentlər bitdikdən sonra ortaq fayllarda görüləcək işlər:
+  - **Uğur mesajı:** `includes/flash.blade.php` (`session('message')`) və footer-dəki `successToast` Polaris toast/banner kimi olmalıdır. Hər səhifədə eyni yerdə, avtomatik bağlanan və əl ilə bağlana bilən.
+  - **Xətalar:** `includes/validation_errors.blade.php` və footer-dəki `validationToast`. Yuxarıda xülasə banner, sahənin yanında inline xəta, ilk xətalı sahəyə fokus.
+  - **Təsdiq pəncərələri:** brauzerin `confirm()` dialoqları (35 faylda 41 yerdə `onclick/onsubmit="return confirm(...)"`) gözəl təsdiq modalı ilə əvəz olunmalıdır. Plan: `data-confirm="..."` atributu və footer-də ümumi handler. Mətn, qırmızı "Delete" düyməsi və "Cancel".
+  - **Modallar:** başlıq, məzmun və footer düymələri hər yerdə eyni qaydada olsun. Scrollable modal-da `<form>` problemi üçün düzəlişi (kataloq agenti tapıb) `admin-ui.css`-ə köçürmək.
+  - **Detal səhifələri:** müştəri (`customers/show`, UX üzərində işləmək lazımdır), habelə yoxlanmamış detal və pəncərələr: kontakt müraciəti, viza müraciəti, rol və istifadəçi, roster detalları və s. Hamısı bir-bir ekran görüntüsü ilə yoxlanacaq.
+  - **Boş vəziyyətlər və yüklənmə halları:** vahid komponent.
 
 ## 5. UI qaydaları (ortaq CSS)
 
