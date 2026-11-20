@@ -93,7 +93,7 @@ class DashboardTest extends TestCase
         $trips = $page->viewData('dash')['trips'];
         $this->assertCount(2, $trips);
         $this->assertSame([3, 1], [$trips[0]->passengers_count, $trips[0]->unpaid_count]);
-        $page->assertSeeInOrder(['Niagara Falls', '3 / 10', '7', 'No bus yet']);
+        $page->assertSeeInOrder(['Niagara Falls', '3</strong> / 10 taken', '7 left', 'No bus yet'], false);
         $this->assertSame('100.00', number_format((float) $page->viewData('dash')['payments']['recentTotal'], 2, '.', ''));
     }
 
@@ -103,17 +103,17 @@ class DashboardTest extends TestCase
         $content->assignRole('Content Manager');
         $page = $this->actingAs($content)->get(route('home'))->assertOk();
         $this->assertSame([], $page->viewData('dash')['tiles']);
-        foreach (['Trips in the next', 'Received in the last'] as $hidden) {
+        foreach (['Upcoming trips', 'Recent payments'] as $hidden) {
             $this->assertStringNotContainsString($hidden, $page->getContent(), "Content Manager must not see “{$hidden}”");
         }
-        foreach (['Website & content', 'Tours</div>', 'CMS pages</div>'] as $shown) {
+        foreach (['Website & content', '<strong>Tours</strong>', '<strong>Pages</strong>'] as $shown) {
             $this->assertStringContainsString($shown, $page->getContent(), "Content Manager should see {$shown}");
         }
-        $this->assertStringNotContainsString('Users</div>', $page->getContent());
+        $this->assertStringNotContainsString('<strong>Team</strong>', $page->getContent());
 
         $accountant = User::factory()->create(['name' => 'Ada Accountant']);
         $accountant->assignRole('Accountant');
-        $t = $this->tiles($this->actingAs($accountant)->get(route('home'))->assertOk()->assertSee('Unpaid'));
+        $t = $this->tiles($this->actingAs($accountant)->get(route('home'))->assertOk()->assertSee('unpaid'));
         $this->assertArrayHasKey('Overdue balances', $t);
         $this->assertArrayNotHasKey('New leads', $t);
         $this->assertArrayNotHasKey('Failed emails', $t);

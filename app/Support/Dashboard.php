@@ -34,7 +34,7 @@ class Dashboard
 
         if ($user->can('list-leads')) {
             $new = LeadStage::where('kind', 'open')->orderBy('sort_order')->first();
-            $tiles[] = ['New leads', $new ? Lead::where('lead_stage_id', $new->id)->count() : 0, 'waiting for first contact', 'primary', 'ri-funnel-line', route('leads.index', ['view' => 'list', 'stage' => $new?->id])];
+            $tiles[] = ['New leads', $new ? Lead::where('lead_stage_id', $new->id)->count() : 0, 'waiting for first contact', 'primary', 'ri-user-star-line', route('leads.index', ['view' => 'list', 'stage' => $new?->id])];
             $due = Lead::followUpDue()->count();
             $tiles[] = ['Follow-ups due', $due, 'calls and messages to make', $due ? 'danger' : 'secondary', 'ri-alarm-line', route('leads.index', ['view' => 'list', 'due' => 1])];
             $out['followUps'] = Lead::followUpDue()->with(['assignedUser', 'tour.translations'])->orderBy('next_follow_up_at')->limit(5)->get();
