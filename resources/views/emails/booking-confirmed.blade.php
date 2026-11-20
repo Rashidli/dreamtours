@@ -27,5 +27,7 @@
     <li>Your seat numbers arrive by email 1–2 days before departure.</li>
     <li>Please be at your pick-up point 15 minutes early with a photo ID.</li>
   </ul>
-  @include('emails.partials.button', ['url' => rtrim(config('app.url'), '/').'/tours/'.$booking->tour?->slug, 'label' => 'View trip details'])
+  @if($booking->tour?->slug && !$booking->tour->trashed())
+  @include('emails.partials.button', ['url' => rtrim(config('app.url'), '/').'/tours/'.$booking->tour->slug, 'label' => 'View trip details'])
+  @endif
 @endsection

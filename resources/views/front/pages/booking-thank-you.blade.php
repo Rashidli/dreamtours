@@ -51,7 +51,9 @@
           <li>3. Your seat numbers are emailed 1–2 days before departure.</li>
         </ol>
         <div class="mt-5 flex flex-wrap gap-3">
-          <a href="{{ route('front.tours.show', $booking->tour?->slug) }}" class="btn btn-white btn-sm">Back to the tour</a>
+          @if($booking->tour?->slug && !$booking->tour->trashed())
+          <a href="{{ route('front.tours.show', $booking->tour->slug) }}" class="btn btn-white btn-sm">Back to the tour</a>
+          @endif
           <a href="/" class="btn btn-ghost btn-sm">Home</a>
         </div>
       </div>
