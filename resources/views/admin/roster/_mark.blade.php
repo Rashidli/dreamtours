@@ -28,16 +28,18 @@
   <form method="post" action="{{ route('passenger-attendance.update', [$departure, $p]) }}" class="mt-2 d-print-none rs-mark-form">@csrf
     {{-- Enter in the note field saves the note (same as the Save button), never a mark further down. --}}
     <button class="d-none" name="status" value="{{ $status ?? 'checked_in' }}" tabindex="-1" aria-hidden="true"></button>
-    @if($forward->isNotEmpty())
-    <div class="d-flex flex-wrap gap-1 rs-go-row">
-      @foreach($forward as $k => $value)
+    @foreach([$forward->take(2), $forward->slice(2)] as $group)
+    @if($group->isNotEmpty())
+    <div class="d-flex flex-wrap gap-1 {{ $loop->first ? 'rs-go-row' : 'rs-alt-row' }}">
+      @foreach($group as $value)
         @php
           [$label, $color, $icon] = \App\Support\Attendance::STATUSES[$value];
         @endphp
-        <button class="btn {{ $size }} btn-outline-{{ $color }} rs-go rs-go-{{ $value }} {{ $k < 2 ? 'rs-go-main' : 'rs-go-alt' }}" name="status" value="{{ $value }}"><i class="{{ $icon }} me-1"></i>{{ $label }}</button>
+        <button class="btn {{ $size }} btn-outline-{{ $color }} rs-go rs-go-{{ $value }} {{ $loop->parent->first ? 'rs-go-main' : 'rs-go-alt' }}" name="status" value="{{ $value }}"><i class="{{ $icon }} me-1"></i>{{ $label }}</button>
       @endforeach
     </div>
     @endif
+    @endforeach
     @if($status && $mayUndo)
     <div class="d-flex flex-wrap align-items-center gap-1 mt-1 rs-back-row">
       <button class="btn {{ $size }} btn-light rs-undo" name="status" value="expected" title="Back to expected (clears this mark)"><i class="ri-arrow-go-back-line me-1"></i>Undo</button>

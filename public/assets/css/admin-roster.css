@@ -73,7 +73,10 @@
 .rs-table > thead > tr > th { background: #f7f7f7; border-top: 1px solid var(--rs-line); border-bottom: 1px solid var(--rs-line); }
 .rs-table > thead > tr > th:first-child, .rs-table > tbody > tr > td:first-child { padding-left: 16px; }
 .rs-table > thead > tr > th:last-child, .rs-table > tbody > tr > td:last-child { padding-right: 16px; }
-.rs-table .rs-th-att { min-width: 430px; }
+.rs-table .rs-th-att { min-width: 390px; }
+.rs-mark .rs-alt-row { margin-top: 4px; }
+.rs-table .rs-mark .rs-go-main { min-width: 112px; justify-content: center; }
+.rs-table .rs-mark .rs-go-alt { min-height: 26px; padding: 0 8px; font-size: 12px; font-weight: 500; }
 .rs-table .rs-mark .rs-go { padding-left: 9px; padding-right: 9px; }
 .rs-table > tbody > tr > td.rs-contact, .rs-table > tbody > tr > td:nth-child(5) .sub, .rs-table > tbody > tr > td.rs-pay .sub { white-space: nowrap; }
 .rs-sort { color: inherit; text-decoration: none; }
@@ -239,7 +242,9 @@
   .rs-mark .rs-go { min-height: 48px; font-size: 15px; border-radius: 10px; justify-content: center; display: inline-flex; align-items: center; border-width: 1px; }
   .rs-mark .rs-go i { font-size: 18px; }
   .rs-mark .rs-go-main:only-child, .rs-mark .rs-go-main:nth-child(1):nth-last-child(1) { grid-column: 1 / -1; }
-  .rs-mark .rs-go-alt { min-height: 40px; font-size: 14px; }
+  .rs-mark .rs-alt-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; margin-top: 8px; }
+  .rs-table .rs-mark .rs-go-alt, .rs-mark .rs-go-alt { min-height: 40px; font-size: 14px; padding: 0 10px; }
+  .rs-table .rs-mark .rs-go-main { min-width: 0; }
   .rs-mark .rs-back-row { margin-top: 8px !important; gap: 4px 6px !important; }
   .rs-mark .rs-undo { min-height: 44px; padding: 0 16px; font-size: 15px; font-weight: 600; border-radius: 10px; }
   .rs-mark .rs-back { min-height: 36px; font-size: 14px; }
@@ -250,4 +255,11 @@
 
   .rs-nomatch { padding: 28px 16px; }
   .rs-cancelled { font-size: 13px; }
+}
+
+/* Desktop table: keep "Undo or <mark> <mark>…" on one line in the Attendance column. */
+@media (min-width: 768px) {
+  .rs-table .rs-mark .rs-back { padding-left: 3px; padding-right: 3px; font-size: 13px; }
+  .rs-table .rs-back-label { font-size: 0; }
+  .rs-table .rs-back-label::after { content: "or"; font-size: 13px; }
 }

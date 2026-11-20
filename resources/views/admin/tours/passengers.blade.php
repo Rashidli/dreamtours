@@ -2,6 +2,9 @@
 <link rel="stylesheet" href="{{ asset('assets/css/admin-roster.css') }}?v={{ @filemtime(public_path('assets/css/admin-roster.css')) }}">
 @php
   $tour = $departure->tour;
+  // The tour may be soft-deleted (or gone): the list and check-in still work, but nothing links to its edit page.
+  $tourGone = !$tour || $tour->trashed();
+  $tourName = $tour?->name ?? 'Tour #'.$departure->tour_id;
   $fin = auth()->user()->can('view-financial-info');
   $counts = \App\Support\Attendance::counts($all->pluck('passenger'));
   $filtered = collect($f)->except('sort')->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
@@ -16,8 +19,8 @@
 @endphp
 <div class="main-content"><div class="page-content"><div class="container-fluid rs-page">
   <div class="row"><div class="col-12"><div class="page-title-box d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <div class="rs-title"><h4 class="mb-0">Passengers</h4><a class="rs-tour" href="{{ route('tours.edit', $tour) }}">{{ $tour->name }}</a></div>
-    <div class="page-title-right d-none d-md-block"><ol class="breadcrumb m-0"><li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li><li class="breadcrumb-item"><a href="{{ route('tours.edit', $tour) }}#departures">{{ $tour->name }}</a></li><li class="breadcrumb-item active">Passengers</li></ol></div>
+    <div class="rs-title"><h4 class="mb-0">Passengers</h4>@if($tourGone)<span class="rs-tour">{{ $tourName }} <span class="badge rounded-pill bg-secondary ms-1">Deleted tour</span></span>@else<a class="rs-tour" href="{{ route('tours.edit', $tour) }}">{{ $tour->name }}</a>@endif</div>
+    <div class="page-title-right d-none d-md-block"><ol class="breadcrumb m-0"><li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li><li class="breadcrumb-item">@if($tourGone){{ $tourName }}@else<a href="{{ route('tours.edit', $tour) }}#departures">{{ $tour->name }}</a>@endif</li><li class="breadcrumb-item active">Passengers</li></ol></div>
   </div></div></div>
 @include('admin.includes.flash')
 @include('admin.includes.validation_errors')
@@ -30,7 +33,9 @@
     </div>
     <div class="d-flex flex-wrap gap-2 d-print-none">
       <a class="btn btn-light" href="{{ route('my-trips.show', $departure) }}"><i class="ri-map-2-line me-1"></i>Leader view</a>
+      @unless($tourGone)
       <a class="btn btn-light" href="{{ route('tours.edit', $tour) }}#departure-{{ $departure->id }}"><i class="ri-arrow-left-line me-1"></i>Back to dates</a>
+      @endunless
     </div>
   </div>
 
