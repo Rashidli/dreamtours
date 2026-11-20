@@ -14,7 +14,9 @@
 @php($initials = mb_strtoupper(mb_substr($customer->first_name ?? '', 0, 1).mb_substr($customer->last_name ?? '', 0, 1)) ?: '?')
 @php($upcoming = $customer->bookings->filter(fn ($b) => $b->status !== 'cancelled' && $b->departure?->departs_at?->isFuture())->sortBy(fn ($b) => $b->departure->departs_at)->values())
 @php($owing = $fin ? $customer->bookings->filter(fn ($b) => $b->tour_departure_id && $b->status !== 'cancelled' && (float) $b->outstanding_amount > 0)->sortByDesc(fn ($b) => (float) $b->outstanding_amount)->values() : collect())
-@php($leads = auth()->user()->can('list-leads') ? \App\Models\Lead::with(['stage', 'tour.translations'])->where('customer_id', $customer->id)->latest('id')->limit(10)->get() : collect())
+@php($leads = $customer->relationLoaded('leads') ? $customer->leads : collect())
+{{-- Tour names typed in ALL CAPS read as shouting: show them in title case (same rule as the dashboard). --}}
+@php($niceName = fn (?string $n) => $n !== null && $n === mb_strtoupper($n) ? mb_convert_case(mb_strtolower($n), MB_CASE_TITLE) : $n)
 @php($openLeads = $leads->filter(fn ($l) => !$l->stage || !$l->stage->isClosed())->values())
 @php($nextLead = $openLeads->filter(fn ($l) => $l->next_follow_up_at)->sortBy('next_follow_up_at')->first())
 @php($activityShown = 8)
@@ -74,7 +76,7 @@
     @foreach($owing->take(3) as $b)
       <a class="cd-next-item" href="{{ auth()->user()->can('list-bookings') ? route('bookings.show', $b) : '#' }}">
         <span class="cd-next-icon tone-danger"><i class="ri-wallet-3-line"></i></span>
-        <span class="min-w-0"><b>Collect {{ money($b->outstanding_amount) }}</b> on {{ $b->reference }}<span class="cs-sub">{{ $b->tour?->name }}@if($b->departure) · departs {{ $b->departure->departs_at->format('M j') }}@endif @if($b->balance_due_date) · @if($b->balance_due_date->isPast() && !$b->balance_due_date->isToday())<b class="text-danger">overdue since {{ $b->balance_due_date->format('M j') }}</b>@else due {{ $b->balance_due_date->format('M j') }}@endif @endif</span></span>
+        <span class="min-w-0"><b>Collect {{ money($b->outstanding_amount) }}</b> on {{ $b->reference }}<span class="cs-sub">{{ $niceName($b->tour?->name) }}@if($b->departure) · departs {{ $b->departure->departs_at->format('M j') }}@endif @if($b->balance_due_date) · @if($b->balance_due_date->isPast() && !$b->balance_due_date->isToday())<b class="text-danger">overdue since {{ $b->balance_due_date->format('M j') }}</b>@else due {{ $b->balance_due_date->format('M j') }}@endif @endif</span></span>
         <i class="ri-arrow-right-s-line cd-next-go"></i>
       </a>
     @endforeach
@@ -82,7 +84,7 @@
       @continue($owing->contains('id', $b->id))
       <a class="cd-next-item" href="{{ auth()->user()->can('list-bookings') ? route('bookings.show', $b) : '#' }}">
         <span class="cd-next-icon tone-info"><i class="ri-calendar-event-line"></i></span>
-        <span class="min-w-0"><b>Travels {{ $b->departure->departs_at->diffForHumans() }}</b>: {{ $b->tour?->name }}<span class="cs-sub">{{ $b->reference }} · {{ $b->departure->departs_at->format('D, M j, Y g:i A') }} · {{ $b->participant_count }} {{ str('guest')->plural($b->participant_count) }}</span></span>
+        <span class="min-w-0"><b>Travels {{ $b->departure->departs_at->diffForHumans() }}</b>: {{ $niceName($b->tour?->name) }}<span class="cs-sub">{{ $b->reference }} · {{ $b->departure->departs_at->format('D, M j, Y g:i A') }} · {{ $b->participant_count }} {{ str('guest')->plural($b->participant_count) }}</span></span>
         <i class="ri-arrow-right-s-line cd-next-go"></i>
       </a>
     @endforeach
@@ -90,7 +92,7 @@
       @php($lead = $nextLead ?? $openLeads->first())
       <a class="cd-next-item" href="{{ route('leads.show', $lead) }}">
         <span class="cd-next-icon tone-warning"><i class="ri-customer-service-2-line"></i></span>
-        <span class="min-w-0"><b>{{ $openLeads->count() }} open {{ str('lead')->plural($openLeads->count()) }}</b>@if($lead->next_follow_up_at): follow up {{ $lead->next_follow_up_at->timezone($tz)->isPast() ? 'overdue since' : 'on' }} {{ $lead->next_follow_up_at->timezone($tz)->format('M j') }}@endif<span class="cs-sub">{{ $lead->tour?->name ?? str($lead->type)->replace('_', ' ')->ucfirst() }} · {{ $lead->stage?->name }}</span></span>
+        <span class="min-w-0"><b>{{ $openLeads->count() }} open {{ str('lead')->plural($openLeads->count()) }}</b>@if($lead->next_follow_up_at): follow up {{ $lead->next_follow_up_at->timezone($tz)->isPast() ? 'overdue since' : 'on' }} {{ $lead->next_follow_up_at->timezone($tz)->format('M j') }}@endif<span class="cs-sub">{{ $niceName($lead->tour?->name) ?? str($lead->type)->replace('_', ' ')->ucfirst() }} · {{ $lead->stage?->name }}</span></span>
         <i class="ri-arrow-right-s-line cd-next-go"></i>
       </a>
     @endif
@@ -124,7 +126,7 @@
               @can('list-bookings')<a href="{{ route('bookings.show', $booking) }}">{{ $booking->reference }}</a>@else{{ $booking->reference }}@endcan
               <span class="badge bg-{{ $tone }} bg-opacity-10 text-{{ $tone }}">{{ \App\Models\Booking::STATUSES[$booking->status] ?? $booking->status }}</span>
             </div>
-            <div class="cd-bk-trip">{{ $booking->tour?->name ?? \App\Mail\EnquiryReceived::LABELS[$booking->type] ?? ucfirst($booking->type) }}</div>
+            <div class="cd-bk-trip">{{ $niceName($booking->tour?->name) ?? \App\Mail\EnquiryReceived::LABELS[$booking->type] ?? ucfirst($booking->type) }}</div>
             <div class="cs-sub">
               @if($booking->departure?->departs_at)<i class="ri-calendar-event-line"></i> {{ $booking->departure->departs_at->format('D, M j, Y') }}<span class="cd-rel">· {{ $booking->departure->departs_at->diffForHumans() }}</span>@else<i class="ri-time-line"></i> Requested {{ $booking->created_at?->timezone($tz)->format('M j, Y') }}@endif
               · {{ $booking->participant_count }} {{ str('guest')->plural($booking->participant_count) }}
@@ -159,7 +161,7 @@
       @foreach($leads as $lead)
         <a class="cd-row-link" href="{{ route('leads.show', $lead) }}">
           <div class="min-w-0">
-            <div class="fw-semibold">{{ $lead->tour?->name ?? str($lead->type)->replace('_', ' ')->ucfirst() }}</div>
+            <div class="fw-semibold">{{ $niceName($lead->tour?->name) ?? str($lead->type)->replace('_', ' ')->ucfirst() }}</div>
             <div class="cs-sub">Created {{ $lead->created_at?->timezone($tz)->format('M j, Y') }}@if($lead->guests) · {{ $lead->guests }} {{ str('guest')->plural($lead->guests) }}@endif @if($lead->next_follow_up_at) · follow up {{ $lead->next_follow_up_at->timezone($tz)->format('M j') }}@endif</div>
           </div>
           @if($lead->stage)<span class="badge bg-{{ $lead->stage->color }} bg-opacity-10 text-{{ $lead->stage->color }}">{{ $lead->stage->name }}</span>@endif
