@@ -216,6 +216,25 @@ sudo -u www-data php artisan up
   - 7 paralel agentlə: Customers, Bookings, Leads, Payments, Komanda və tənzimləmələr, CMS, Kataloq və viza.
 - **develop ilə merge:** Bookings, Leads və Customers səhifələrinə modul 7–9 əlavələri yeni markup-a köçürülüb (split düymələri, `capacity_override`, export, "New booking"). Menyudakı vehicles/waitlist bəndləri `Route::has` ilə yoxlanılır.
 - **Ekran görüntüsü aləti:** `/opt/admin-shots` (`render.php` `APP_ROOT` qəbul edir; `shoot.py` seçimləri: `--url`, `--css2`, `--at`, `--clip`, `--click`).
+- **Dashboard** (2026-11-20, `develop`-da, çünki modul 8-ə aiddir):
+  - `resources/views/home.blade.php` yenidən quruldu, stil faylı `admin-dashboard.css`.
+  - "Needs attention" siyahısı, neytral göstəricilər zolağı, yaxın səfərlər.
+  - Doluluq oflayn saxlanmış yerlər daxil hesablanır.
+  - Testlər: `DashboardTest`.
+- **Hələ yenilənməyən admin səhifələri** (quruluşu köhnədir, amma ümumi stil tətbiq olunur):
+  1. `tours/passengers` və `roster/*`: roster, check-in (production-da; liderlər mobildə işlədir).
+  2. `my_trips/index` və `my_trips/show`: liderin səfərləri (production-da; mobil).
+  3. `vehicles/*` və `seating/board`: avtobuslar, oturacaq planı (modul 7, staging).
+  4. `bookings/create`: işçi bronu (modul 9, staging).
+  5. `waitlist/index` (staging).
+  6. `alerts/*`: bildirişlər səhifəsi və zəngin açılan siyahısı (modul 8, staging).
+  - Ortaq kiçik işlər:
+    - `includes/media_field`: önizləmə 64px-dir; agentlərin böyük önizləməli variantına keçmək.
+    - `activity_log/entry`: kiçik mətn.
+    - `flash`, `validation_errors`, `lang_tabs`, `capacity_override`: yalnız ümumi stil tətbiq olunur.
+  - Qəsdən toxunulmayanlar: PDF-lər (`receipts/*`, `roster/pdf`, `seating/pdf`) və `vendor/pagination`.
+  - Tövsiyə olunan sıra: 1–2, sonra 3–6. Paralel aparmaq olar (3 agent).
+- **Növbəti UX işi (istifadəçi istədi):** müştəri detal səhifəsi (`/admin/customers/{id}`). Yalnız görünüş yox, istifadə rahatlığı da düşünülməlidir.
 
 ## 5. UI qaydaları (ortaq CSS)
 
