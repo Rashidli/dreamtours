@@ -1,0 +1,253 @@
+/* Roster & check-in (admin/tours/passengers + roster/_summary + roster/_mark).
+   Desktop: tidy Polaris list. Phone (< 768px): a check-in tool for the bus door — sticky counts,
+   one card per passenger with the state up front and big Checked in / No-show / Undo buttons. */
+
+:root {
+  --rs-blue: #005bd3; --rs-blue-bg: #eaf4ff; --rs-blue-ink: #00527c;
+  --rs-green: #29845a; --rs-green-bg: #e3f8ee; --rs-green-ink: #0c5132;
+  --rs-amber: #b28400; --rs-amber-bg: #fff6d6; --rs-amber-ink: #5e4200;
+  --rs-red: #c70a24; --rs-red-bg: #fee9e8; --rs-red-ink: #8e0b21;
+  --rs-line: #ebebeb; --rs-muted: #616161;
+}
+
+/* ---------- Header ---------- */
+.rs-title h4 { line-height: 1.25; }
+.rs-tour { display: block; color: var(--rs-muted); font-size: 13px; font-weight: 500; margin-top: 2px; }
+.rs-tour:hover { color: #303030; text-decoration: underline; }
+.rs-headline { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.rs-date { font-size: 16px; font-weight: 650; color: #303030; }
+
+/* ---------- Check-in strip (sticky) ---------- */
+.rs-stats { position: sticky; top: 70px; z-index: 900; overflow: hidden; margin-bottom: 12px; }
+.rs-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.rs-stat { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; color: #303030; text-decoration: none; border-left: 1px solid var(--rs-line); min-width: 0; position: relative; }
+.rs-stat:first-child { border-left: 0; }
+.rs-stat:hover { background: #fafafa; color: #303030; }
+.rs-stat.active { background: #f7f7f7; }
+.rs-stat.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: #303030; }
+.rs-stat-label { font-size: 13px; color: var(--rs-muted); font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-stat-value { font-size: 24px; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.rs-stat-note { font-size: 13px; color: var(--rs-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-stat.is-info .rs-stat-value { color: var(--rs-blue-ink); }
+.rs-stat.is-danger .rs-stat-value { color: var(--rs-red); }
+.rs-stat.is-danger .rs-stat-label { color: var(--rs-red-ink); }
+.rs-stat.is-done .rs-stat-value { color: var(--rs-green); }
+.rs-progress { display: flex; height: 6px; background: #e3e3e3; }
+.rs-progress span { display: block; height: 100%; }
+.rs-seg-boarded { background: var(--rs-green); }
+.rs-seg-checked { background: #4ba3e3; }
+.rs-seg-noshow { background: var(--rs-red); }
+
+/* ---------- Card heads ---------- */
+.rs-card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 12px; }
+.rs-card-head h5 { font-size: 15px; font-weight: 650; }
+.rs-card-head > .text-muted { font-size: 13px; }
+
+/* ---------- By pickup stop ---------- */
+.rs-sum-card .card-body { padding-bottom: 8px; }
+.rs-sum > tbody > tr.is-active > td { background: #f1f8ff; }
+.rs-sum > tbody > tr.is-active .rs-sum-stop { font-weight: 650; }
+.rs-sum > tbody > tr.is-empty > td { color: #8a8a8a; }
+.rs-sum-stop:hover { text-decoration: underline; }
+
+/* ---------- Filters (joined to the list card below it) ---------- */
+.rs-filters { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: none; border-bottom: 1px solid var(--rs-line); }
+.rs-filters .card-body { padding: 12px 16px; }
+.rs-roster { border-top-left-radius: 0; border-top-right-radius: 0; overflow: hidden; }
+.rs-flabel { font-size: 13px; font-weight: 550; color: var(--rs-muted); margin-bottom: 4px; }
+.rs-search { position: relative; }
+.rs-search > i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #8a8a8a; pointer-events: none; }
+.rs-search > .form-control { padding-left: 32px; }
+.rs-f-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rs-f-spacer { flex: 1 1 auto; }
+.rs-more-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 9px; background: #303030; color: #fff; font-size: 11px; font-weight: 650; }
+@media (min-width: 768px) {
+  /* The "More" panel only folds on phones; on wider screens its fields sit in the same row. */
+  .rs-more, .rs-more.collapse:not(.show), .rs-more.collapsing, .rs-more > .row { display: contents !important; }
+}
+
+/* ---------- Passenger list (desktop table) ---------- */
+.rs-roster-head { padding: 14px 16px 0; margin-bottom: 10px; }
+.rs-roster .card-body > .table-responsive { margin: 0; }
+.rs-live { font-size: 13px; margin-left: auto; }
+.rs-table > thead > tr > th { background: #f7f7f7; border-top: 1px solid var(--rs-line); border-bottom: 1px solid var(--rs-line); }
+.rs-table > thead > tr > th:first-child, .rs-table > tbody > tr > td:first-child { padding-left: 16px; }
+.rs-table > thead > tr > th:last-child, .rs-table > tbody > tr > td:last-child { padding-right: 16px; }
+.rs-table .rs-th-att { min-width: 430px; }
+.rs-table .rs-mark .rs-go { padding-left: 9px; padding-right: 9px; }
+.rs-table > tbody > tr > td.rs-contact, .rs-table > tbody > tr > td:nth-child(5) .sub, .rs-table > tbody > tr > td.rs-pay .sub { white-space: nowrap; }
+.rs-sort { color: inherit; text-decoration: none; }
+.rs-sort:hover { color: #303030; text-decoration: underline; }
+.rs-sort.active { color: #303030; }
+.rs-sort.active::after { content: " \2193"; }
+.rs-table > tbody > tr > td { vertical-align: top; padding-top: 12px; padding-bottom: 12px; }
+.rs-table > tbody > tr.rs-row > td:first-child { color: #8a8a8a; font-variant-numeric: tabular-nums; box-shadow: inset 3px 0 0 transparent; }
+.rs-table > tbody > tr.is-checked_in > td:first-child { box-shadow: inset 3px 0 0 #4ba3e3; }
+.rs-table > tbody > tr.is-boarded > td:first-child { box-shadow: inset 3px 0 0 var(--rs-green); }
+.rs-table > tbody > tr.is-not_arrived > td:first-child { box-shadow: inset 3px 0 0 var(--rs-amber); }
+.rs-table > tbody > tr.is-no_show > td:first-child { box-shadow: inset 3px 0 0 var(--rs-red); }
+.rs-table > tbody > tr.is-no_show > td { background: #fff7f7; }
+.rs-table > tbody > tr:target > td { animation: rs-flash 2.4s ease-out; }
+@keyframes rs-flash { 0%, 40% { background: #fff4c2; } 100% { background: transparent; } }
+.rs-table tr[id^="p-"] { scroll-margin-top: 200px; }
+.rs-contact .rs-tel i { margin-right: 4px; }
+.rs-wa { display: inline-flex; align-items: center; margin-left: 8px; color: #128c4b; font-size: 16px; vertical-align: -2px; }
+.rs-wa:hover { color: #0b6b38; }
+.rs-wa span { display: none; }
+.rs-nomatch { text-align: center; color: var(--rs-muted); padding: 24px 16px; border-top: 1px solid var(--rs-line); }
+.rs-nomatch i { display: block; font-size: 24px; color: #8a8a8a; margin-bottom: 4px; }
+.rs-cancelled { padding: 12px 16px; border-top: 1px solid var(--rs-line); background: #f7f7f7; }
+
+/* ---------- Attendance cell (_mark) ---------- */
+.rs-state { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }
+.rs-state .badge { font-size: 12px; }
+.rs-state-when { font-size: 13px; }
+.rs-state-note { flex-basis: 100%; }
+.rs-mark .rs-go { font-weight: 600; }
+.rs-mark .rs-go-main.rs-go-checked_in { background: var(--rs-blue); border-color: var(--rs-blue); color: #fff; box-shadow: inset 0 -1px 0 rgba(0,0,0,.2); }
+.rs-mark .rs-go-main.rs-go-checked_in:hover { background: #004299; border-color: #004299; color: #fff; }
+.rs-mark .rs-go-main.rs-go-boarded { background: var(--rs-green); border-color: var(--rs-green); color: #fff; box-shadow: inset 0 -1px 0 rgba(0,0,0,.2); }
+.rs-mark .rs-go-main.rs-go-boarded:hover { background: #1f6a48; border-color: #1f6a48; color: #fff; }
+.rs-mark .rs-go-no_show { color: var(--rs-red-ink); border-color: #e5a3a3; background: #fff; }
+.rs-mark .rs-go-no_show:hover { background: var(--rs-red-bg); color: var(--rs-red-ink); }
+.rs-mark .rs-go-alt { color: #303030; border-color: #c9c9c9; background: #fff; font-weight: 550; }
+.rs-mark .rs-go-alt:hover { background: #f7f7f7; color: #303030; }
+.rs-mark .rs-go-alt i { color: var(--rs-muted); }
+.rs-back-label { font-size: 13px; }
+.rs-mark .rs-back { padding-left: 4px; padding-right: 4px; color: var(--rs-muted); text-decoration: underline; text-underline-offset: 2px; }
+.rs-mark .rs-back:hover { color: #303030; }
+.rs-note summary { font-size: 13px; display: inline-block; }
+.rs-note summary::marker { color: #8a8a8a; }
+
+/* ---------- Toast for the "saved" message on phones ---------- */
+@media screen and (max-width: 767.98px) {
+  .rs-page > .alert-success { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 1080; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,.18); font-weight: 550; }
+}
+
+/* =====================================================================
+   Phone: the bus-door check-in tool
+   ===================================================================== */
+@media screen and (max-width: 767.98px) {
+  .rs-page .page-title-box { padding-bottom: 8px; }
+  .rs-headline { margin-bottom: 10px; align-items: flex-start; }
+  .rs-headline .btn { min-height: 36px; }
+
+  /* Counts strip: 4 compact cells, always on screen under the top bar. */
+  .rs-stats { margin-left: -4px; margin-right: -4px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.06); }
+  .rs-stat { padding: 8px 6px 9px; align-items: center; text-align: center; gap: 0; }
+  .rs-stat-label { font-size: 12px; }
+  .rs-stat-value { font-size: 22px; }
+  .rs-stat-note { display: none; }
+  .rs-stat.active::after { left: 8px; right: 8px; }
+
+  /* By pickup stop: one tappable line per stop — name · arrived/expected · missing. */
+  .rs-sum-card .card-body { padding: 12px 0 4px; }
+  .rs-sum-card .rs-card-head { padding: 0 16px; margin-bottom: 6px; }
+  .rs-sum-card .rs-alert { margin: 0 12px 8px; }
+  .rs-sum-card .card-body > .table-responsive { overflow: visible; margin: 0; }
+  .rs-sum, .rs-sum tbody, .rs-sum tfoot { display: block; }
+  .rs-sum thead { display: none; }
+  .rs-sum tr { display: flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 44px; border-top: 1px solid var(--rs-line); position: relative; }
+  .rs-sum td { display: block; border: 0 !important; padding: 0 !important; background: transparent !important; }
+  .rs-sum tr.is-active { background: #f1f8ff; }
+  .rs-sum td:nth-child(1) { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rs-sum .rs-sum-stop::after { content: ""; position: absolute; inset: 0; } /* whole line is the tap target */
+  .rs-sum td:nth-child(2) { order: 3; color: var(--rs-muted) !important; font-variant-numeric: tabular-nums; }
+  .rs-sum td:nth-child(2)::before { content: "/ "; }
+  .rs-sum td:nth-child(3) { order: 2; font-weight: 650 !important; color: #303030 !important; font-variant-numeric: tabular-nums; }
+  .rs-sum td:nth-child(4), .rs-sum td:nth-child(6) { display: none; }
+  .rs-sum td:nth-child(5) { order: 4; min-width: 78px; text-align: right; font-size: 13px; position: relative; z-index: 1; }
+  .rs-sum tbody td:nth-child(5).text-danger, .rs-sum tfoot td:nth-child(5).text-danger { color: var(--rs-red-ink) !important; }
+  .rs-sum td:nth-child(5) a { display: inline-flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 13px; background: var(--rs-red-bg); color: var(--rs-red-ink) !important; font-weight: 650; text-decoration: none; }
+  .rs-sum td:nth-child(5) a::after { content: " missing"; white-space: pre; font-weight: 500; }
+  .rs-sum tbody tr.is-done td:nth-child(5) { font-size: 0; }
+  .rs-sum tbody tr.is-done td:nth-child(5)::after { content: "All in \2713"; font-size: 13px; color: var(--rs-green); font-weight: 600; }
+  .rs-sum tbody tr.is-empty td:nth-child(5) { visibility: hidden; }
+  .rs-sum tfoot tr { background: #f7f7f7; font-weight: 650; }
+  .rs-sum tfoot td:nth-child(5)::after { content: " missing"; font-weight: 500; }
+
+  /* Filters: search + stop on top, the rest behind "More". */
+  .rs-filters .card-body { padding: 12px; }
+  .rs-filters .rs-flabel { display: none; }
+  .rs-more .rs-flabel { display: block; margin-top: 4px; }
+  .rs-filters .form-control, .rs-filters .form-select, .rs-more-btn { min-height: 44px; font-size: 16px; } /* 16px: no iOS zoom */
+  .rs-more-btn.active { border-color: #303030; }
+  .rs-more > .row { padding-top: 4px; }
+  .rs-f-actions { padding-top: 4px; }
+  .rs-f-actions > .btn-primary { flex: 1 1 100%; min-height: 44px; }
+  .rs-f-spacer { display: none; }
+
+  /* Passenger cards */
+  .rs-roster-head { padding: 12px 16px 0; margin-bottom: 4px; }
+  .rs-roster .table-responsive { overflow: visible; }
+  .rs-table, .rs-table tbody { display: block; }
+  .rs-table thead { display: none; }
+  .rs-table > tbody > tr { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 4px; position: relative; padding: 14px 16px 14px 18px !important; border-top: 1px solid var(--rs-line); box-shadow: inset 4px 0 0 #d4d4d4; background: #fff; }
+  .rs-table > tbody > tr[hidden] { display: none; }
+  .rs-table > tbody > tr > td { display: block; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+  .rs-table > tbody > tr.is-checked_in { box-shadow: inset 4px 0 0 #4ba3e3; }
+  .rs-table > tbody > tr.is-boarded { box-shadow: inset 4px 0 0 var(--rs-green); }
+  .rs-table > tbody > tr.is-not_arrived { box-shadow: inset 4px 0 0 var(--rs-amber); }
+  .rs-table > tbody > tr.is-no_show { box-shadow: inset 4px 0 0 var(--rs-red); background: #fff7f7; }
+  .rs-table > tbody > tr:target { animation: rs-flash 2.4s ease-out; }
+  .rs-table > tbody > tr.rs-empty-row { display: block; box-shadow: none; }
+  .rs-table > tbody > tr.rs-empty-row > td { padding: 28px 8px !important; }
+
+  /* # + name on the first line (room on the right for the state pill) */
+  .rs-table > tbody > tr.rs-row > td:nth-child(1) { flex: 0 0 auto; color: #8a8a8a; font-size: 13px; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(1)::after { content: "."; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(2) { flex: 1 1 calc(100% - 40px); min-width: 0; padding-right: 112px !important; font-size: 16px; line-height: 1.35; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(2) .sub { font-size: 13px; margin-top: 4px; color: #5e4200 !important; }
+  /* pickup · seat · meal · booking as one muted line */
+  .rs-table > tbody > tr.rs-row > td:nth-child(3),
+  .rs-table > tbody > tr.rs-row > td:nth-child(4),
+  .rs-table > tbody > tr.rs-row > td:nth-child(5) { font-size: 13px; color: var(--rs-muted); }
+  .rs-table > tbody > tr.rs-row > td:nth-child(3) { flex: 0 1 auto; margin-left: 22px; color: #303030; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(3) .sub,
+  .rs-table > tbody > tr.rs-row > td:nth-child(5) .sub { display: inline; margin: 0; font-size: 13px; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(3) .sub::before,
+  .rs-table > tbody > tr.rs-row > td:nth-child(4)::before { content: "\00a0· "; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(4).rs-none { display: none !important; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(5) { flex: 0 0 100%; margin-left: 22px; }
+  .rs-table > tbody > tr.rs-row > td:nth-child(5) a { font-weight: 500 !important; color: var(--rs-muted); }
+  .rs-table > tbody > tr.rs-row > td:nth-child(5) .sub::before { content: " · "; }
+  .rs-table > tbody > tr.rs-row > td.rs-pay { flex: 0 0 100%; margin-left: 22px; font-size: 13px; color: var(--rs-muted); }
+  .rs-table > tbody > tr.rs-row > td.rs-pay .sub { display: inline; }
+  .rs-table > tbody > tr.rs-row > td.rs-pay .sub::before { content: " · "; }
+  .rs-table > tbody > tr.rs-row > td.rs-pay:not(:has(.sub)) { display: none !important; }
+
+  /* Call / WhatsApp the booker — big buttons, shown while the passenger is not on board */
+  .rs-table > tbody > tr.rs-row > td.rs-contact { flex: 0 0 100%; margin: 6px 0 0 22px; display: flex !important; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; }
+  .rs-table > tbody > tr.is-checked_in > td.rs-contact,
+  .rs-table > tbody > tr.is-boarded > td.rs-contact { display: none !important; }
+  .rs-contact .rs-tel, .rs-contact .rs-wa { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; margin: 0; border-radius: 10px; border: 1px solid #c9c9c9; background: #fff; color: #303030; font-weight: 550; font-size: 14px; text-decoration: none; vertical-align: middle; box-shadow: 0 1px 0 rgba(0,0,0,.05); }
+  .rs-contact .rs-tel i { margin: 0; font-size: 17px; color: var(--rs-blue); }
+  .rs-contact .rs-wa i { font-size: 18px; color: #128c4b; }
+  .rs-contact .rs-wa span { display: inline; }
+  .rs-contact .sub { flex: 0 0 100%; font-size: 13px; margin: 0; }
+
+  /* Attendance: state pill top-right, then the buttons full width */
+  .rs-table > tbody > tr.rs-row > td.rs-att { flex: 0 0 100%; margin: 8px 0 0; }
+  .rs-table .rs-state { display: contents; }
+  .rs-table .rs-state .badge { position: absolute; top: 12px; right: 14px; font-size: 13px; padding: 4px 10px; line-height: 18px; white-space: nowrap; }
+  .rs-table .rs-state .rs-state-when { display: block; margin: 0 0 6px !important; font-size: 13px; }
+  .rs-table .rs-state .rs-state-when::before { content: "Marked "; }
+  .rs-table .rs-state-note { display: block; margin: 0 0 8px; padding: 6px 10px; border-radius: 8px; background: #f7f7f7; color: #303030 !important; font-size: 13px; }
+  .rs-table .rs-mark-form { margin-top: 0 !important; }
+
+  .rs-mark .rs-go-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; }
+  .rs-mark .rs-go { min-height: 48px; font-size: 15px; border-radius: 10px; justify-content: center; display: inline-flex; align-items: center; border-width: 1px; }
+  .rs-mark .rs-go i { font-size: 18px; }
+  .rs-mark .rs-go-main:only-child, .rs-mark .rs-go-main:nth-child(1):nth-last-child(1) { grid-column: 1 / -1; }
+  .rs-mark .rs-go-alt { min-height: 40px; font-size: 14px; }
+  .rs-mark .rs-back-row { margin-top: 8px !important; gap: 4px 6px !important; }
+  .rs-mark .rs-undo { min-height: 44px; padding: 0 16px; font-size: 15px; font-weight: 600; border-radius: 10px; }
+  .rs-mark .rs-back { min-height: 36px; font-size: 14px; }
+  .rs-mark .rs-back-label { font-size: 13px; }
+  .rs-mark .rs-note { margin-top: 8px !important; }
+  .rs-mark .rs-note summary { padding: 6px 0; font-size: 14px; }
+  .rs-mark .rs-note .form-control, .rs-mark .rs-note .btn { min-height: 44px; font-size: 16px; }
+
+  .rs-nomatch { padding: 28px 16px; }
+  .rs-cancelled { font-size: 13px; }
+}
