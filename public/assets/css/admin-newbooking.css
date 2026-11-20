@@ -133,3 +133,13 @@
   .nb-linked { flex-wrap: wrap; }
   .nb-pax-actions .btn { flex: 1 1 auto; }
 }
+
+/* Seats sold bar (chosen departure) */
+.nb-seatbar { width: 140px; height: 6px; margin: 8px 0 4px auto; border-radius: 3px; background: #e3e3e3; overflow: hidden; }
+.nb-seatbar span { display: block; height: 100%; background: #29845a; border-radius: 3px; }
+.nb-seatbar span.hot { background: #e51c00; }
+@media (max-width: 767.98px) { .nb-seatbar { margin: 4px 0; width: 100%; } .nb-dep-chosen .text-end { flex-wrap: wrap; } .nb-dep-chosen .text-end > div:first-child { flex: 1; text-align: left; } }
+@media (max-width: 767.98px) {
+  .nb-dep-chosen .text-end { flex-direction: column; align-items: stretch; gap: 8px; }
+  .nb-dep-chosen .text-end .btn { align-self: flex-start; }
+}

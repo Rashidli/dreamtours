@@ -1,9 +1,6 @@
 @include('admin.includes.header')
 <link rel="stylesheet" href="{{ asset('assets/css/admin-tour-form.css') }}?v={{ @filemtime(public_path('assets/css/admin-tour-form.css')) }}">
 <link rel="stylesheet" href="{{ asset('assets/css/admin-newbooking.css') }}?v={{ @filemtime(public_path('assets/css/admin-newbooking.css')) }}">
-{{-- Preview-only extras for the price panel: the deposit rule and lap infants. The server recalculates everything on save. --}}
-@php($depMeta = \App\Models\TourDeparture::with('tour')->whereIn('id', array_keys($departures))->get()->mapWithKeys(fn ($d) => [$d->id => ['dpp' => $d->tour?->deposit_per_person ? (string) $d->tour->deposit_per_person : null, 'lap' => !$d->tour?->infant_needs_seat]])->all())
-@php($depositPct = min(100, max(0, (int) setting('default_deposit_percent', 50))))
 @php($statusHints = ['new' => 'Not contacted about payment yet.', 'payment_pending' => 'Waiting for the deposit. Most phone bookings.', 'confirmed' => 'Seats confirmed. You can email the confirmation.'])
 @php($oldStatus = old('status', 'payment_pending'))
 @php($selectedDep = old('tour_departure_id', $waitlist?->tour_departure_id ?? request('departure')))
@@ -204,8 +201,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const deps = @json($departures);
-  const meta = @json($depMeta);
-  const depositPct = {{ $depositPct }};
   const old = @json(old('passengers', $prefill));
   const serverErrors = @json($errors->getMessages());
   const $ = id => document.getElementById(id);
@@ -261,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function seatsNeeded(d, rows) {
-    const lap = meta[d.id]?.lap ? rows.filter(s => s.value === 'infant').length : 0;
+    const lap = !d.infant_needs_seat ? rows.filter(s => s.value === 'infant').length : 0;
     return rows.length - lap;
   }
 
@@ -278,8 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const total = rows.reduce((t, s) => t + parseFloat(s.selectedOptions[0]?.dataset.price || 0), 0);
     const paying = rows.filter(s => parseFloat(s.selectedOptions[0]?.dataset.price || 0) > 0).length;
-    const dpp = d && meta[d.id]?.dpp ? parseFloat(meta[d.id].dpp) : null;
-    const deposit = dpp ? Math.min(total, dpp * paying) : Math.round(total * depositPct) / 100;
+    // Same rule as the server (ManualBookingController::depositRule): per paying passenger, else the default percentage.
+    const dpp = d?.deposit_per_person ? parseFloat(d.deposit_per_person) : null;
+    const deposit = dpp ? Math.min(total, dpp * paying) : Math.round(total * (d?.deposit_percent ?? 0)) / 100;
     const ready = d && rows.length;
     $('sum-pax').textContent = rows.length;
     $('sum-total').textContent = ready ? fmt(total, cur) : '—';
@@ -333,7 +329,9 @@ document.addEventListener('DOMContentLoaded', () => {
       $('dep-chosen-tour').textContent = d.tour;
       $('dep-chosen-date').textContent = d.label;
       $('dep-chosen-fares').innerHTML = d.fares.map(f => `<span>${esc(f.label)} <b>${fmt(f.price, d.currency)}</b></span>`).join('') || '<span>No fares on this date</span>';
-      $('dep-chosen-seats').innerHTML = `<span class="badge ${d.left === 0 ? 'bg-danger' : d.left <= 5 ? 'bg-warning' : 'bg-success'}">${d.left ? plural(d.left, 'seat') + ' left' : 'Full'}</span>`;
+      const pct = d.capacity ? Math.min(100, Math.round(d.taken / d.capacity * 100)) : 0;
+      $('dep-chosen-seats').innerHTML = `<span class="badge ${d.left === 0 ? 'bg-danger' : d.left <= 5 ? 'bg-warning' : 'bg-success'}">${d.left ? plural(d.left, 'seat') + ' left' : 'Full'}</span>`
+        + (d.capacity ? `<div class="nb-seatbar" title="${d.taken} of ${d.capacity} seats taken"><span style="width:${pct}%" class="${pct >= 90 ? 'hot' : ''}"></span></div><div class="nb-sub">${d.taken} of ${d.capacity} taken</div>` : '');
     }
   }
   document.querySelectorAll('[data-dep]').forEach(b => b.addEventListener('click', () => {

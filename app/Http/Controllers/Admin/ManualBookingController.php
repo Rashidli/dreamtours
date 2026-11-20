@@ -134,7 +134,7 @@ class ManualBookingController extends Controller
                 'currency' => $departure->currency ?: 'CAD',
                 'tax_included' => (bool) $tour->tax_included,
                 'total_amount' => $total,
-                'deposit_amount' => $tour->deposit_per_person ? min((float) $total, (float) Money::mul($tour->deposit_per_person, $paying)) : BookingMoney::defaultDeposit($total),
+                'deposit_amount' => self::deposit(self::depositRule($tour), $total, $paying),
                 'updated_by' => $request->user()->id,
             ] + (!empty($d['customer_id']) ? ['customer_id' => (int) $d['customer_id']] : []));
             foreach ($d['passengers'] as $p) {
@@ -180,6 +180,26 @@ class ManualBookingController extends Controller
     }
 
     /**
+     * How a tour's deposit is worked out: a fixed amount per paying passenger, or (when the tour has none)
+     * the site-wide default percentage of the total. Shared by store() and the form preview.
+     *
+     * @return array{per_person: ?string, percent: int}
+     */
+    private static function depositRule(?\App\Models\Tour $tour): array
+    {
+        return [
+            'per_person' => $tour?->deposit_per_person ? (string) $tour->deposit_per_person : null,
+            'percent' => min(100, max(0, (int) setting('default_deposit_percent', 50))),
+        ];
+    }
+
+    /** Deposit for a booking total with $paying passengers on a non-zero fare. */
+    private static function deposit(array $rule, string $total, int $paying): mixed
+    {
+        return $rule['per_person'] ? min((float) $total, (float) Money::mul($rule['per_person'], $paying)) : BookingMoney::defaultDeposit($total);
+    }
+
+    /**
      * Upcoming dates that can take a booking, with what the form needs for each: fares, pickups,
      * meals and seats left.
      *
@@ -199,6 +219,11 @@ class ManualBookingController extends Controller
                 'fares' => $d->fares()->map(fn ($f) => ['code' => $f->code, 'label' => $d->tour?->priceLabel($f->code) ?? $f->label, 'price' => (string) $f->price])->values()->all(),
                 'pickups' => $d->availablePickupPoints()->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values()->all(),
                 'meals' => $d->tour?->mealChoices() ?? [],
+                'capacity' => (int) $d->capacity,
+                'taken' => (int) $d->reserved_seats,
+                'infant_needs_seat' => (bool) $d->tour?->infant_needs_seat,
+                'deposit_per_person' => self::depositRule($d->tour)['per_person'],
+                'deposit_percent' => self::depositRule($d->tour)['percent'],
             ]])->all();
     }
 }
