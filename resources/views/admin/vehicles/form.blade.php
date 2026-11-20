@@ -41,7 +41,7 @@
         <div class="col-4"><label class="form-label" for="g-left">Left seats</label><input class="form-control" type="number" id="g-left" min="1" max="3" value="2"></div>
         <div class="col-4"><label class="form-label" for="g-right">Right seats</label><input class="form-control" type="number" id="g-right" min="1" max="3" value="2"></div>
         <div class="col-12"><div class="form-check mt-1"><input class="form-check-input" type="checkbox" id="g-back"><label class="form-check-label" for="g-back">Back bench across the aisle</label></div></div>
-        <div class="col-12"><div class="form-text mt-0 mb-1" id="g-preview"></div><button type="button" class="btn btn-light w-100" id="g-build"><i class="ri-layout-grid-line me-1"></i>Build this layout</button></div>
+        <div class="col-12"><div class="form-text mt-0 mb-1" id="g-preview"></div><button type="button" class="btn btn-light w-100" id="g-build"><i class="ri-layout-grid-line me-1"></i>Build this layout</button><div class="invalid-feedback d-block" id="g-error" hidden></div></div>
       </div>
     </div></div>
   </div>
@@ -64,6 +64,7 @@
         <span class="vb-stepper ms-sm-2"><span class="vb-stepper-label">Columns</span><button type="button" class="btn btn-light" data-act="col-" title="Remove the right-hand column" aria-label="Remove a column"><i class="ri-subtract-line"></i></button><button type="button" class="btn btn-light" data-act="col+" title="Add a column on the right" aria-label="Add a column"><i class="ri-add-line"></i></button></span>
       </div>
       <div class="vb-canvas"><div class="vb-bus"><span class="vb-front"><i class="ri-arrow-up-line"></i>Front</span><div class="seat-plan editing" id="plan"></div><span class="vb-front">Back</span></div></div>
+      <div class="alert alert-danger mt-3 mb-0 d-none" id="plan-error" role="alert"><i class="ri-error-warning-line me-1"></i>Add at least one passenger seat before saving — pick “Passenger seat” and click the plan, or build a standard layout.</div>
       <div class="alert alert-warning mt-3 mb-0 d-none" id="dupes"></div>
       <ul class="vb-help">
         <li><i class="ri-cursor-line"></i>Click or drag to paint cells</li>
@@ -80,13 +81,27 @@
 </div></div>
 </form>
 
+{{-- Seat number editor (double-click a seat); changes only the plan in the page until Save. --}}
+<div class="modal fade" id="seat-modal" tabindex="-1" aria-labelledby="seat-modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
+  <form id="seat-form" novalidate>
+    <div class="modal-header"><h5 class="modal-title" id="seat-modal-title">Seat number</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button></div>
+    <div class="modal-body">
+      <label class="form-label" for="seat-label">Number or name</label>
+      <input class="form-control" id="seat-label" maxlength="10" autocomplete="off" aria-describedby="seat-label-help">
+      <div class="invalid-feedback" id="seat-label-error">Use 1–10 letters or digits.</div>
+      <div class="form-text" id="seat-label-help">Letters, digits and “-”, up to 10 — e.g. 12 or 12A.</div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Save</button></div>
+  </form>
+</div></div></div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const MARKS = @json(collect($types)->map(fn ($t) => $t[1]));
   const NAMES = @json(collect($types)->map(fn ($t) => $t[0]));
   const MAX_ROWS = {{ \App\Models\VehicleLayout::MAX_ROWS }}, MAX_COLS = {{ \App\Models\VehicleLayout::MAX_COLS }};
   const input = document.getElementById('layout-json'), planEl = document.getElementById('plan');
-  let plan = JSON.parse(input.value), history = [], painting = false, initial = null, submitting = false;
+  let plan = JSON.parse(input.value), history = [], painting = false, initial = null, submitting = false, editing = null;
 
   const snapshot = () => { history.push(JSON.stringify(plan)); if (history.length > 50) history.shift(); };
   const seats = () => plan.cells.flat().filter(c => c.t === 'seat');
@@ -108,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       planEl.appendChild(d);
     }));
     document.getElementById('seat-count').textContent = seats().length;
+    if (seats().length) document.getElementById('plan-error').classList.add('d-none');
     const dupes = Object.keys(counts).filter(k => counts[k] > 1);
     const box = document.getElementById('dupes');
     box.classList.toggle('d-none', !dupes.length);
@@ -141,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const n = rows * (left + right) + (document.getElementById('g-back').checked ? left + right + 1 : 0);
     document.getElementById('g-preview').textContent = n > 0 ? `Makes ${n} passenger seats, ${left}+${right} across.` : '';
   };
-  ['g-rows', 'g-left', 'g-right', 'g-back'].forEach(id => document.getElementById(id).addEventListener('input', preview));
+  ['g-rows', 'g-left', 'g-right', 'g-back'].forEach(id => document.getElementById(id).addEventListener('input', () => { preview(); document.getElementById('g-error').hidden = true; }));
   preview();
 
   function paint(el) {
@@ -159,10 +175,22 @@ document.addEventListener('DOMContentLoaded', () => {
   planEl.addEventListener('dblclick', e => {
     const el = e.target.closest('.cell'); if (!el) return;
     const cell = plan.cells[el.dataset.r][el.dataset.c]; if (cell.t !== 'seat') return;
-    const label = (prompt('Seat number (letters and digits, up to 10):', cell.l) || '').trim();
-    if (!label || label === cell.l) return;
-    if (!/^[\p{L}\p{N}-]{1,10}$/u.test(label)) { alert('Use 1–10 letters or digits.'); return; }
-    snapshot(); cell.l = label; render();
+    editing = cell;
+    const input = document.getElementById('seat-label');
+    input.value = cell.l; input.classList.remove('is-invalid');
+    document.getElementById('seat-modal-title').textContent = 'Seat ' + cell.l;
+    const el2 = document.getElementById('seat-modal'), m = bootstrap.Modal.getInstance(el2) || new bootstrap.Modal(el2);
+    el2.addEventListener('shown.bs.modal', () => { input.focus(); input.select(); }, { once: true });
+    m.show();
+  });
+  document.getElementById('seat-label').addEventListener('input', e => e.target.classList.remove('is-invalid'));
+  document.getElementById('seat-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('seat-label'), label = input.value.trim(), cell = editing;
+    const close = () => bootstrap.Modal.getInstance(document.getElementById('seat-modal')).hide();
+    if (!cell || !label || label === cell.l) { if (!label) { input.classList.add('is-invalid'); input.focus(); return; } return close(); }
+    if (!/^[\p{L}\p{N}-]{1,10}$/u.test(label)) { input.classList.add('is-invalid'); input.focus(); return; }
+    snapshot(); cell.l = label; editing = null; render(); close();
   });
 
   document.querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => {
@@ -182,7 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (seats().length && !confirm('Replace the current plan with a new standard layout?')) return;
     const rows = +document.getElementById('g-rows').value, left = +document.getElementById('g-left').value, right = +document.getElementById('g-right').value;
     const cols = left + 1 + right;
-    if (rows < 1 || rows > MAX_ROWS - 2 || cols > MAX_COLS) { alert('Use 1–' + (MAX_ROWS - 2) + ' rows and at most ' + (MAX_COLS - 1) + ' seats across.'); return; }
+    const gErr = document.getElementById('g-error');
+    if (rows < 1 || rows > MAX_ROWS - 2 || cols > MAX_COLS) { gErr.textContent = 'Use 1–' + (MAX_ROWS - 2) + ' rows and at most ' + (MAX_COLS - 1) + ' seats across.'; gErr.hidden = false; return; }
+    gErr.hidden = true;
     snapshot();
     const front = Array.from({ length: cols }, () => ({ t: 'empty' }));
     front[0] = { t: 'driver' }; front[left] = { t: 'aisle' }; front[left + 1] = { t: 'leader' };
@@ -195,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('layout-form').addEventListener('submit', e => {
-    if (!seats().length) { e.preventDefault(); alert('Add at least one passenger seat.'); return; }
+    if (!seats().length) { e.preventDefault(); const err = document.getElementById('plan-error'); err.classList.remove('d-none'); err.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     submitting = true;
   });
   render();

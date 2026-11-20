@@ -102,6 +102,20 @@
 
 <div class="seat-toast" id="toast" aria-live="polite"></div>
 
+@if($canEdit)
+{{-- Rename a bus: posts label + note (PUT) to departure-vehicles.update, like the old prompts did. --}}
+<div class="modal fade" id="bus-modal" tabindex="-1" aria-labelledby="bus-modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <form method="post" id="bus-form" novalidate><input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="PUT">
+    <div class="modal-header"><h5 class="modal-title" id="bus-modal-title">Rename bus</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label" for="bus-edit-label">Bus name</label><input class="form-control" id="bus-edit-label" name="label" maxlength="50" required autocomplete="off"><div class="invalid-feedback">Give the bus a name.</div></div>
+      <div><label class="form-label" for="bus-edit-note">Note <span class="text-muted fw-normal">(optional)</span></label><input class="form-control" id="bus-edit-note" name="note" maxlength="255" placeholder="Operator, plate…" autocomplete="off"><div class="form-text">Leave empty for none.</div></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary"><i class="ri-save-line me-1"></i>Save</button></div>
+  </form>
+</div></div></div>
+@endif
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   let state = @json($state);
@@ -121,6 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const initials = name => { const w = String(name || '').trim().split(/\s+/).filter(Boolean); return ((w[0] || '?')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   const busName = id => (state.vehicles.find(v => v.id === id) || {}).label || '';
+
+  // Bootstrap 5.0.2 modal helper: open and focus a field (selected) once it is shown.
+  const showModal = (el, focus) => {
+    const m = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+    el.addEventListener('shown.bs.modal', () => { focus.focus(); focus.select(); }, { once: true });
+    m.show();
+  };
 
   function toast(msg, ok = true) {
     if (!msg) return;
@@ -242,11 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     buses.querySelectorAll('[data-edit-bus]').forEach(b => b.addEventListener('click', () => {
       const v = state.vehicles.find(x => x.id === +b.dataset.editBus);
-      const label = prompt('Bus name', v.label); if (label === null || !label.trim()) return;
-      const note = prompt('Note (operator, plate…) — leave empty for none', v.note || ''); if (note === null) return;
-      const f = document.createElement('form'); f.method = 'post'; f.action = vehicleUrl(v.id);
-      f.innerHTML = `<input type="hidden" name="_token" value="${csrf}"><input type="hidden" name="_method" value="PUT"><input type="hidden" name="label"><input type="hidden" name="note">`;
-      f.label.value = label.trim(); f.note.value = note.trim(); document.body.appendChild(f); f.submit();
+      const f = $('bus-form'), label = $('bus-edit-label'), note = $('bus-edit-note');
+      f.action = vehicleUrl(v.id); f.dataset.sent = '';
+      label.value = v.label; note.value = v.note || ''; label.classList.remove('is-invalid');
+      $('bus-modal-title').textContent = 'Rename ' + v.label;
+      showModal($('bus-modal'), label);
     }));
   }
 
@@ -312,6 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
   $('pool-q').addEventListener('input', render);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && selected !== null) { selected = null; render(); } });
   if (edit) {
+    $('bus-form').addEventListener('submit', e => {
+      const f = e.target, label = $('bus-edit-label'), note = $('bus-edit-note');
+      label.value = label.value.trim(); note.value = note.value.trim();
+      if (!label.value) { e.preventDefault(); label.classList.add('is-invalid'); label.focus(); return; }
+      if (f.dataset.sent) { e.preventDefault(); return; }
+      f.dataset.sent = '1';
+    });
+    $('bus-edit-label').addEventListener('input', e => e.target.classList.remove('is-invalid'));
     const pool = $('pool');
     pool.addEventListener('dragover', e => e.preventDefault());
     pool.addEventListener('drop', e => { e.preventDefault(); const id = +e.dataTransfer.getData('text/plain'); if (id && pax(id)?.seat) move(id, null, null); });
