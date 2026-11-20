@@ -1,0 +1,145 @@
+/* Bookings → New booking (staff take a booking by hand). Loaded after admin-ui.css and admin-tour-form.css (tf-* / tl-* classes). */
+
+/* ---------- Page header ---------- */
+.nb-header { display: flex; align-items: flex-start; gap: 10px; padding-bottom: 16px; }
+.nb-header h4 { margin: 0; font-size: 20px; font-weight: 700; }
+.nb-meta { color: #616161; margin-top: 4px; max-width: 760px; }
+.nb-back { width: 32px; height: 32px; padding: 0; display: inline-grid; place-items: center; flex-shrink: 0; margin-top: 1px; }
+.nb-sub { color: #616161; font-size: 13px; line-height: 18px; }
+.nb-errors i { color: inherit; }
+
+/* ---------- Step bar ---------- */
+.nb-steps { display: flex; gap: 4px; position: sticky; top: 70px; z-index: 20; margin-bottom: 16px; padding: 6px; background: #fff;
+  border-radius: 12px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .08), 0 1px 0 rgba(26, 26, 26, .07); overflow-x: auto; scrollbar-width: none; }
+.nb-steps::-webkit-scrollbar { display: none; }
+.nb-steps a { flex: 1 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; color: #616161; font-weight: 550; white-space: nowrap; }
+.nb-steps a:hover { background: #f1f1f1; color: #303030; }
+.nb-step-num { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 12px; font-weight: 650;
+  background: #ebebeb; color: #303030; flex-shrink: 0; }
+.nb-steps a.done { color: #303030; }
+.nb-steps a.done .nb-step-num { background: #29845a; color: #fff; font-size: 0; }
+.nb-steps a.done .nb-step-num::before { content: "\eb75"; font-family: remixicon; font-size: 14px; font-weight: 400; } /* ri-check-line */
+.nb-card { scroll-margin-top: 130px; }
+#step-review { scroll-margin-top: 130px; }
+
+/* ---------- Customer ---------- */
+.nb-lookup .select2-container .select2-selection--single { min-height: 40px; }
+.nb-lookup .select2-container .select2-selection__rendered { line-height: 38px; font-size: 14px; }
+.nb-cust-opt { display: flex; flex-direction: column; line-height: 18px; }
+.nb-cust-opt span { font-size: 13px; opacity: .8; }
+.nb-linked { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 16px; border-radius: 10px; background: #eaf4ff; border: 1px solid #c7e0fb; }
+.nb-linked > i { font-size: 18px; color: #005bd3; }
+.nb-link-btn { padding: 0; min-height: 0; height: auto; margin-top: 4px; font-size: 13px; text-decoration: none; box-shadow: none !important; border: 0; background: none; color: #005bd3; }
+.nb-link-btn:hover { text-decoration: underline; }
+
+/* ---------- Departure picker ---------- */
+.nb-dep-search { max-width: none; margin-bottom: 10px; height: 36px; }
+.nb-dep-list { max-height: 380px; overflow-y: auto; border: 1px solid #e3e3e3; border-radius: 10px; }
+.nb-dep-group-title { position: sticky; top: 0; z-index: 1; padding: 6px 12px; background: #f7f7f7; border-bottom: 1px solid #ebebeb; font-weight: 650; font-size: 13px; color: #303030; }
+.nb-dep-group + .nb-dep-group .nb-dep-group-title { border-top: 1px solid #ebebeb; }
+.nb-dep-opt { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; width: 100%; padding: 9px 12px; border: 0; border-bottom: 1px solid #f1f1f1;
+  background: #fff; text-align: left; color: #303030; font-size: 14px; }
+.nb-dep-group .nb-dep-opt:last-child { border-bottom: 0; }
+.nb-dep-opt:hover { background: #f7f7f7; }
+.nb-dep-opt:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; }
+.nb-dep-opt.active { background: #eaf4ff; box-shadow: inset 3px 0 0 #005bd3; }
+.nb-dep-opt-date { display: inline-flex; align-items: center; gap: 8px; font-weight: 550; }
+.nb-dep-opt-date i { color: #8a8a8a; }
+.nb-dep-opt-price { color: #616161; font-size: 13px; white-space: nowrap; }
+.nb-dep-opt .badge { min-width: 92px; }
+.nb-dep-chosen { display: flex; gap: 16px; align-items: flex-start; padding: 14px 16px; border-radius: 10px; border: 1px solid #c7e0fb; background: #f5faff; }
+.nb-dep-tour { font-weight: 650; font-size: 15px; }
+.nb-dep-date { color: #303030; margin-top: 2px; }
+.nb-fare-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.nb-fare-chips span { padding: 2px 8px; border-radius: 8px; background: #fff; border: 1px solid #e3e3e3; font-size: 13px; color: #616161; }
+.nb-fare-chips b { color: #303030; font-weight: 650; }
+.nb-field-error { color: #8e1f0b; background: #fee9e8; border-radius: 8px; padding: 6px 10px; margin-top: 8px; font-size: 13px; }
+.nb-override:not(:empty) { margin-top: 8px; }
+.nb-override .form-check-label { font-weight: 550; }
+
+/* ---------- Empty states ---------- */
+.nb-empty { text-align: center; color: #616161; padding: 28px 16px; border: 1px dashed #d4d4d4; border-radius: 10px; }
+.nb-empty i { display: block; font-size: 28px; color: #8a8a8a; margin-bottom: 4px; }
+.nb-empty b { display: block; color: #303030; margin-bottom: 2px; }
+.nb-dep-list .nb-empty { border: 0; }
+
+/* ---------- Passengers ---------- */
+.nb-pax { border: 1px solid #e3e3e3; border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 10px; background: #fff; }
+.nb-pax:nth-child(odd) { background: #fcfcfc; }
+.nb-pax-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.nb-pax-title { font-weight: 650; display: inline-flex; align-items: center; gap: 6px; }
+.nb-pax-remove { width: 32px; height: 32px; padding: 0; display: inline-grid; place-items: center; color: #8e1f0b; }
+.nb-pax-remove:disabled { visibility: hidden; }
+.nb-pax .form-label { font-size: 13px; margin-bottom: 4px; }
+.nb-pax-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nb-pax-quick { display: contents; }
+.nb-pax-actions .nb-link-btn { margin: 0 0 0 4px; }
+
+/* ---------- Payment & notes ---------- */
+.nb-status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.nb-status-opt { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 10px 12px; border: 1px solid #d4d4d4; border-radius: 10px; cursor: pointer; background: #fff; }
+.nb-status-opt span { color: #616161; font-size: 13px; line-height: 18px; }
+.nb-status-opt:hover { border-color: #8a8a8a; }
+.btn-check:checked + .nb-status-opt { border-color: #005bd3; box-shadow: inset 0 0 0 1px #005bd3; background: #f5faff; }
+.btn-check:focus-visible + .nb-status-opt { outline: 2px solid #005bd3; outline-offset: 1px; }
+.nb-send { padding: 10px 12px 10px 36px; }
+.nb-pay-note { display: flex; gap: 8px; margin-top: 12px; color: #616161; font-size: 13px; }
+.nb-pay-note i { color: #8a8a8a; font-size: 16px; line-height: 18px; }
+
+/* ---------- Review panel ---------- */
+.nb-side { position: sticky; top: 130px; }
+.nb-rv-block { padding: 10px 0; border-top: 1px solid #ebebeb; }
+.nb-rv-block:first-of-type { border-top: 0; padding-top: 0; }
+.nb-rv-label { color: #616161; font-size: 13px; margin-bottom: 2px; }
+.nb-rv-value { overflow-wrap: anywhere; }
+.nb-rv-lines { display: flex; flex-direction: column; gap: 2px; }
+.nb-rv-line { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.nb-totals { margin-top: 4px; padding: 12px; border-radius: 10px; background: #f7f7f7; }
+.nb-total-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; font-variant-numeric: tabular-nums; }
+.nb-grand { font-size: 16px; padding-bottom: 6px; margin-bottom: 4px; border-bottom: 1px solid #e3e3e3; }
+.nb-grand b { font-size: 18px; }
+.nb-muted { color: #616161; }
+.nb-checklist { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.nb-checklist-title { display: flex; align-items: center; gap: 6px; font-weight: 650; color: #5e4200; }
+.nb-checklist-title i { color: #b28400; }
+.nb-checklist a { padding-left: 22px; font-size: 13px; color: #303030; position: relative; }
+.nb-checklist a::before { content: ""; position: absolute; left: 7px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: #b28400; }
+.nb-checklist a:hover { color: #005bd3; text-decoration: underline; }
+.nb-checklist-ok { display: flex; align-items: center; gap: 6px; font-weight: 650; color: #0c5132; }
+.nb-checklist-ok i { color: #29845a; font-size: 18px; }
+.nb-fineprint { color: #8a8a8a; font-size: 12px; margin: 12px 0 0; }
+
+/* Phone bottom bar (hidden where the review panel is beside the form) */
+.nb-mobilebar { display: none; }
+
+@media (max-width: 1199.98px) {
+  .nb-side { position: static; }
+  .nb-mobilebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; bottom: 0; z-index: 30;
+    margin: 16px -12px 0; padding: 10px 16px; background: #fff; border-top: 1px solid #e3e3e3; box-shadow: 0 -4px 16px rgba(15, 23, 42, .06); }
+  .nb-mobilebar-total { font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+}
+@media (max-width: 767.98px) {
+  .nb-steps { top: 70px; }
+  .nb-steps .nb-step-label { display: none; }
+  .nb-steps a { justify-content: center; padding: 6px; flex: 1 1 0; }
+  .nb-steps a.active-label .nb-step-label { display: inline; }
+  .nb-status { grid-template-columns: 1fr; }
+  .nb-dep-opt { grid-template-columns: 1fr auto; row-gap: 2px; }
+  .nb-dep-opt-price { grid-column: 1; grid-row: 2; }
+  .nb-dep-opt .badge { grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
+  .nb-dep-chosen { flex-direction: column; gap: 8px; }
+  .nb-dep-chosen .text-end { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .nb-dep-chosen .text-end .btn { margin-top: 0 !important; }
+  .nb-linked { flex-wrap: wrap; }
+  .nb-pax-actions .btn { flex: 1 1 auto; }
+}
+
+/* Seats sold bar (chosen departure) */
+.nb-seatbar { width: 140px; height: 6px; margin: 8px 0 4px auto; border-radius: 3px; background: #e3e3e3; overflow: hidden; }
+.nb-seatbar span { display: block; height: 100%; background: #29845a; border-radius: 3px; }
+.nb-seatbar span.hot { background: #e51c00; }
+@media (max-width: 767.98px) { .nb-seatbar { margin: 4px 0; width: 100%; } .nb-dep-chosen .text-end { flex-wrap: wrap; } .nb-dep-chosen .text-end > div:first-child { flex: 1; text-align: left; } }
+@media (max-width: 767.98px) {
+  .nb-dep-chosen .text-end { flex-direction: column; align-items: stretch; gap: 8px; }
+  .nb-dep-chosen .text-end .btn { align-self: flex-start; }
+}
