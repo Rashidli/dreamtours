@@ -42,6 +42,7 @@ class Customer extends Model
 
     public function bookings() { return $this->hasMany(Booking::class)->latest('id'); }
     public function visaEnquiries() { return $this->hasMany(VisaEnquiry::class)->latest('id'); }
+    public function leads() { return $this->hasMany(Lead::class)->latest('id'); }
     public function status() { return $this->belongsTo(CustomerStatus::class, 'customer_status_id'); }
     public function tags() { return $this->belongsToMany(CustomerTag::class)->orderBy('name'); }
     public function assignedUser() { return $this->belongsTo(User::class, 'assigned_user_id'); }

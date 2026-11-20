@@ -56,6 +56,9 @@ class CustomerController extends Controller
     public function show(Customer $customer): View
     {
         $customer->load(['status', 'tags', 'assignedUser', 'bookings.tour.translations', 'bookings.departure', 'bookings.passengers', 'visaEnquiries']);
+        if (request()->user()->can('list-leads')) {
+            $customer->load(['leads' => fn ($q) => $q->with(['stage', 'tour.translations'])->limit(10)]);
+        }
         $stats = Customer::withTrashed()->withStats()->whereKey($customer->id)->first();
         $bookingIds = $customer->bookings->pluck('id');
 
