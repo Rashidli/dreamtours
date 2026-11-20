@@ -221,27 +221,29 @@ sudo -u www-data php artisan up
   - "Needs attention" siyahısı, neytral göstəricilər zolağı, yaxın səfərlər.
   - Doluluq oflayn saxlanmış yerlər daxil hesablanır.
   - Testlər: `DashboardTest`.
-- **Hələ yenilənməyən admin səhifələri** (quruluşu köhnədir, amma ümumi stil tətbiq olunur):
-  1. `tours/passengers` və `roster/*`: roster, check-in (production-da; liderlər mobildə işlədir).
-  2. `my_trips/index` və `my_trips/show`: liderin səfərləri (production-da; mobil).
-  3. `vehicles/*` və `seating/board`: avtobuslar, oturacaq planı (modul 7, staging).
-  4. `bookings/create`: işçi bronu (modul 9, staging).
-  5. `waitlist/index` (staging).
-  6. `alerts/*`: bildirişlər səhifəsi və zəngin açılan siyahısı (modul 8, staging).
-  - Ortaq kiçik işlər:
-    - `includes/media_field`: önizləmə 64px-dir; agentlərin böyük önizləməli variantına keçmək.
-    - `activity_log/entry`: kiçik mətn.
-    - `flash`, `validation_errors`, `lang_tabs`, `capacity_override`: yalnız ümumi stil tətbiq olunur.
-  - Qəsdən toxunulmayanlar: PDF-lər (`receipts/*`, `roster/pdf`, `seating/pdf`) və `vendor/pagination`.
-  - Tövsiyə olunan sıra: 1–2, sonra 3–6. Paralel aparmaq olar (3 agent).
-- **Növbəti UX işi (istifadəçi istədi):** müştəri detal səhifəsi (`/admin/customers/{id}`). Yalnız görünüş yox, istifadə rahatlığı da düşünülməlidir.
-- **İstifadəçinin tələbi (2026-11-20):** detal səhifələri, popup-lar, bildirişlər, success/error mesajları da UX və UI baxımından yenilənməlidir, heç biri unudulmamalıdır. Agentlər bitdikdən sonra ortaq fayllarda görüləcək işlər:
-  - **Uğur mesajı:** `includes/flash.blade.php` (`session('message')`) və footer-dəki `successToast` Polaris toast/banner kimi olmalıdır. Hər səhifədə eyni yerdə, avtomatik bağlanan və əl ilə bağlana bilən.
-  - **Xətalar:** `includes/validation_errors.blade.php` və footer-dəki `validationToast`. Yuxarıda xülasə banner, sahənin yanında inline xəta, ilk xətalı sahəyə fokus.
-  - **Təsdiq pəncərələri:** brauzerin `confirm()` dialoqları (35 faylda 41 yerdə `onclick/onsubmit="return confirm(...)"`) gözəl təsdiq modalı ilə əvəz olunmalıdır. Plan: `data-confirm="..."` atributu və footer-də ümumi handler. Mətn, qırmızı "Delete" düyməsi və "Cancel".
-  - **Modallar:** başlıq, məzmun və footer düymələri hər yerdə eyni qaydada olsun. Scrollable modal-da `<form>` problemi üçün düzəlişi (kataloq agenti tapıb) `admin-ui.css`-ə köçürmək.
-  - **Detal səhifələri:** müştəri (`customers/show`, UX üzərində işləmək lazımdır), habelə yoxlanmamış detal və pəncərələr: kontakt müraciəti, viza müraciəti, rol və istifadəçi, roster detalları və s. Hamısı bir-bir ekran görüntüsü ilə yoxlanacaq.
-  - **Boş vəziyyətlər və yüklənmə halları:** vahid komponent.
+- **Faza 2 (2026-11-20), hamısı birləşdirilib.** Production xəttinə aid olanlar `admin-design`-da, modul 7–9-a aid olanlar isə yalnız `develop`-dadır.
+  - **Yeni dizayn:** Roster və check-in (`admin-roster.css`, mobil, yapışqan sayğaclar), My trips (`admin-mytrips.css`), müştəri detal səhifəsinin UX-i (`admin-customerdetail.css`, "Needs attention", `Customer::leads()`), Vehicles və seating (`admin-vehicles.css`, `prompt`/`alert` əvəzinə modallar), New booking (depozit formulu `ManualBookingController::deposit()`-də), Waitlist, Alerts ("Mark all done" filtrə əməl edir).
+  - **Bildiriş sistemi** (`includes/flash`, `validation_errors`, `footer`, `admin-ui.css`-in sonu):
+    - uğur mesajı toast kimi çıxır, `window.dtToast()`;
+    - `error`, `warning` və `info` banner kimi çıxır;
+    - formada xəta olanda xülasə banneri sahələrə linklərlə göstərilir;
+    - HTML atributlarındakı bütün `confirm()` çağırışları modal təsdiq pəncərəsi açır. Yeni kodda `data-confirm="Sual? Nəticə."` istifadə et, istəsən `data-confirm-button` və `data-confirm-tone` də əlavə et.
+  - **Xəta səhifələri:** `resources/views/errors/*` (403, 404, 419, 429, 500, 503). Həm sayt, həm admin üçündür, heç bir include-dan asılı deyil.
+  - **500 yoxlaması:**
+    - Silinmiş tur və ya pickup nöqtəsi olan tarix və bronlar artıq açılır, "Deleted tour" nişanı göstərilir.
+    - `Booking::tour()`/`pickupPoint()` və `BookingPassenger::pickupPoint()` artıq `withTrashed` istifadə edir.
+    - Turun sətri bazadan tamamilə silinibsə, səhifə 404 qaytarır.
+    - Testlər: `DeletedTourDepartureTest`, `RobustDeletedRecordsTest`, `AlertsCompleteAllTest`.
+  - **Yoxlama:** staging-də 152 admin URL açıldı, 500 və PHP xətası yoxdur. Test dəstində yalnız 12 köhnə uğursuz test qalır.
+- **Qalan kiçik işlər:**
+  - view-ların öz `<script>` bloklarındakı `confirm()` çağırışları hələ brauzer pəncərəsini açır;
+  - view-ların özlərinin çap etdiyi `session('message')` alert-ləri silinməlidir (indi təkrar mesaj avtomatik gizlədilir);
+  - `includes/media_field` önizləməsi;
+  - `capacity_override` switch görünüşünə keçməlidir;
+  - `admin-crm.css`-dəki `.seat-plan`, `.pax-chip` və `.stop-dot` qaydaları `admin-vehicles.css`-ə köçürülməlidir;
+  - xəta səhifələri ictimai saytda da Polaris görünüşündədir; saytın öz dizaynında 404 istənilsə, ayrıca etmək lazımdır.
+- **Production:** `admin-design` hələ canlıya çıxmayıb, istifadəçinin razılığı lazımdır.
+- **Agentlər üçün qeyd:** worktree-də `vendor` staging-ə symlink olduğundan `render.php` `App\` siniflərini staging-dən yükləyir. PHP dəyişikliyini yoxlamaq üçün `/opt/admin-shots/bin/robust-render-app.php` kimi worktree autoload-u ilə işləyən skriptdən istifadə et.
 
 ## 5. UI qaydaları (ortaq CSS)
 
