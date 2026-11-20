@@ -1,0 +1,176 @@
+/* My trips (tour leader / driver view): phone-first, large tap targets, readable outdoors. Prefix mt-. */
+
+.mt-page { --mt-tap: 44px; }
+.mt-page .text-muted { color: #616161 !important; }
+
+/* ---------- Title ---------- */
+.mt-title { display: block; }
+.mt-back { display: inline-flex; align-items: center; gap: 4px; color: #616161; font-weight: 550; margin-bottom: 4px; min-height: 32px; }
+.mt-back:hover { color: #303030; }
+.mt-office-note { margin-bottom: 12px; }
+
+/* ---------- Upcoming / past segmented control ---------- */
+.mt-seg { display: inline-flex; gap: 2px; padding: 3px; background: #e3e3e3; border-radius: 10px; margin-bottom: 16px; }
+.mt-seg-item { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 16px; border-radius: 8px; color: #616161; font-weight: 600; font-size: 14px; }
+.mt-seg-item:hover { color: #303030; }
+.mt-seg-item.active { background: #fff; color: #303030; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+
+/* ---------- Big buttons ---------- */
+.mt-big { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px !important; font-size: 15px !important; font-weight: 600; }
+.mt-big i { font-size: 18px; }
+.mt-page .btn i:first-child:not(:only-child) { margin-right: 2px; }
+
+/* ---------- Hero (trip page) and next-trip card (list) ---------- */
+.mt-hero .card-body, .mt-next .card-body { padding: 20px; }
+.mt-hero-date { font-size: 14px; font-weight: 600; color: #303030; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.mt-hero-time { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin-top: 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.mt-hero-time i { font-size: 20px; color: #616161; align-self: center; }
+.mt-hero-return { flex-basis: 100%; font-size: 14px; font-weight: 500; color: #616161; letter-spacing: 0; }
+.mt-hero-roles { margin-top: 8px; color: #616161; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mt-page .badge { font-size: 12px; }
+
+.mt-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+.mt-stat { display: block; border: 1px solid #ebebeb; border-radius: 10px; padding: 10px 12px; color: #303030; background: #fff; }
+.mt-stat:hover { background: #f7f7f7; color: #303030; }
+.mt-stat .label { display: block; color: #616161; font-size: 13px; }
+.mt-stat .value { display: block; font-size: 24px; font-weight: 700; line-height: 1.2; }
+.mt-stat .of { font-size: 14px; color: #616161; font-weight: 500; margin-left: 2px; }
+.mt-stat.is-alert { border-color: #fdb4b4; background: #fff4f4; }
+
+.mt-hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.mt-hero-actions .btn-primary { flex: 1 1 260px; }
+.mt-hero-actions .btn-light { flex: 0 1 200px; }
+
+.mt-jump { display: flex; gap: 6px; margin: 16px -20px -4px; padding: 0 20px 4px; overflow-x: auto; scrollbar-width: none; }
+.mt-jump::-webkit-scrollbar { display: none; }
+.mt-jump a { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; background: #f1f1f1; color: #303030; font-weight: 550; }
+.mt-jump a:hover { background: #e3e3e3; }
+
+.mt-next { border-top: 4px solid #29845a; }
+.mt-next-kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: #29845a; margin-bottom: 6px; }
+.mt-next-title { font-size: 20px; font-weight: 700; margin: 6px 0 8px; letter-spacing: -.02em; }
+.mt-next-facts { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; font-size: 14px; }
+.mt-next-facts i { color: #616161; margin-right: 4px; }
+.mt-next-more { display: flex; align-items: center; justify-content: center; gap: 2px; min-height: var(--mt-tap); margin-top: 6px; color: #005bd3; font-weight: 550; }
+.mt-sub-title { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; font-weight: 650; color: #616161; margin-bottom: 8px; }
+
+/* ---------- Sections (trip page) ---------- */
+.mt-section { scroll-margin-top: 84px; }
+.mt-side { display: flex; flex-direction: column; }
+.mt-side > #mt-pickups { order: -1; }   /* pickups are what drivers need first */
+.mt-page .tf-head { margin-bottom: 14px; }
+.mt-page .tf-head p { color: #616161; }
+
+/* Pickup timeline */
+.mt-timeline { list-style: none; margin: 0; padding: 0; }
+.mt-stop { position: relative; display: flex; gap: 12px; padding-bottom: 16px; }
+.mt-stop:last-child { padding-bottom: 0; }
+.mt-stop:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 30px; bottom: 2px; width: 2px; background: #e3e3e3; }
+.mt-stop-dot { flex: 0 0 28px; height: 28px; border-radius: 50%; background: #303030; color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 13px; }
+.mt-stop-body { flex: 1; min-width: 0; font-size: 14px; }
+.mt-stop-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 28px; }
+.mt-stop-name { font-weight: 650; font-size: 15px; }
+.mt-stop-hint { margin-top: 4px; padding: 6px 10px; background: #f7f7f7; border-radius: 8px; color: #4a4a4a; }
+.mt-stop-hint i { margin-right: 4px; color: #616161; }
+.mt-stop-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.mt-stop-actions .btn, .mt-map-btn, .mt-contact-more .btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 14px; }
+.mt-map-btn { flex: 0 0 auto; }
+.mt-warn { display: flex; align-items: center; gap: 6px; margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: #fff5ea; color: #8a4b00; font-weight: 550; }
+.mt-warn:hover { color: #5e3300; }
+
+/* People / contacts */
+.mt-person { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #ebebeb; font-size: 14px; }
+.mt-person:first-of-type { padding-top: 0; }
+.mt-person-icon { flex: 0 0 36px; height: 36px; border-radius: 10px; background: #f1f1f1; display: grid; place-items: center; font-size: 18px; color: #303030; }
+.mt-person-body { flex: 1; min-width: 0; }
+.mt-person-body > a[href^="tel:"] { display: inline-flex !important; align-items: center; min-height: 40px; margin-top: 6px; margin-right: 6px; padding: 0 12px; border-radius: 8px; background: #fff; color: #303030; font-weight: 550; box-shadow: var(--ui-bevel-secondary, 0 0 0 1px #d4d4d4 inset, 0 -1px 0 #b5b5b5 inset); }
+.mt-person-body > a[href^="mailto:"] { display: none !important; }   /* replaced by the Email button below */
+.mt-contact-more { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mt-contact-more:empty { display: none; }
+.mt-person-office { border-bottom: 0; }
+.mt-emergency { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 10px; background: #fff4f4; color: #8e0b21; margin-top: 4px; min-height: var(--mt-tap); }
+.mt-emergency i { font-size: 22px; }
+.mt-emergency span span { color: #8e0b21; opacity: .85; }
+.mt-emergency:hover { color: #6b0718; background: #ffe9e9; }
+
+/* Notes */
+.mt-note { padding: 10px 12px; border-radius: 10px; background: #f7f7f7; font-size: 14px; }
+.mt-note + .mt-note { margin-top: 8px; }
+.mt-note.is-mine { background: #fff8db; }
+.mt-note-text { white-space: pre-line; margin-top: 2px; color: #303030; }
+
+/* Itinerary */
+.mt-day { display: flex; gap: 12px; font-size: 14px; }
+.mt-day + .mt-day { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ebebeb; }
+.mt-day-num { flex: 0 0 auto; height: 24px; padding: 0 8px; border-radius: 6px; background: #f1f1f1; font-weight: 650; font-size: 12px; display: inline-flex; align-items: center; }
+
+/* Summary table */
+.mt-summary .table { font-size: 14px; }
+.mt-summary .table td:first-child a { font-weight: 550; }
+
+/* Roster */
+.mt-roster { scroll-margin-top: 76px; }
+.mt-roster-head h5 { font-size: 16px; font-weight: 650; }
+.mt-pax { padding: 14px 0; border-color: #ebebeb; font-size: 14px; scroll-margin-top: 84px; }
+.mt-pax.is-noshow { background: #fff4f4; margin: 0 -20px; padding-left: 20px; padding-right: 20px; }
+.mt-pax-name { font-size: 15px; }
+.mt-pax .text-muted { margin-top: 2px; }
+.mt-pax-mark { min-width: min(100%, 300px); }
+.mt-tel { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; margin-top: 4px; font-weight: 550; }
+.mt-pax .btn { min-height: 38px; font-size: 13px; }
+.mt-pax details summary { min-height: 32px; display: inline-flex; align-items: center; }
+
+/* ---------- Trip list rows ---------- */
+.mt-list-title { font-size: 14px; font-weight: 650; margin: 20px 0 8px; color: #303030; }
+.mt-list { overflow: hidden; }
+.mt-row { display: flex; align-items: center; gap: 14px; padding: 14px 20px; color: #303030; border-bottom: 1px solid #ebebeb; min-height: 72px; }
+.mt-row:last-child { border-bottom: 0; }
+.mt-row:hover { background: #f7f7f7; color: #303030; }
+.mt-cal { flex: 0 0 52px; text-align: center; border: 1px solid #e3e3e3; border-radius: 10px; overflow: hidden; line-height: 1.1; background: #fff; }
+.mt-cal .m { display: block; background: #303030; color: #fff; font-size: 11px; font-weight: 650; text-transform: uppercase; padding: 2px 0; }
+.mt-cal .d { display: block; font-size: 20px; font-weight: 700; padding-top: 3px; }
+.mt-cal .w { display: block; font-size: 11px; color: #616161; padding-bottom: 3px; }
+.mt-row.is-past .mt-cal .m { background: #8a8a8a; }
+.mt-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.mt-row-title { font-weight: 650; font-size: 15px; }
+.mt-row-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; color: #616161; font-size: 13px; }
+.mt-row-meta i, .mt-row-team i { margin-right: 4px; }
+.mt-row-team { color: #616161; font-size: 13px; }
+.mt-row-end { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.mt-row-end > i { font-size: 22px; color: #8a8a8a; }
+
+/* Empty state */
+.mt-empty { text-align: center; padding: 40px 20px !important; }
+.mt-empty-icon { width: 56px; height: 56px; border-radius: 16px; background: #f1f1f1; display: grid; place-items: center; margin: 0 auto 12px; font-size: 26px; color: #616161; }
+.mt-empty h5 { font-size: 16px; font-weight: 650; margin-bottom: 6px; }
+.mt-empty p.mt-empty-office { margin: 20px auto 0; font-size: 13px; }
+.mt-empty p { color: #616161; max-width: 420px; margin: 0 auto 16px; font-size: 14px; }
+
+@media (min-width: 768px) {
+  .mt-hero-actions .btn-primary { flex: 0 1 auto; padding: 0 28px; }
+  .mt-next .mt-big.w-100 { width: auto !important; padding: 0 28px; }
+  .mt-next-more { display: inline-flex; margin-left: 16px; }
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 575.98px) {
+  .mt-hero .card-body, .mt-next .card-body { padding: 16px; }
+  .mt-jump { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
+  .mt-hero-time { font-size: 20px; }
+  .mt-stat { padding: 8px 10px; }
+  .mt-stat .value { font-size: 22px; }
+  .mt-hero-actions .btn { flex: 1 1 100%; }
+  .mt-seg { display: flex; }
+  .mt-seg-item { flex: 1; justify-content: center; min-height: 40px; }
+  .mt-row { padding: 12px 16px; gap: 12px; }
+  .mt-row-end .badge { display: none; }
+  .mt-pax.is-noshow { margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+  .mt-pax-mark { width: 100%; }
+  .mt-pax .btn { min-height: 44px; flex: 1 1 auto; }
+  .mt-filters .form-control, .mt-filters .form-select, .mt-filters .btn { min-height: 44px; font-size: 16px; }   /* 16px stops iOS zooming */
+  .mt-roster-head .btn, .mt-roster-head .btn-group { flex: 1 1 auto; }
+}
+
+@media print {
+  .mt-hero-actions, .mt-jump, .mt-back, .mt-emergency, .mt-contact-more { display: none !important; }
+}

@@ -22,8 +22,13 @@ class Roster
 
     public static function load(TourDeparture $departure): TourDeparture
     {
+        // A trip stays readable after its tour is archived (soft-deleted): staff still need its passengers.
+        if ($departure->relationLoaded('tour') && !$departure->tour) {
+            $departure->unsetRelation('tour');
+        }
+
         return $departure->loadMissing([
-            'tour.translations', 'tour.pickupPoints.translations', 'pickupPoints.translations', 'staff.user',
+            'tour' => fn ($q) => $q->withTrashed(), 'tour.translations', 'tour.pickupPoints.translations', 'pickupPoints.translations', 'staff.user',
             'bookings' => fn ($q) => $q->orderBy('created_at')->orderBy('id'),
             'bookings.passengers' => fn ($q) => $q->orderBy('id'),
             'bookings.passengers.pickupPoint.translations', 'bookings.passengers.attendanceBy',
@@ -43,7 +48,7 @@ class Roster
         self::load($departure);
         $rows ??= self::all($departure);
 
-        return ($departure->pickupPoints->isNotEmpty() ? $departure->pickupPoints : $departure->tour->pickupPoints)
+        return ($departure->pickupPoints->isNotEmpty() ? $departure->pickupPoints : ($departure->tour?->pickupPoints ?? collect()))
             ->concat($rows->pluck('passenger.pickupPoint')->filter())->unique('id')->values();
     }
 
