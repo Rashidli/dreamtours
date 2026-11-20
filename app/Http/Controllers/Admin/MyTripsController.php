@@ -23,7 +23,7 @@ class MyTripsController extends Controller
         $past = $request->query('show') === 'past';
         $assignments = DepartureStaff::where('user_id', $request->user()->id)
             ->whereHas('departure', fn ($q) => $past ? $q->where('departs_at', '<', now()->startOfDay()) : $q->where('departs_at', '>=', now()->startOfDay()))
-            ->with(['departure.tour.translations', 'departure.staff.user'])
+            ->with(['departure.tour' => fn ($q) => $q->withTrashed(), 'departure.tour.translations', 'departure.staff.user'])
             ->get()
             ->sortBy(fn ($a) => $a->departure->departs_at->timestamp * ($past ? -1 : 1))
             ->groupBy('tour_departure_id');
@@ -38,6 +38,7 @@ class MyTripsController extends Controller
 
         $f = RosterController::filters($request);
         $all = Roster::all($departure);
+        abort_unless($departure->tour, 404, 'The tour of this trip no longer exists.');
         $stops = Roster::stops($departure, $all);
         $rows = Roster::filter($all, $f, $stops, $request->user());
         if ($format = $request->query('export')) {
