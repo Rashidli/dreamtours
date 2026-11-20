@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\StaffAlert;
 use App\Support\Alerts;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,16 +15,27 @@ use Illuminate\View\View;
 /** Staff alerts (CRM §15): open and done, each linked to its record. */
 class AlertController extends Controller
 {
+    /** The list filters, shared by the list and "Mark all done". */
+    private static function filterRules(): array
+    {
+        return ['type' => ['nullable', Rule::in(array_keys(Alerts::TYPES))], 'mine' => ['nullable', 'boolean']];
+    }
+
+    /** Alerts this person may see, narrowed by the list filters (kind, assigned to me). */
+    private function filtered(Request $request, array $f): Builder
+    {
+        return StaffAlert::visibleTo($request->user())->when($f['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
+            ->when(filter_var($f['mine'] ?? false, FILTER_VALIDATE_BOOLEAN), fn ($q) => $q->where('assigned_user_id', $request->user()->id));
+    }
+
     public function index(Request $request): View
     {
         Alerts::sweepIfDue();
-        $f = $request->validate(['show' => ['nullable', Rule::in(['open', 'done'])], 'type' => ['nullable', Rule::in(array_keys(Alerts::TYPES))], 'mine' => ['nullable', 'boolean']]);
+        $f = $request->validate(['show' => ['nullable', Rule::in(['open', 'done'])]] + self::filterRules());
         $done = ($f['show'] ?? 'open') === 'done';
-        $base = fn () => StaffAlert::visibleTo($request->user())->when($f['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
-            ->when($request->boolean('mine'), fn ($q) => $q->where('assigned_user_id', $request->user()->id));
 
         return view('admin.alerts.index', [
-            'alerts' => $base()->when($done, fn ($q) => $q->whereNotNull('completed_at')->latest('completed_at'), fn ($q) => $q->open()->latest())
+            'alerts' => $this->filtered($request, $f)->when($done, fn ($q) => $q->whereNotNull('completed_at')->latest('completed_at'), fn ($q) => $q->open()->latest())
                 ->with(['assignedUser', 'completedBy'])->paginate(30)->withQueryString(),
             'counts' => StaffAlert::visibleTo($request->user())->open()->selectRaw('type, count(*) n')->groupBy('type')->pluck('n', 'type'),
             'f' => ['show' => $done ? 'done' : 'open', 'type' => $f['type'] ?? null],
@@ -48,8 +60,8 @@ class AlertController extends Controller
 
     public function completeAll(Request $request): RedirectResponse
     {
-        $d = $request->validate(['type' => ['nullable', Rule::in(array_keys(Alerts::TYPES))]]);
-        $n = StaffAlert::visibleTo($request->user())->open()->when($d['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
+        // Same filters as the list, so "Mark all done" closes exactly the open alerts the person is looking at.
+        $n = $this->filtered($request, $request->validate(self::filterRules()))->open()
             ->update(['completed_at' => now(), 'completed_by' => $request->user()->id, 'completed_note' => 'Marked done', 'updated_at' => now()]);
 
         return back()->with('message', "$n ".str('alert')->plural($n).' marked done.');

@@ -2,7 +2,6 @@
      Styles are scoped here because this shows on every admin page. --}}
 @php
   $tz = \App\Http\Controllers\Admin\ActivityLogController::DISPLAY_TIMEZONE;
-  $iconFix = ['ri-funnel-line' => 'ri-user-received-line'];
   $tones = ['danger' => ['#fedad9', '#8e0b21'], 'warning' => ['#fff1b8', '#5e4200'], 'info' => ['#e0f0ff', '#00527c'], 'primary' => ['#eaf4ff', '#005bd3'], 'success' => ['#cdfee1', '#0c5132'], 'secondary' => ['#ebebeb', '#616161']];
 @endphp
 <style>
@@ -32,7 +31,7 @@
       [$bg, $fg] = $tones[$aColour] ?? $tones['secondary'];
     @endphp
     <div class="al-dd-item">
-      <span class="al-dd-icon" style="background:{{ $bg }};color:{{ $fg }}" aria-hidden="true"><i class="{{ $iconFix[$aIcon] ?? $aIcon }}"></i></span>
+      <span class="al-dd-icon" style="background:{{ $bg }};color:{{ $fg }}" aria-hidden="true"><i class="{{ $aIcon }}"></i></span>
       <a href="{{ $alert->url ?: route('alerts.index') }}" class="al-dd-text">
         <span class="al-dd-title">{{ str($alert->title)->limit(90) }}</span>
         @if($alert->body)<span class="al-dd-body">{{ $alert->body }}</span>@endif

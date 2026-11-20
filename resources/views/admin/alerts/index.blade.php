@@ -24,12 +24,7 @@
     'email_failed' => ['Open', 'The customer did not get the email — check the address or contact them another way.'],
     'support_request' => ['Read message', 'A visitor wrote through the contact form; it closes when marked read.'],
   ];
-  // Icons missing from the icon font, swapped for ones that exist.
-  $iconFix = ['ri-funnel-line' => 'ri-user-received-line'];
-  $meta = function ($alert) use ($iconFix) {
-      [$label, $icon, $colour] = \App\Support\Alerts::TYPES[$alert->type] ?? ['Alert', 'ri-notification-3-line', 'secondary'];
-      return [$label, $iconFix[$icon] ?? $icon, $colour];
-  };
+  $meta = fn ($alert) => array_slice(\App\Support\Alerts::TYPES[$alert->type] ?? ['Alert', 'ri-notification-3-line', 'secondary'], 0, 3);
 
   // Today / Yesterday / Earlier, by when it was raised (open) or closed (done).
   $groups = collect($alerts->items())->groupBy(function ($alert) use ($done, $tz) {
@@ -37,8 +32,8 @@
       return $at->isToday() ? 'Today' : ($at->isYesterday() ? 'Yesterday' : 'Earlier');
   });
 
-  // "Mark all done" applies to every open alert of the chosen type (not only the assigned ones).
-  $markAllCount = $type ? (int) ($counts[$type] ?? 0) : (int) $openTotal;
+  // "Mark all done" closes exactly the open alerts this list shows (same kind / assigned-to-me filters).
+  $markAllCount = $done ? 0 : $alerts->total();
   $typeLabel = $type ? \App\Support\Alerts::TYPES[$type][0] : null;
 @endphp
 <div class="main-content"><div class="page-content"><div class="container-fluid">
@@ -50,7 +45,7 @@
                         <div class="d-flex flex-wrap gap-2">
                           @can('edit-settings')<button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#alert-settings-modal"><i class="ri-settings-3-line me-1"></i>Settings</button>@endcan
                           @if(!$done && $markAllCount)
-                            <form method="post" action="{{ route('alerts.complete-all') }}" onsubmit="return confirm(@js('Mark '.($markAllCount === 1 ? 'the 1 open' : 'all '.$markAllCount.' open').($typeLabel ? ' “'.$typeLabel.'”' : '').' '.str('alert')->plural($markAllCount).' as done? They are closed for everyone.'))">@csrf<input type="hidden" name="type" value="{{ $type ?? '' }}"><button class="btn btn-light"><i class="ri-check-double-line me-1"></i>Mark all done</button></form>
+                            <form method="post" action="{{ route('alerts.complete-all') }}" onsubmit="return confirm(@js('Mark '.($markAllCount === 1 ? 'the 1 open' : 'all '.$markAllCount.' open').($typeLabel ? ' “'.$typeLabel.'”' : '').' '.str('alert')->plural($markAllCount).($mine ? ' assigned to you' : '').' as done? They are closed for everyone.'))">@csrf<input type="hidden" name="type" value="{{ $type ?? '' }}">@if($mine)<input type="hidden" name="mine" value="1">@endif<button class="btn btn-light"><i class="ri-check-double-line me-1"></i>Mark all done</button></form>
                           @endif
                         </div>
                     </div>
@@ -73,7 +68,7 @@
     @foreach(\App\Support\Alerts::TYPES as $t => [$label, $icon, $colour, $permission])
       @continue(!auth()->user()->can($permission))
       @continue(!($counts[$t] ?? 0) && $type !== $t && !$done)
-      <a class="al-type {{ $type === $t ? 'active' : '' }}" href="{{ $url(['type' => $type === $t ? null : $t]) }}"><i class="{{ $iconFix[$icon] ?? $icon }} al-c-{{ $colour }}"></i>{{ $label }}@if(!$done && ($counts[$t] ?? 0))<span class="al-type-count">{{ $counts[$t] }}</span>@endif</a>
+      <a class="al-type {{ $type === $t ? 'active' : '' }}" href="{{ $url(['type' => $type === $t ? null : $t]) }}"><i class="{{ $icon }} al-c-{{ $colour }}"></i>{{ $label }}@if(!$done && ($counts[$t] ?? 0))<span class="al-type-count">{{ $counts[$t] }}</span>@endif</a>
     @endforeach
   </div>
 
@@ -133,7 +128,7 @@
       <p class="text-muted mb-3">In-app alerts for everyone allowed to act on them. Thresholds (seats left for “almost full”, days ahead for balances and tours) are in <a href="{{ route('settings.index') }}">Settings › Staff alerts</a>. Email and WhatsApp delivery can be added once those channels are connected.</p>
       <div class="al-switches">
         @foreach(\App\Support\Alerts::TYPES as $t => [$label, $icon, $colour, $permission])
-          <div class="form-check form-switch al-switch"><input class="form-check-input" type="checkbox" role="switch" name="on[]" value="{{ $t }}" id="alert-on-{{ $t }}" @checked(\App\Support\Alerts::enabled($t))><label class="form-check-label" for="alert-on-{{ $t }}"><span class="fw-semibold"><i class="{{ $iconFix[$icon] ?? $icon }} al-c-{{ $colour }} me-1"></i>{{ $label }}</span><span class="text-muted d-block">Seen by people with {{ \App\Support\PermissionGroups::label($permission) }}</span></label></div>
+          <div class="form-check form-switch al-switch"><input class="form-check-input" type="checkbox" role="switch" name="on[]" value="{{ $t }}" id="alert-on-{{ $t }}" @checked(\App\Support\Alerts::enabled($t))><label class="form-check-label" for="alert-on-{{ $t }}"><span class="fw-semibold"><i class="{{ $icon }} al-c-{{ $colour }} me-1"></i>{{ $label }}</span><span class="text-muted d-block">Seen by people with {{ \App\Support\PermissionGroups::label($permission) }}</span></label></div>
         @endforeach
       </div>
     </div>

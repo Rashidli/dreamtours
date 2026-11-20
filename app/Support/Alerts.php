@@ -22,7 +22,7 @@ class Alerts
 {
     /** type => [label, icon, colour, permission needed to see it] */
     public const TYPES = [
-        'new_inquiry' => ['New inquiry', 'ri-funnel-line', 'primary', 'list-leads'],
+        'new_inquiry' => ['New inquiry', 'ri-user-received-line', 'primary', 'list-leads'],
         'payment_pending' => ['Payment to verify', 'ri-time-line', 'warning', 'list-payments'],
         'balance_due_soon' => ['Balance due soon', 'ri-calendar-event-line', 'info', 'list-payments'],
         'booking_cancelled' => ['Cancellation', 'ri-close-circle-line', 'danger', 'list-bookings'],
